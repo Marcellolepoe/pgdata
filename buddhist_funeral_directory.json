@@ -1,0 +1,4690 @@
+[
+  {
+    "funeralParlourName": "1 Stop Buddhist Funeral Services",
+    "contactNumber": 64529588,
+    "yearsOfService": 2013.0,
+    "location": NaN,
+    "website": "https://www.1stopbuddhistfuneralservices.com.sg/funeral-packages-parlour/",
+    "packageName": "Void Deck",
+    "priceBand": "Lower",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": 5988,
+      "4": 6288.0,
+      "5": 6588,
+      "6": 6888.0,
+      "7": 7188.0
+    },
+    "casket": {
+      "label": [
+        "Half-Glass"
+      ],
+      "display": "Half Glass/E04"
+    },
+    "catering": {
+      "label": [
+        "Light Refreshments and Drinks"
+      ],
+      "display": "Snacks and Refreshments"
+    },
+    "tentage": {
+      "label": [
+        "Basic Setup"
+      ],
+      "display": "25 Tables, 100 Chairs, Fans"
+    },
+    "decor": {
+      "label": [
+        "No Decor"
+      ],
+      "display": NaN
+    },
+    "hearse": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": "Included"
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Incense, Candles and Other Prayer Items"
+    }
+  },
+  {
+    "funeralParlourName": "1 Stop Buddhist Funeral Services",
+    "contactNumber": 64529588,
+    "yearsOfService": 2013.0,
+    "location": "Casket Fairprice",
+    "website": "https://www.1stopbuddhistfuneralservices.com.sg/funeral-packages-parlour/",
+    "packageName": "Parlour",
+    "priceBand": "Middle",
+    "daysAvailable": {
+      "1": NaN,
+      "2": 7288.0,
+      "3": 8088,
+      "4": 8888.0,
+      "5": 9688,
+      "6": 10488.0,
+      "7": 11288.0
+    },
+    "casket": {
+      "label": [
+        "Half-Glass"
+      ],
+      "display": "Half Glass/E04"
+    },
+    "catering": {
+      "label": [
+        "Light Refreshments and Drinks"
+      ],
+      "display": "Snacks and Refreshments"
+    },
+    "tentage": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": NaN
+    },
+    "decor": {
+      "label": [
+        "No Decor"
+      ],
+      "display": NaN
+    },
+    "hearse": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": "Included"
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Incense, Candles and Other Prayer Items"
+    }
+  },
+  {
+    "funeralParlourName": "24 Filial Funeral",
+    "contactNumber": 82893000,
+    "yearsOfService": 2023.0,
+    "location": NaN,
+    "website": "https://24filialfuneral.com/buddhist-funeral-service-singapore/",
+    "packageName": "Sangha w/o Tentage",
+    "priceBand": "Lower",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": 5450,
+      "4": 5668.0,
+      "5": 5886,
+      "6": 6104.0,
+      "7": 6322.0
+    },
+    "casket": {
+      "label": [
+        "Basic"
+      ],
+      "display": "Basic Casket"
+    },
+    "catering": {
+      "label": [
+        "Light Refreshments and Drinks"
+      ],
+      "display": "Snacks and Refreshments"
+    },
+    "tentage": {
+      "label": [
+        "Basic Setup"
+      ],
+      "display": "25 Tables, 100 Chairs"
+    },
+    "decor": {
+      "label": [
+        "No Decor"
+      ],
+      "display": NaN
+    },
+    "hearse": {
+      "label": [
+        "Basic Hearse"
+      ],
+      "display": "Standard Hearse"
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Incense, Candles and Other Prayer Items"
+    }
+  },
+  {
+    "funeralParlourName": "24 Filial Funeral",
+    "contactNumber": 82893000,
+    "yearsOfService": 2023.0,
+    "location": NaN,
+    "website": "https://24filialfuneral.com/buddhist-funeral-service-singapore/",
+    "packageName": "Sangha",
+    "priceBand": "Middle",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": 6540,
+      "4": 7085.0,
+      "5": 7630,
+      "6": 8175.0,
+      "7": 8720.0
+    },
+    "casket": {
+      "label": [
+        "Basic"
+      ],
+      "display": "Basic Casket"
+    },
+    "catering": {
+      "label": [
+        "Light Refreshments and Drinks"
+      ],
+      "display": "Snacks and Refreshments"
+    },
+    "tentage": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": NaN
+    },
+    "decor": {
+      "label": [
+        "No Decor"
+      ],
+      "display": NaN
+    },
+    "hearse": {
+      "label": [
+        "Basic Hearse"
+      ],
+      "display": "Standard Hearse"
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Incense, Candles and Other Prayer Items"
+    }
+  },
+  {
+    "funeralParlourName": "24 Filial Funeral",
+    "contactNumber": 82893000,
+    "yearsOfService": 2023.0,
+    "location": NaN,
+    "website": "https://24filialfuneral.com/buddhist-funeral-service-singapore/",
+    "packageName": "Dharma w/o Tentage",
+    "priceBand": "Upper",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": 9810,
+      "4": 10028.0,
+      "5": 10246,
+      "6": 10464.0,
+      "7": 10682.0
+    },
+    "casket": {
+      "label": [
+        "Unclassified"
+      ],
+      "display": "Comfort Casket (220 Series) "
+    },
+    "catering": {
+      "label": [
+        "Catering"
+      ],
+      "display": "60pax Buffet Catering; \n Snacks; Coffee Machine; Bottled Water and Packet Drinks"
+    },
+    "tentage": {
+      "label": [
+        "Basic Setup"
+      ],
+      "display": "25 Tables, 100 Chairs, Memorial Table with TV Collage"
+    },
+    "decor": {
+      "label": [
+        "No Decor"
+      ],
+      "display": NaN
+    },
+    "hearse": {
+      "label": [
+        "Basic Hearse"
+      ],
+      "display": "Standard Hearse"
+    },
+    "personnel": {
+      "label": [
+        "Night Watch / Overnight Staff"
+      ],
+      "display": "2 Night Service Attendants"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Incense, Candles and Other Prayer Items; Mourning Garments"
+    }
+  },
+  {
+    "funeralParlourName": "24 Filial Funeral",
+    "contactNumber": 82893000,
+    "yearsOfService": 2023.0,
+    "location": NaN,
+    "website": "https://24filialfuneral.com/buddhist-funeral-service-singapore/",
+    "packageName": "Dharma",
+    "priceBand": "Upper",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": 10900,
+      "4": 11554.0,
+      "5": 12208,
+      "6": 12862.0,
+      "7": 13516.0
+    },
+    "casket": {
+      "label": [
+        "Unclassified"
+      ],
+      "display": "Comfort Casket (220 Series) "
+    },
+    "catering": {
+      "label": [
+        "Catering"
+      ],
+      "display": "60pax Buffet Catering; \n Snacks; Coffee Machine; Bottled Water and Packet Drinks"
+    },
+    "tentage": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": NaN
+    },
+    "decor": {
+      "label": [
+        "No Decor"
+      ],
+      "display": NaN
+    },
+    "hearse": {
+      "label": [
+        "Basic Hearse"
+      ],
+      "display": "Standard Hearse"
+    },
+    "personnel": {
+      "label": [
+        "Night Watch / Overnight Staff"
+      ],
+      "display": "2 Night Service Attendants"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Incense, Candles and Other Prayer Items; Mourning Garments"
+    }
+  },
+  {
+    "funeralParlourName": "24 Filial Funeral",
+    "contactNumber": 82893000,
+    "yearsOfService": 2023.0,
+    "location": NaN,
+    "website": "https://24filialfuneral.com/buddhist-funeral-service-singapore/",
+    "packageName": "Buddha w/o Tentage",
+    "priceBand": "Upper",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": 16350,
+      "4": 16568.0,
+      "5": 16786,
+      "6": 17004.0,
+      "7": 17222.0
+    },
+    "casket": {
+      "label": [
+        "Unclassified"
+      ],
+      "display": "Comfort Casket (220 Series) "
+    },
+    "catering": {
+      "label": [
+        "Catering"
+      ],
+      "display": "60pax Buffet Catering; \n Snacks; Coffee Machine; Bottled Water and Packet Drinks"
+    },
+    "tentage": {
+      "label": [
+        "Setup with Coolers"
+      ],
+      "display": "25 Tables, x Chairs, Memorial Table with TV Collage, Fans, Air Coolers"
+    },
+    "decor": {
+      "label": [
+        "No Decor"
+      ],
+      "display": NaN
+    },
+    "hearse": {
+      "label": [
+        "Luxury Hearse"
+      ],
+      "display": "Premium Hearse"
+    },
+    "personnel": {
+      "label": [
+        "Night Watch / Overnight Staff"
+      ],
+      "display": "2 Night Service Attendants"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Incense, Candles and Other Prayer Items; Mourning Garments"
+    }
+  },
+  {
+    "funeralParlourName": "24 Filial Funeral",
+    "contactNumber": 82893000,
+    "yearsOfService": 2023.0,
+    "location": NaN,
+    "website": "https://24filialfuneral.com/buddhist-funeral-service-singapore/",
+    "packageName": "Buddha ",
+    "priceBand": "Upper",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": 17440,
+      "4": 18312.0,
+      "5": 19184,
+      "6": 20056.0,
+      "7": 20928.0
+    },
+    "casket": {
+      "label": [
+        "Unclassified"
+      ],
+      "display": "Comfort Casket (220 Series) "
+    },
+    "catering": {
+      "label": [
+        "Catering"
+      ],
+      "display": "60pax Buffet Catering; \n Snacks; Coffee Machine; Bottled Water and Packet Drinks"
+    },
+    "tentage": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": NaN
+    },
+    "decor": {
+      "label": [
+        "No Decor"
+      ],
+      "display": NaN
+    },
+    "hearse": {
+      "label": [
+        "Luxury Hearse"
+      ],
+      "display": "Premium Hearse"
+    },
+    "personnel": {
+      "label": [
+        "Night Watch / Overnight Staff"
+      ],
+      "display": "2 Night Service Attendants"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Incense, Candles and Other Prayer Items; Mourning Garments"
+    }
+  },
+  {
+    "funeralParlourName": "24 Hours Direct Casket",
+    "contactNumber": 62965051,
+    "yearsOfService": 2018.0,
+    "location": NaN,
+    "website": NaN,
+    "packageName": NaN,
+    "priceBand": NaN,
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": NaN,
+      "4": NaN,
+      "5": NaN,
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [],
+      "display": NaN
+    },
+    "catering": {
+      "label": [],
+      "display": NaN
+    },
+    "tentage": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": NaN
+    },
+    "decor": {
+      "label": [
+        "No Decor"
+      ],
+      "display": NaN
+    },
+    "hearse": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": NaN
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": NaN
+    },
+    "prayingItems": {
+      "label": [],
+      "display": NaN
+    }
+  },
+  {
+    "funeralParlourName": "A. LifeGrad Funeral Services",
+    "contactNumber": 62623086,
+    "yearsOfService": 2019.0,
+    "location": NaN,
+    "website": "https://www.alifegrad.com/buddhist/",
+    "packageName": "Basic",
+    "priceBand": NaN,
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": 5388,
+      "4": 5588.0,
+      "5": 5788,
+      "6": 5988.0,
+      "7": 6188.0
+    },
+    "casket": {
+      "label": [
+        "Luxury"
+      ],
+      "display": "Hexagon Polished Casket with Glass"
+    },
+    "catering": {
+      "label": [],
+      "display": NaN
+    },
+    "tentage": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": "Included"
+    },
+    "decor": {
+      "label": [
+        "No Decor"
+      ],
+      "display": NaN
+    },
+    "hearse": {
+      "label": [
+        "Basic Hearse"
+      ],
+      "display": "Classic Hearse"
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": NaN
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Included"
+    }
+  },
+  {
+    "funeralParlourName": "A. LifeGrad Funeral Services",
+    "contactNumber": 62623086,
+    "yearsOfService": 2019.0,
+    "location": NaN,
+    "website": "https://www.alifegrad.com/buddhist/",
+    "packageName": "Value",
+    "priceBand": NaN,
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": 9888,
+      "4": 10188.0,
+      "5": 10488,
+      "6": 10788.0,
+      "7": 11088.0
+    },
+    "casket": {
+      "label": [
+        "Luxury"
+      ],
+      "display": "Octogon Series "
+    },
+    "catering": {
+      "label": [
+        "Light Refreshments and Drinks"
+      ],
+      "display": "Snacks and Refreshments"
+    },
+    "tentage": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": "Included"
+    },
+    "decor": {
+      "label": [
+        "No Decor"
+      ],
+      "display": NaN
+    },
+    "hearse": {
+      "label": [
+        "Luxury Hearse"
+      ],
+      "display": "Mercedes Benz Maybach"
+    },
+    "personnel": {
+      "label": [
+        "Emcee"
+      ],
+      "display": "Funeral Day Emcee"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Included"
+    }
+  },
+  {
+    "funeralParlourName": "A. LifeGrad Funeral Services",
+    "contactNumber": 62623086,
+    "yearsOfService": 2019.0,
+    "location": NaN,
+    "website": "https://www.alifegrad.com/buddhist/",
+    "packageName": "Supreme",
+    "priceBand": NaN,
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": 20888,
+      "4": 21388.0,
+      "5": 21888,
+      "6": 22388.0,
+      "7": 22888.0
+    },
+    "casket": {
+      "label": [
+        "Luxury"
+      ],
+      "display": "Imperial Series"
+    },
+    "catering": {
+      "label": [
+        "Light Refreshments and Drinks"
+      ],
+      "display": "Snacks and Refreshments; Catering"
+    },
+    "tentage": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": "Included"
+    },
+    "decor": {
+      "label": [
+        "No Decor"
+      ],
+      "display": NaN
+    },
+    "hearse": {
+      "label": [
+        "Basic Hearse"
+      ],
+      "display": "Limousine/Traditional Hearse"
+    },
+    "personnel": {
+      "label": [
+        "Emcee"
+      ],
+      "display": "Funeral Day Emcee"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Included"
+    }
+  },
+  {
+    "funeralParlourName": "Affinity Funeral Service",
+    "contactNumber": 81281157,
+    "yearsOfService": 2020.0,
+    "location": NaN,
+    "website": "https://affinityfuneralservice.sg/wp-content/uploads/2021/07/Buddhist-Full-Package-2.pdf",
+    "packageName": "Basic",
+    "priceBand": NaN,
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": NaN,
+      "4": NaN,
+      "5": NaN,
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [
+        "Basic"
+      ],
+      "display": "Basic Casket (E03)"
+    },
+    "catering": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "tentage": {
+      "label": [
+        "Basic Setup"
+      ],
+      "display": "25 Tables, 100 Chairs, Fans"
+    },
+    "decor": {
+      "label": [
+        "No Decor"
+      ],
+      "display": NaN
+    },
+    "hearse": {
+      "label": [
+        "Basic Hearse"
+      ],
+      "display": "Standard Hearse"
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": NaN
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Incense, Candles and Other Prayer Items; Heaven and Earth Blanket"
+    }
+  },
+  {
+    "funeralParlourName": "Affinity Funeral Service",
+    "contactNumber": 81281157,
+    "yearsOfService": 2020.0,
+    "location": NaN,
+    "website": "https://affinityfuneralservice.sg/wp-content/uploads/2021/07/Buddhist-Full-Package-2.pdf",
+    "packageName": "Normal",
+    "priceBand": NaN,
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": NaN,
+      "4": NaN,
+      "5": NaN,
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [
+        "Unclassified"
+      ],
+      "display": "8 Sided Casket"
+    },
+    "catering": {
+      "label": [
+        "Catering"
+      ],
+      "display": "30pax Buffet Catering; \n Snacks; Coffee Machine; Bottled Water and Packet Drinks"
+    },
+    "tentage": {
+      "label": [
+        "Basic Setup"
+      ],
+      "display": "25 Tables, 100 Chairs, Fans; Table Cloth"
+    },
+    "decor": {
+      "label": [
+        "Floral Arrangements"
+      ],
+      "display": "Floral Arrangements"
+    },
+    "hearse": {
+      "label": [
+        "Basic Hearse"
+      ],
+      "display": "Standard Hearse"
+    },
+    "personnel": {
+      "label": [
+        "Night Watch / Overnight Staff"
+      ],
+      "display": "Night Service Attendant; Eulogy Service"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Incense, Candles and Other Prayer Items; Heaven and Earth Blanket; Mourning Garments"
+    }
+  },
+  {
+    "funeralParlourName": "Affinity Funeral Service",
+    "contactNumber": 81281157,
+    "yearsOfService": 2020.0,
+    "location": NaN,
+    "website": "https://affinityfuneralservice.sg/wp-content/uploads/2021/07/Buddhist-Full-Package-2.pdf",
+    "packageName": "VIP",
+    "priceBand": NaN,
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": NaN,
+      "4": NaN,
+      "5": NaN,
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [
+        "Luxury"
+      ],
+      "display": "Full Glass Casket"
+    },
+    "catering": {
+      "label": [
+        "Catering"
+      ],
+      "display": "60pax Buffet Catering; \n Snacks; Coffee Machine; Bottled Water and Packet Drinks"
+    },
+    "tentage": {
+      "label": [
+        "Basic Setup"
+      ],
+      "display": "25 Tables, 100 Chairs, Fans; Table Cloth"
+    },
+    "decor": {
+      "label": [
+        "Elaborate Decor"
+      ],
+      "display": "Pillar Floral Arrangements"
+    },
+    "hearse": {
+      "label": [
+        "Basic Hearse"
+      ],
+      "display": "Mercedes Hearse"
+    },
+    "personnel": {
+      "label": [
+        "Night Watch / Overnight Staff"
+      ],
+      "display": "Night Service Attendant; Eulogy Service"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Incense, Candles and Other Prayer Items; Heaven and Earth Blanket; Mourning Garments"
+    }
+  },
+  {
+    "funeralParlourName": "All Saints Bereavement Services",
+    "contactNumber": 63417117,
+    "yearsOfService": 2007.0,
+    "location": NaN,
+    "website": NaN,
+    "packageName": NaN,
+    "priceBand": NaN,
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": NaN,
+      "4": NaN,
+      "5": NaN,
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [],
+      "display": NaN
+    },
+    "catering": {
+      "label": [],
+      "display": NaN
+    },
+    "tentage": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": NaN
+    },
+    "decor": {
+      "label": [
+        "No Decor"
+      ],
+      "display": NaN
+    },
+    "hearse": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": NaN
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": NaN
+    },
+    "prayingItems": {
+      "label": [],
+      "display": NaN
+    }
+  },
+  {
+    "funeralParlourName": "An Fu Funeral Services",
+    "contactNumber": 86067573,
+    "yearsOfService": 2019.0,
+    "location": NaN,
+    "website": "https://anfufuneralservices.com.sg/buddhist-funeral-package-singapore-all-in-one-package/",
+    "packageName": NaN,
+    "priceBand": "Middle",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": "$6,322 ",
+      "4": NaN,
+      "5": "$7,303 ",
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [
+        "Half-Glass"
+      ],
+      "display": "Half Glass Premium Wood Casket"
+    },
+    "catering": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "tentage": {
+      "label": [
+        "Setup with Coolers"
+      ],
+      "display": "25 Tables, 100 Chairs, Fans, Coolers"
+    },
+    "decor": {
+      "label": [
+        "Basic Backdrop"
+      ],
+      "display": " Buddhist Backdrop"
+    },
+    "hearse": {
+      "label": [
+        "Luxury Hearse"
+      ],
+      "display": "Premium Mercedes Benz Glass Hearse"
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Incense, Candles and Other Prayer Items; Afterlife Blankets; Prayer Mats"
+    }
+  },
+  {
+    "funeralParlourName": "Ang Brothers Funeral ",
+    "contactNumber": 98718388,
+    "yearsOfService": 2019.0,
+    "location": NaN,
+    "website": "https://www.angbrothersfuneral.com.sg/buddhist-funeral-packages/",
+    "packageName": NaN,
+    "priceBand": "Middle",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": 6527,
+      "4": NaN,
+      "5": 7617,
+      "6": NaN,
+      "7": 8707.0
+    },
+    "casket": {
+      "label": [
+        "Basic"
+      ],
+      "display": "Standard Wooden Casket"
+    },
+    "catering": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "tentage": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": NaN
+    },
+    "decor": {
+      "label": [
+        "Backdrop + Floral"
+      ],
+      "display": "Buddhist Backdrop, Floral Arrangements"
+    },
+    "hearse": {
+      "label": [
+        "Luxury Hearse"
+      ],
+      "display": "Glass Hearse"
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Incense, Candles and Other Prayer Items; Afterlife Blankets"
+    }
+  },
+  {
+    "funeralParlourName": "Ang Chin Moh Funeral Directors",
+    "contactNumber": 63504329,
+    "yearsOfService": 2009.0,
+    "location": NaN,
+    "website": "https://www.angchinmoh.com.sg/our-funeral-packages/buddhist-deluxe-package/",
+    "packageName": "Economic",
+    "priceBand": NaN,
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": 9808.91,
+      "4": 10898.910000000002,
+      "5": 11988.910000000002,
+      "6": 13078.910000000002,
+      "7": 14168.910000000002
+    },
+    "casket": {
+      "label": [
+        "Basic"
+      ],
+      "display": "Economic (E66)"
+    },
+    "catering": {
+      "label": [
+        "Light Refreshments and Drinks"
+      ],
+      "display": "Refreshments"
+    },
+    "tentage": {
+      "label": [
+        "Setup with Coolers"
+      ],
+      "display": "25 Tables, 100 Chairs, Fans, Coolers"
+    },
+    "decor": {
+      "label": [
+        "Backdrop + Floral"
+      ],
+      "display": "Buddhist Backdrop; Floral Arrangement"
+    },
+    "hearse": {
+      "label": [
+        "Basic Hearse"
+      ],
+      "display": "Standard Hearse"
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Incense, Candles and Other Prayer Items; Afterlife Blanket; Mourning Garments"
+    }
+  },
+  {
+    "funeralParlourName": "Ang Chin Moh Funeral Directors",
+    "contactNumber": 63504329,
+    "yearsOfService": 2009.0,
+    "location": NaN,
+    "website": "https://www.angchinmoh.com.sg/our-funeral-packages/buddhist-deluxe-package/",
+    "packageName": "Elegant",
+    "priceBand": NaN,
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": 16241.000000000002,
+      "4": 17331.0,
+      "5": 18421,
+      "6": 19511.0,
+      "7": 20601.0
+    },
+    "casket": {
+      "label": [
+        "Half-Glass"
+      ],
+      "display": "Elegant (D06/26/66) "
+    },
+    "catering": {
+      "label": [
+        "Light Refreshments and Drinks"
+      ],
+      "display": "Refreshments"
+    },
+    "tentage": {
+      "label": [
+        "Setup with Coolers"
+      ],
+      "display": "25 Tables, 100 Chairs, Fans, Coolers"
+    },
+    "decor": {
+      "label": [
+        "Elaborate Decor"
+      ],
+      "display": " Buddhist Backdrop; Floral Arrangement, Guest Table Floral Arrangement"
+    },
+    "hearse": {
+      "label": [
+        "Basic Hearse"
+      ],
+      "display": "Limousine Hearse"
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Incense, Candles and Other Prayer Items; Afterlife Blanket; Mourning Garments"
+    }
+  },
+  {
+    "funeralParlourName": "Ang Chin Moh Funeral Directors",
+    "contactNumber": 63504329,
+    "yearsOfService": 2009.0,
+    "location": NaN,
+    "website": "https://www.angchinmoh.com.sg/our-funeral-packages/buddhist-deluxe-package/",
+    "packageName": "Premium",
+    "priceBand": NaN,
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": 27250.000000000004,
+      "4": 28340.000000000004,
+      "5": 29430.000000000004,
+      "6": 30520.000000000004,
+      "7": 31610.000000000004
+    },
+    "casket": {
+      "label": [
+        "Luxury"
+      ],
+      "display": "Noble (A06/66)"
+    },
+    "catering": {
+      "label": [
+        "Catering"
+      ],
+      "display": "60pax Buffet Catering; Refreshments; Coffee Machine"
+    },
+    "tentage": {
+      "label": [
+        "Basic Setup"
+      ],
+      "display": "25 Tables, 100 Chairs, Chair Covers; Fans, Coolers"
+    },
+    "decor": {
+      "label": [
+        "Elaborate Decor"
+      ],
+      "display": " Buddhist Backdrop; Floral Arrangement, Guest Table Floral Arrangement"
+    },
+    "hearse": {
+      "label": [
+        "Basic Hearse"
+      ],
+      "display": "Limousine Hearse"
+    },
+    "personnel": {
+      "label": [
+        "Night Watch / Overnight Staff"
+      ],
+      "display": "Night Service Attendant, Night Service Watchman"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Incense, Candles and Other Prayer Items; Afterlife Blanket; Mourning Garments"
+    }
+  },
+  {
+    "funeralParlourName": "Ang Yew Seng Funeral Parlour",
+    "contactNumber": 90901999,
+    "yearsOfService": 1982.0,
+    "location": NaN,
+    "website": "https://www.ays.sg/our-packages/",
+    "packageName": NaN,
+    "priceBand": NaN,
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": NaN,
+      "4": NaN,
+      "5": NaN,
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [],
+      "display": NaN
+    },
+    "catering": {
+      "label": [],
+      "display": NaN
+    },
+    "tentage": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": NaN
+    },
+    "decor": {
+      "label": [
+        "No Decor"
+      ],
+      "display": NaN
+    },
+    "hearse": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": NaN
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": NaN
+    },
+    "prayingItems": {
+      "label": [],
+      "display": NaN
+    }
+  },
+  {
+    "funeralParlourName": "Budget Casket and Funeral Services",
+    "contactNumber": 83822962,
+    "yearsOfService": 2009.0,
+    "location": NaN,
+    "website": "https://budgetcasketcompany.com/funeral-packages/buddhist-funeral-services/",
+    "packageName": NaN,
+    "priceBand": "Middle",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": "$7,888 ",
+      "4": NaN,
+      "5": "$8,288 ",
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [
+        "Basic"
+      ],
+      "display": "Polished Wood Casket"
+    },
+    "catering": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "tentage": {
+      "label": [
+        "Basic Setup"
+      ],
+      "display": "25 Tables, 100 Chairs, Chair Covers; Fans"
+    },
+    "decor": {
+      "label": [
+        "Basic Backdrop"
+      ],
+      "display": " Buddhist Backdrop, Bouqeuts on Altar"
+    },
+    "hearse": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": "Included"
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Incense, Candles and Other Prayer Items"
+    }
+  },
+  {
+    "funeralParlourName": "Casket Fairprice Funeral",
+    "contactNumber": 64567423,
+    "yearsOfService": 2014.0,
+    "location": NaN,
+    "website": "https://simplicitycasket.com.sg/services/buddhist-funeral-package/",
+    "packageName": NaN,
+    "priceBand": "Lower",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": "$5,988 ",
+      "4": 6288.0,
+      "5": "$6,588 ",
+      "6": 6888.0,
+      "7": NaN
+    },
+    "casket": {
+      "label": [
+        "Half-Glass"
+      ],
+      "display": "Half Glass Casket "
+    },
+    "catering": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "tentage": {
+      "label": [
+        "Basic Setup"
+      ],
+      "display": "25 Tables, 100 Chairs, Chair Covers; Fans"
+    },
+    "decor": {
+      "label": [
+        "No Decor"
+      ],
+      "display": NaN
+    },
+    "hearse": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": "Included"
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Incense, Candles and Other Prayer Items; Afterlife Blanket"
+    }
+  },
+  {
+    "funeralParlourName": "Celebration of Life",
+    "contactNumber": 81226122,
+    "yearsOfService": 2017.0,
+    "location": NaN,
+    "website": "https://www.celebrationoflife.sg/",
+    "packageName": "Nama",
+    "priceBand": "Lower",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": "$4,988 ",
+      "4": NaN,
+      "5": NaN,
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [
+        "Half-Glass"
+      ],
+      "display": "Half Glass Casket"
+    },
+    "catering": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "tentage": {
+      "label": [
+        "Basic Setup"
+      ],
+      "display": "Tables, Chairs, Fans"
+    },
+    "decor": {
+      "label": [
+        "Basic Backdrop"
+      ],
+      "display": "Buddhist Backdrop"
+    },
+    "hearse": {
+      "label": [
+        "Basic Hearse"
+      ],
+      "display": "Standard Hearse"
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Incense, Candles and Other Prayer Items; Afterlife Blanket"
+    }
+  },
+  {
+    "funeralParlourName": "Celebration of Life",
+    "contactNumber": 81226122,
+    "yearsOfService": 2017.0,
+    "location": NaN,
+    "website": "https://www.celebrationoflife.sg/",
+    "packageName": "Om",
+    "priceBand": "Lower",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": "$5,688 ",
+      "4": NaN,
+      "5": NaN,
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [
+        "Half-Glass"
+      ],
+      "display": "Half Glass Casket"
+    },
+    "catering": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "tentage": {
+      "label": [
+        "Basic Setup"
+      ],
+      "display": "Tables, Chairs, Fans"
+    },
+    "decor": {
+      "label": [
+        "Basic Backdrop"
+      ],
+      "display": "Buddhist Backdrop"
+    },
+    "hearse": {
+      "label": [
+        "Basic Hearse"
+      ],
+      "display": "Standard Hearse"
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Incense, Candles and Other Prayer Items; Afterlife Blanket"
+    }
+  },
+  {
+    "funeralParlourName": "Celebration of Life",
+    "contactNumber": 81226122,
+    "yearsOfService": 2017.0,
+    "location": NaN,
+    "website": "https://www.celebrationoflife.sg/",
+    "packageName": "Sutra ",
+    "priceBand": "Middle",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": "$6,988 ",
+      "4": NaN,
+      "5": "$7,988 ",
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [
+        "Half-Glass"
+      ],
+      "display": "Half Glass Casket"
+    },
+    "catering": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "tentage": {
+      "label": [
+        "Basic Setup"
+      ],
+      "display": "Tables, Chairs, Fans"
+    },
+    "decor": {
+      "label": [
+        "Basic Backdrop"
+      ],
+      "display": "Buddhist Backdrop"
+    },
+    "hearse": {
+      "label": [
+        "Basic Hearse"
+      ],
+      "display": "Standard Hearse"
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Incense, Candles and Other Prayer Items; Afterlife Blanket"
+    }
+  },
+  {
+    "funeralParlourName": "Celebration of Life",
+    "contactNumber": 81226122,
+    "yearsOfService": 2017.0,
+    "location": NaN,
+    "website": "https://www.celebrationoflife.sg/",
+    "packageName": "Nirvana",
+    "priceBand": "Middle",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": "$7,588 ",
+      "4": NaN,
+      "5": "$8,588 ",
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [
+        "Half-Glass"
+      ],
+      "display": "Half Glass Casket"
+    },
+    "catering": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "tentage": {
+      "label": [
+        "Basic Setup"
+      ],
+      "display": "Tables, Chairs, Fans"
+    },
+    "decor": {
+      "label": [
+        "Basic Backdrop"
+      ],
+      "display": "Buddhist Backdrop"
+    },
+    "hearse": {
+      "label": [
+        "Basic Hearse"
+      ],
+      "display": "Standard Hearse"
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Incense, Candles and Other Prayer Items; Afterlife Blanket"
+    }
+  },
+  {
+    "funeralParlourName": "Celebration of Life",
+    "contactNumber": 81226122,
+    "yearsOfService": 2017.0,
+    "location": NaN,
+    "website": "https://www.celebrationoflife.sg/",
+    "packageName": "Value Peace",
+    "priceBand": NaN,
+    "daysAvailable": {
+      "1": "$988 ",
+      "2": NaN,
+      "3": NaN,
+      "4": NaN,
+      "5": NaN,
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [
+        "Basic"
+      ],
+      "display": "Brown Casket"
+    },
+    "catering": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "tentage": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "decor": {
+      "label": [
+        "No Decor"
+      ],
+      "display": "Not Included"
+    },
+    "hearse": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": "Not Included"
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Incense, Candles and Other Prayer Items;"
+    }
+  },
+  {
+    "funeralParlourName": "Chng Hoon Casket",
+    "contactNumber": 91166689,
+    "yearsOfService": 2020.0,
+    "location": NaN,
+    "website": NaN,
+    "packageName": NaN,
+    "priceBand": "Lower",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": "$5,888 ",
+      "4": NaN,
+      "5": "$6,280 ",
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [],
+      "display": NaN
+    },
+    "catering": {
+      "label": [],
+      "display": NaN
+    },
+    "tentage": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": NaN
+    },
+    "decor": {
+      "label": [
+        "No Decor"
+      ],
+      "display": NaN
+    },
+    "hearse": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": NaN
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": NaN
+    },
+    "prayingItems": {
+      "label": [],
+      "display": NaN
+    }
+  },
+  {
+    "funeralParlourName": "City Funeral Singapore",
+    "contactNumber": 98892744,
+    "yearsOfService": 2015.0,
+    "location": NaN,
+    "website": "https://cityfuneralsingapore.com/buddhist-funeral-packages/",
+    "packageName": "Grace",
+    "priceBand": "Middle",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": "$7,800 ",
+      "4": NaN,
+      "5": "$8,300 ",
+      "6": NaN,
+      "7": 8800.0
+    },
+    "casket": {
+      "label": [
+        "Basic"
+      ],
+      "display": "4-Sided Casket"
+    },
+    "catering": {
+      "label": [
+        "Light Refreshments and Drinks"
+      ],
+      "display": "Snacks and Refreshments"
+    },
+    "tentage": {
+      "label": [
+        "Setup with Coolers"
+      ],
+      "display": "25 Tables, 100 Chairs, Fans, Coolers"
+    },
+    "decor": {
+      "label": [
+        "Basic Backdrop"
+      ],
+      "display": " Buddhist Backdrop"
+    },
+    "hearse": {
+      "label": [
+        "Luxury Hearse"
+      ],
+      "display": "Mercedes Benz Vito Glass Hearse"
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Incense, Candles and Other Prayer Items; Afterlife Blanket"
+    }
+  },
+  {
+    "funeralParlourName": "City Funeral Singapore",
+    "contactNumber": 98892744,
+    "yearsOfService": 2015.0,
+    "location": NaN,
+    "website": "https://cityfuneralsingapore.com/buddhist-funeral-packages/",
+    "packageName": "Honour",
+    "priceBand": "Upper",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": "$9,800 ",
+      "4": NaN,
+      "5": "$10,300 ",
+      "6": NaN,
+      "7": 10800.0
+    },
+    "casket": {
+      "label": [
+        "Basic"
+      ],
+      "display": "8-Sided Casket"
+    },
+    "catering": {
+      "label": [
+        "Light Refreshments and Drinks"
+      ],
+      "display": "Snacks and Refreshments"
+    },
+    "tentage": {
+      "label": [
+        "Setup with Coolers"
+      ],
+      "display": "25 Tables, 100 Chairs, Fans, Coolers"
+    },
+    "decor": {
+      "label": [
+        "Elaborate Decor"
+      ],
+      "display": "Grand Buddhist Backdrop; Floral Arrangements Set"
+    },
+    "hearse": {
+      "label": [
+        "Luxury Hearse"
+      ],
+      "display": "Mercedes Benz Vito Glass Hearse"
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Incense, Candles and Other Prayer Items; Afterlife Blanket"
+    }
+  },
+  {
+    "funeralParlourName": "City Funeral Singapore",
+    "contactNumber": 98892744,
+    "yearsOfService": 2015.0,
+    "location": NaN,
+    "website": "https://cityfuneralsingapore.com/buddhist-funeral-packages/",
+    "packageName": "Legacy",
+    "priceBand": "Upper",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": "$13,300 ",
+      "4": NaN,
+      "5": "$13,800 ",
+      "6": NaN,
+      "7": 14300.0
+    },
+    "casket": {
+      "label": [
+        "Luxury"
+      ],
+      "display": "Polished and Elegant Wooden Casket"
+    },
+    "catering": {
+      "label": [
+        "Light Refreshments and Drinks"
+      ],
+      "display": "Snacks and Refreshments"
+    },
+    "tentage": {
+      "label": [
+        "Setup with Coolers"
+      ],
+      "display": "25 Tables, 100 Chairs, Fans, Coolers"
+    },
+    "decor": {
+      "label": [
+        "Elaborate Decor"
+      ],
+      "display": " Grand Buddhist Backdrop; Floral Arrangements Set"
+    },
+    "hearse": {
+      "label": [
+        "Luxury Hearse"
+      ],
+      "display": "Mercedes Benz Vito Glass Hearse"
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Final Tribute Ceremony"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Incense, Candles and Other Prayer Items; Afterlife Blanket"
+    }
+  },
+  {
+    "funeralParlourName": "Comfort Casket ",
+    "contactNumber": 97217291,
+    "yearsOfService": 2013.0,
+    "location": NaN,
+    "website": "https://comfortcasket.com.sg/funeral-package/buddhist-package/",
+    "packageName": NaN,
+    "priceBand": "Middle",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": "$6,580 ",
+      "4": NaN,
+      "5": "$6,980 ",
+      "6": NaN,
+      "7": 7380.0
+    },
+    "casket": {
+      "label": [
+        "Half-Glass"
+      ],
+      "display": "Half Glass Casket"
+    },
+    "catering": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "tentage": {
+      "label": [
+        "Basic Setup"
+      ],
+      "display": "25 Tables, 100 Chairs, Fans"
+    },
+    "decor": {
+      "label": [
+        "Backdrop + Floral"
+      ],
+      "display": " Buddhist Backdrop, Table Bouquets"
+    },
+    "hearse": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": "Included"
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Afterlife Blanket"
+    }
+  },
+  {
+    "funeralParlourName": "Confidence Funeral Services",
+    "contactNumber": 90210010,
+    "yearsOfService": 2017.0,
+    "location": NaN,
+    "website": "https://www.confidencefuneral.com.sg/funerals/buddhist/",
+    "packageName": NaN,
+    "priceBand": "Upper",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": "$10,124 ",
+      "4": NaN,
+      "5": "$10,560 ",
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "catering": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "tentage": {
+      "label": [
+        "Basic Setup"
+      ],
+      "display": "Tables, Chairs, Fans"
+    },
+    "decor": {
+      "label": [
+        "Backdrop + Floral"
+      ],
+      "display": "Buddhist Backdrop, Floral Arrangements"
+    },
+    "hearse": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": "Not Included"
+    },
+    "personnel": {
+      "label": [
+        "Included"
+      ],
+      "display": "Included"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Not Included"
+    }
+  },
+  {
+    "funeralParlourName": "Dignity Funeral Services",
+    "contactNumber": 91909909,
+    "yearsOfService": 2019.0,
+    "location": NaN,
+    "website": "https://dignityfuneral.com.sg/pages/buddhist",
+    "packageName": NaN,
+    "priceBand": "Lower",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": "$5,341 ",
+      "4": NaN,
+      "5": NaN,
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [
+        "Included"
+      ],
+      "display": "Included"
+    },
+    "catering": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "tentage": {
+      "label": [
+        "Basic Setup"
+      ],
+      "display": "Tables, Chairs"
+    },
+    "decor": {
+      "label": [
+        "Floral Arrangements"
+      ],
+      "display": "Floral Arrangement"
+    },
+    "hearse": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": "Included"
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Prayer Items"
+    }
+  },
+  {
+    "funeralParlourName": "Direct Funeral Services",
+    "contactNumber": 65551115,
+    "yearsOfService": 2013.0,
+    "location": NaN,
+    "website": "https://directfuneral.com.sg/our-funeral-products-services/buddhist-funeral-packages/",
+    "packageName": "Simplicity ",
+    "priceBand": "Middle",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": "$6,418 ",
+      "4": NaN,
+      "5": NaN,
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [
+        "Half-Glass"
+      ],
+      "display": "Peace Casket"
+    },
+    "catering": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "tentage": {
+      "label": [
+        "Basic Setup"
+      ],
+      "display": "Tables, Chairs"
+    },
+    "decor": {
+      "label": [
+        "Basic Backdrop"
+      ],
+      "display": "Buddhist Altar "
+    },
+    "hearse": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": "Included"
+    },
+    "personnel": {
+      "label": [
+        "Service Crew"
+      ],
+      "display": "Professional Service Team"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Incense, Candles and Other Prayer Items; Afterlife Blanket"
+    }
+  },
+  {
+    "funeralParlourName": "Direct Funeral Services",
+    "contactNumber": 65551115,
+    "yearsOfService": 2013.0,
+    "location": NaN,
+    "website": "https://directfuneral.com.sg/our-funeral-products-services/buddhist-funeral-packages/",
+    "packageName": "Value   ",
+    "priceBand": "Upper",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": "$11,989 ",
+      "4": NaN,
+      "5": NaN,
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [
+        "Half-Glass"
+      ],
+      "display": "Peace Casket"
+    },
+    "catering": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "tentage": {
+      "label": [
+        "Basic Setup"
+      ],
+      "display": "Tables, Chairs"
+    },
+    "decor": {
+      "label": [
+        "Basic Backdrop"
+      ],
+      "display": "Buddhist Altar "
+    },
+    "hearse": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": "Included"
+    },
+    "personnel": {
+      "label": [
+        "Service Crew"
+      ],
+      "display": "Professional Service Team"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Incense, Candles and Other Prayer Items; Afterlife Blanket"
+    }
+  },
+  {
+    "funeralParlourName": "Elite Funeral Services",
+    "contactNumber": 88237979,
+    "yearsOfService": 2021.0,
+    "location": NaN,
+    "website": NaN,
+    "packageName": NaN,
+    "priceBand": "Lower",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": "$4,238 ",
+      "4": NaN,
+      "5": NaN,
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [],
+      "display": NaN
+    },
+    "catering": {
+      "label": [
+        "Not Included"
+      ],
+      "display": NaN
+    },
+    "tentage": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": NaN
+    },
+    "decor": {
+      "label": [
+        "No Decor"
+      ],
+      "display": NaN
+    },
+    "hearse": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": NaN
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": NaN
+    },
+    "prayingItems": {
+      "label": [],
+      "display": NaN
+    }
+  },
+  {
+    "funeralParlourName": "Embrace Funeral Services",
+    "contactNumber": 96921100,
+    "yearsOfService": 2016.0,
+    "location": NaN,
+    "website": "https://embracefuneralservices.com.sg/buddhist-funeral-services-singapore/",
+    "packageName": NaN,
+    "priceBand": "Middle",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": "$6,539 ",
+      "4": NaN,
+      "5": NaN,
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [
+        "Half-Glass"
+      ],
+      "display": "Peace Casket"
+    },
+    "catering": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "tentage": {
+      "label": [
+        "Basic Setup"
+      ],
+      "display": "Tables, Chairs, Fans"
+    },
+    "decor": {
+      "label": [
+        "Floral Arrangements"
+      ],
+      "display": "Floral Arrangement"
+    },
+    "hearse": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": "Included"
+    },
+    "personnel": {
+      "label": [
+        "Night Watch / Overnight Staff"
+      ],
+      "display": "Night Service Attendant on Final Night"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Incense, Candles and Other Prayer Items; Afterlife Blanket"
+    }
+  },
+  {
+    "funeralParlourName": "Empathy Funeral Services",
+    "contactNumber": 68505023,
+    "yearsOfService": 2020.0,
+    "location": NaN,
+    "website": "https://empathyfuneral.sg/wp-content/uploads/Buddhist-Funeral-Packages.pdf",
+    "packageName": "Simple",
+    "priceBand": "Middle",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": "$6,091 ",
+      "4": NaN,
+      "5": NaN,
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [
+        "Half-Glass"
+      ],
+      "display": "Half Glass Wood Casket"
+    },
+    "catering": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "tentage": {
+      "label": [
+        "Basic Setup"
+      ],
+      "display": "25 Tables, Chairs, Fans"
+    },
+    "decor": {
+      "label": [
+        "Floral Arrangements"
+      ],
+      "display": "Floral Arrangement "
+    },
+    "hearse": {
+      "label": [
+        "Luxury Hearse"
+      ],
+      "display": "Glass Hearse"
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Afterlife Blanket"
+    }
+  },
+  {
+    "funeralParlourName": "Empathy Funeral Services",
+    "contactNumber": 68505023,
+    "yearsOfService": 2020.0,
+    "location": NaN,
+    "website": "https://empathyfuneral.sg/wp-content/uploads/Buddhist-Funeral-Packages.pdf",
+    "packageName": "Standard",
+    "priceBand": "Upper",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": "$9,688 ",
+      "4": NaN,
+      "5": NaN,
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [
+        "Half-Glass"
+      ],
+      "display": "Half Glass 8-Sided Wood Casket"
+    },
+    "catering": {
+      "label": [
+        "Light Refreshments and Drinks"
+      ],
+      "display": "Refreshments"
+    },
+    "tentage": {
+      "label": [
+        "Basic Setup"
+      ],
+      "display": "25 Tables, Chairs, Fans"
+    },
+    "decor": {
+      "label": [
+        "Floral Arrangements"
+      ],
+      "display": "Floral Arrangement"
+    },
+    "hearse": {
+      "label": [
+        "Luxury Hearse"
+      ],
+      "display": "Glass Hearse"
+    },
+    "personnel": {
+      "label": [
+        "Emcee"
+      ],
+      "display": "Funeral Day Emcee"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Afterlife Blanket"
+    }
+  },
+  {
+    "funeralParlourName": "Eternity Funeral Services",
+    "contactNumber": 66815757,
+    "yearsOfService": NaN,
+    "location": NaN,
+    "website": "https://eternityfuneral.sg/services-packages/buddhist/",
+    "packageName": NaN,
+    "priceBand": "Upper",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": 17318,
+      "4": 17863.0,
+      "5": 18408,
+      "6": 18953.0,
+      "7": 19498.0
+    },
+    "casket": {
+      "label": [
+        "Basic"
+      ],
+      "display": "4-Sided Casket"
+    },
+    "catering": {
+      "label": [
+        "Light Refreshments and Drinks"
+      ],
+      "display": "Snacks and Refreshments"
+    },
+    "tentage": {
+      "label": [
+        "Basic Setup"
+      ],
+      "display": "25 Tables, Chairs, Fans"
+    },
+    "decor": {
+      "label": [
+        "Basic Backdrop"
+      ],
+      "display": "Backdrop"
+    },
+    "hearse": {
+      "label": [
+        "Basic Hearse"
+      ],
+      "display": "Standard Hearse"
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Afterlife Blanket"
+    }
+  },
+  {
+    "funeralParlourName": "Excellence Funeral Services",
+    "contactNumber": 84971117,
+    "yearsOfService": 2021.0,
+    "location": NaN,
+    "website": "https://www.excellencefuneralservices.com/buddhist-funeral-package",
+    "packageName": NaN,
+    "priceBand": NaN,
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": NaN,
+      "4": NaN,
+      "5": NaN,
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [],
+      "display": NaN
+    },
+    "catering": {
+      "label": [],
+      "display": NaN
+    },
+    "tentage": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": NaN
+    },
+    "decor": {
+      "label": [
+        "No Decor"
+      ],
+      "display": NaN
+    },
+    "hearse": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": NaN
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": NaN
+    },
+    "prayingItems": {
+      "label": [],
+      "display": NaN
+    }
+  },
+  {
+    "funeralParlourName": "Fu De Funeral Services ",
+    "contactNumber": 91166734,
+    "yearsOfService": NaN,
+    "location": NaN,
+    "website": "https://www.facebook.com/FuDeFuneralServices/",
+    "packageName": NaN,
+    "priceBand": NaN,
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": NaN,
+      "4": NaN,
+      "5": NaN,
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [],
+      "display": NaN
+    },
+    "catering": {
+      "label": [],
+      "display": NaN
+    },
+    "tentage": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": NaN
+    },
+    "decor": {
+      "label": [
+        "No Decor"
+      ],
+      "display": NaN
+    },
+    "hearse": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": NaN
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": NaN
+    },
+    "prayingItems": {
+      "label": [],
+      "display": NaN
+    }
+  },
+  {
+    "funeralParlourName": "Funeral Hub Singapore ",
+    "contactNumber": 97274281,
+    "yearsOfService": 2018.0,
+    "location": NaN,
+    "website": "https://funeralhubsingapore.com/product/buddhist-package/",
+    "packageName": NaN,
+    "priceBand": NaN,
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": NaN,
+      "4": NaN,
+      "5": NaN,
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [],
+      "display": NaN
+    },
+    "catering": {
+      "label": [],
+      "display": NaN
+    },
+    "tentage": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": NaN
+    },
+    "decor": {
+      "label": [
+        "No Decor"
+      ],
+      "display": NaN
+    },
+    "hearse": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": NaN
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": NaN
+    },
+    "prayingItems": {
+      "label": [],
+      "display": NaN
+    }
+  },
+  {
+    "funeralParlourName": "Harmony Funeral Care Singapore",
+    "contactNumber": 94892424,
+    "yearsOfService": 2020.0,
+    "location": NaN,
+    "website": "https://www.singaporefuneralservices.sg/singapore-buddhist-funeral-services/",
+    "packageName": NaN,
+    "priceBand": NaN,
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": NaN,
+      "4": NaN,
+      "5": NaN,
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [
+        "Basic"
+      ],
+      "display": "Basic Casket"
+    },
+    "catering": {
+      "label": [
+        "Light Refreshments and Drinks"
+      ],
+      "display": "Catering, Snacks and Refreshments "
+    },
+    "tentage": {
+      "label": [
+        "Setup with Coolers"
+      ],
+      "display": "25 Tables, 100 Chairs, Fans, Coolers"
+    },
+    "decor": {
+      "label": [
+        "Basic Backdrop"
+      ],
+      "display": " Buddhist Décor"
+    },
+    "hearse": {
+      "label": [
+        "Luxury Hearse"
+      ],
+      "display": "Glass Hearse"
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Incense, Candles"
+    }
+  },
+  {
+    "funeralParlourName": "Hock Hin Undertaker",
+    "contactNumber": 98221489,
+    "yearsOfService": 1974.0,
+    "location": NaN,
+    "website": "https://singaporebuddhistfunerals.com/buddhist-package/",
+    "packageName": NaN,
+    "priceBand": "Lower",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": "$5,764 ",
+      "4": NaN,
+      "5": NaN,
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [
+        "Half-Glass"
+      ],
+      "display": "Half Glass Casket"
+    },
+    "catering": {
+      "label": [
+        "Light Refreshments and Drinks"
+      ],
+      "display": "Snacks and Refreshments "
+    },
+    "tentage": {
+      "label": [
+        "Basic Setup"
+      ],
+      "display": "25 Tables, 100 Chairs, Fans"
+    },
+    "decor": {
+      "label": [
+        "Basic Backdrop"
+      ],
+      "display": "Buddhist Backdrop"
+    },
+    "hearse": {
+      "label": [
+        "Luxury Hearse"
+      ],
+      "display": "Glass Hearse"
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Not Included"
+    }
+  },
+  {
+    "funeralParlourName": "Lee Teoh Heng Undertaker Pte Ltd",
+    "contactNumber": 96602731,
+    "yearsOfService": 2013.0,
+    "location": NaN,
+    "website": "https://www.leeteohheng.com/coming-soon-03",
+    "packageName": NaN,
+    "priceBand": "Middle",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": "$7,508 ",
+      "4": NaN,
+      "5": "$8,598 ",
+      "6": NaN,
+      "7": 9688.0
+    },
+    "casket": {
+      "label": [
+        "Half-Glass"
+      ],
+      "display": "Half Glass Casket"
+    },
+    "catering": {
+      "label": [
+        "Light Refreshments and Drinks"
+      ],
+      "display": "Catering, Snacks and Refreshments "
+    },
+    "tentage": {
+      "label": [
+        "Basic Setup"
+      ],
+      "display": "25 Tables, 100 Chairs, Fans"
+    },
+    "decor": {
+      "label": [
+        "No Decor"
+      ],
+      "display": NaN
+    },
+    "hearse": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": "Included"
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Not Included"
+    }
+  },
+  {
+    "funeralParlourName": "Memorial Funeral Specialists",
+    "contactNumber": 88663326,
+    "yearsOfService": 2021.0,
+    "location": NaN,
+    "website": "https://memorialfuneral.com.sg/funeral-package/buddhist-funeral-package/",
+    "packageName": NaN,
+    "priceBand": "Lower",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": 5388,
+      "4": 5788.0,
+      "5": 6188,
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [
+        "Basic"
+      ],
+      "display": "Basic Casket"
+    },
+    "catering": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "tentage": {
+      "label": [
+        "Basic Setup"
+      ],
+      "display": "25 Tables, 100 Chairs, Fans"
+    },
+    "decor": {
+      "label": [
+        "Basic Backdrop"
+      ],
+      "display": "Buddhist Backdrop"
+    },
+    "hearse": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": "Included"
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Incense, Candles and Other Prayer Items"
+    }
+  },
+  {
+    "funeralParlourName": "New Century Funeral Services",
+    "contactNumber": 81215442,
+    "yearsOfService": NaN,
+    "location": NaN,
+    "website": "https://newcenturyfuneralservices.com/",
+    "packageName": NaN,
+    "priceBand": "Middle",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": "$6,309 ",
+      "4": NaN,
+      "5": "$7,399 ",
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [
+        "Half-Glass"
+      ],
+      "display": "Half Glass Casket"
+    },
+    "catering": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "tentage": {
+      "label": [
+        "Basic Setup"
+      ],
+      "display": "25 Tables, 100 Chairs, Fans"
+    },
+    "decor": {
+      "label": [
+        "Backdrop + Floral"
+      ],
+      "display": "Buddhist Backdrop, Flowers"
+    },
+    "hearse": {
+      "label": [
+        "Luxury Hearse"
+      ],
+      "display": "Mercedes Benz Hearse"
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Incense, Candles and Other Prayer Items"
+    }
+  },
+  {
+    "funeralParlourName": "Nguan Gratitude Services",
+    "contactNumber": 97928826,
+    "yearsOfService": 2020.0,
+    "location": NaN,
+    "website": "https://www.facebook.com/nituofuneral/",
+    "packageName": NaN,
+    "priceBand": "Upper",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": "$9,680 ",
+      "4": NaN,
+      "5": "$10,880 ",
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [
+        "Luxury"
+      ],
+      "display": "Premium Grade Casket "
+    },
+    "catering": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "tentage": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": "Included"
+    },
+    "decor": {
+      "label": [
+        "No Decor"
+      ],
+      "display": NaN
+    },
+    "hearse": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": "Included"
+    },
+    "personnel": {
+      "label": [
+        "Included"
+      ],
+      "display": "Master of Ceremony"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Not Included"
+    }
+  },
+  {
+    "funeralParlourName": "Nirvana Funeral",
+    "contactNumber": 92386601,
+    "yearsOfService": 2007.0,
+    "location": NaN,
+    "website": "https://www.nirvanafugui.com/buddhist-funeral-singapore/",
+    "packageName": NaN,
+    "priceBand": NaN,
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": NaN,
+      "4": NaN,
+      "5": NaN,
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [
+        "Half-Glass"
+      ],
+      "display": "4-Sided Half Glass Casket"
+    },
+    "catering": {
+      "label": [
+        "Catering"
+      ],
+      "display": "60 Pax Catering; Snacks and Refreshments, Coffee Machine; Bottled Water and Packet Drinks"
+    },
+    "tentage": {
+      "label": [
+        "Basic Setup"
+      ],
+      "display": "Tables, Chairs, Fans"
+    },
+    "decor": {
+      "label": [
+        "Backdrop + Floral"
+      ],
+      "display": " Backdrop, Floral Arrangements "
+    },
+    "hearse": {
+      "label": [
+        "Luxury Hearse"
+      ],
+      "display": "Premium Hearse"
+    },
+    "personnel": {
+      "label": [
+        "Service Crew"
+      ],
+      "display": "2 Service Staff for 4 Nights"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Incense, Candles and Other Prayer Items; Mourning Garments"
+    }
+  },
+  {
+    "funeralParlourName": "Nituo Funeral Care Services ",
+    "contactNumber": 96850418,
+    "yearsOfService": 2012.0,
+    "location": NaN,
+    "website": "https://www.facebook.com/nituofuneral/",
+    "packageName": NaN,
+    "priceBand": "Middle",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": "$6,954 ",
+      "4": NaN,
+      "5": NaN,
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [],
+      "display": NaN
+    },
+    "catering": {
+      "label": [],
+      "display": NaN
+    },
+    "tentage": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": NaN
+    },
+    "decor": {
+      "label": [
+        "No Decor"
+      ],
+      "display": NaN
+    },
+    "hearse": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": NaN
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": NaN
+    },
+    "prayingItems": {
+      "label": [],
+      "display": NaN
+    }
+  },
+  {
+    "funeralParlourName": "Perfection Funeral Care Services",
+    "contactNumber": 97353217,
+    "yearsOfService": 2018.0,
+    "location": NaN,
+    "website": "https://www.perfectionfuneral.com/funeral-package",
+    "packageName": NaN,
+    "priceBand": "Middle",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": "$6,091 ",
+      "4": NaN,
+      "5": NaN,
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [],
+      "display": NaN
+    },
+    "catering": {
+      "label": [],
+      "display": NaN
+    },
+    "tentage": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": NaN
+    },
+    "decor": {
+      "label": [
+        "No Decor"
+      ],
+      "display": NaN
+    },
+    "hearse": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": NaN
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": NaN
+    },
+    "prayingItems": {
+      "label": [],
+      "display": NaN
+    }
+  },
+  {
+    "funeralParlourName": "Promise Funeral Care",
+    "contactNumber": 91727045,
+    "yearsOfService": 2021.0,
+    "location": NaN,
+    "website": "https://www.facebook.com/p/Promise-Funeral-Care-Pte-Ltd-%E6%89%BF%E8%AF%BA%E6%AE%A1%E8%91%AC%E6%9C%8D%E5%8A%A1-100063913506241/",
+    "packageName": NaN,
+    "priceBand": NaN,
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": NaN,
+      "4": NaN,
+      "5": NaN,
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [],
+      "display": NaN
+    },
+    "catering": {
+      "label": [],
+      "display": NaN
+    },
+    "tentage": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": NaN
+    },
+    "decor": {
+      "label": [
+        "No Decor"
+      ],
+      "display": NaN
+    },
+    "hearse": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": NaN
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": NaN
+    },
+    "prayingItems": {
+      "label": [],
+      "display": NaN
+    }
+  },
+  {
+    "funeralParlourName": "Reliant Funeral Services",
+    "contactNumber": 90069632,
+    "yearsOfService": 2005.0,
+    "location": NaN,
+    "website": "https://www.reliantfuneral.com/buddhist",
+    "packageName": NaN,
+    "priceBand": NaN,
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": NaN,
+      "4": NaN,
+      "5": NaN,
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [],
+      "display": NaN
+    },
+    "catering": {
+      "label": [],
+      "display": NaN
+    },
+    "tentage": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": NaN
+    },
+    "decor": {
+      "label": [
+        "No Decor"
+      ],
+      "display": NaN
+    },
+    "hearse": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": NaN
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": NaN
+    },
+    "prayingItems": {
+      "label": [],
+      "display": NaN
+    }
+  },
+  {
+    "funeralParlourName": "Royal Paradise ",
+    "contactNumber": 97959575,
+    "yearsOfService": 2020.0,
+    "location": NaN,
+    "website": "https://www.royalparadise.sg/buddhist-funeral-services",
+    "packageName": NaN,
+    "priceBand": NaN,
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": NaN,
+      "4": NaN,
+      "5": NaN,
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [],
+      "display": NaN
+    },
+    "catering": {
+      "label": [],
+      "display": NaN
+    },
+    "tentage": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": NaN
+    },
+    "decor": {
+      "label": [
+        "No Decor"
+      ],
+      "display": NaN
+    },
+    "hearse": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": NaN
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": NaN
+    },
+    "prayingItems": {
+      "label": [],
+      "display": NaN
+    }
+  },
+  {
+    "funeralParlourName": "Seng Heng Funeral Package",
+    "contactNumber": 63887178,
+    "yearsOfService": NaN,
+    "location": NaN,
+    "website": "https://shcelestial.sg/",
+    "packageName": NaN,
+    "priceBand": NaN,
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": NaN,
+      "4": NaN,
+      "5": NaN,
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [
+        "Included"
+      ],
+      "display": "Included"
+    },
+    "catering": {
+      "label": [
+        "Light Refreshments and Drinks"
+      ],
+      "display": "Snacks and Refreshments"
+    },
+    "tentage": {
+      "label": [
+        "Basic Setup"
+      ],
+      "display": "Tables, Chairs"
+    },
+    "decor": {
+      "label": [
+        "Backdrop + Floral"
+      ],
+      "display": "Backdrop, Flowers"
+    },
+    "hearse": {
+      "label": [
+        "Luxury Hearse"
+      ],
+      "display": "Glass Hearse"
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Not Included"
+    }
+  },
+  {
+    "funeralParlourName": "SG Funeral LLP",
+    "contactNumber": 62480858,
+    "yearsOfService": 2020.0,
+    "location": NaN,
+    "website": "https://sgfuneral.sg/funeral-services-packages/buddhist/",
+    "packageName": NaN,
+    "priceBand": "Lower",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": "$5,988 ",
+      "4": NaN,
+      "5": "$6,588 ",
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [
+        "Included"
+      ],
+      "display": "Included"
+    },
+    "catering": {
+      "label": [
+        "No Catering"
+      ],
+      "display": "Not Included"
+    },
+    "tentage": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": NaN
+    },
+    "decor": {
+      "label": [
+        "Backdrop + Floral"
+      ],
+      "display": "Backdrop, Floral Décor"
+    },
+    "hearse": {
+      "label": [
+        "Luxury Hearse"
+      ],
+      "display": "Not Included"
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Not Included"
+    }
+  },
+  {
+    "funeralParlourName": "Simplicity Caskets",
+    "contactNumber": 64567423,
+    "yearsOfService": 2017.0,
+    "location": NaN,
+    "website": "https://simplicitycasket.com.sg/services/buddhist-funeral-package/",
+    "packageName": "Void Deck",
+    "priceBand": "Middle",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": "$6,734 ",
+      "4": NaN,
+      "5": "$7,312 ",
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [
+        "Half-Glass"
+      ],
+      "display": "Half Glass Casket"
+    },
+    "catering": {
+      "label": [
+        "No Catering"
+      ],
+      "display": "Not Included"
+    },
+    "tentage": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": "Included"
+    },
+    "decor": {
+      "label": [
+        "No Decor"
+      ],
+      "display": NaN
+    },
+    "hearse": {
+      "label": [
+        "Basic Hearse"
+      ],
+      "display": "Standard Hearse"
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Joss Paper"
+    }
+  },
+  {
+    "funeralParlourName": "Simplicity Caskets",
+    "contactNumber": 64567423,
+    "yearsOfService": 2017.0,
+    "location": "Sin Ming Funeral Parlour",
+    "website": "https://simplicitycasket.com.sg/services/buddhist-funeral-package/",
+    "packageName": "Parlour",
+    "priceBand": "Middle",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": "$7,301 ",
+      "4": NaN,
+      "5": "$8,565 ",
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [
+        "Half-Glass"
+      ],
+      "display": "Half Glass Casket"
+    },
+    "catering": {
+      "label": [
+        "No Catering"
+      ],
+      "display": "Not Included"
+    },
+    "tentage": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": "Included"
+    },
+    "decor": {
+      "label": [
+        "No Decor"
+      ],
+      "display": NaN
+    },
+    "hearse": {
+      "label": [
+        "Basic Hearse"
+      ],
+      "display": "Standard Hearse"
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Joss Paper"
+    }
+  },
+  {
+    "funeralParlourName": "Singapore Casket",
+    "contactNumber": 62934388,
+    "yearsOfService": 1940.0,
+    "location": NaN,
+    "website": "https://www.singaporecasket.com.sg/our-services/funeral-packages/",
+    "packageName": "HDB ",
+    "priceBand": "Upper",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": "$9,858 ",
+      "4": NaN,
+      "5": NaN,
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [],
+      "display": NaN
+    },
+    "catering": {
+      "label": [],
+      "display": NaN
+    },
+    "tentage": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": NaN
+    },
+    "decor": {
+      "label": [
+        "No Decor"
+      ],
+      "display": NaN
+    },
+    "hearse": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": NaN
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": NaN
+    },
+    "prayingItems": {
+      "label": [],
+      "display": NaN
+    }
+  },
+  {
+    "funeralParlourName": "Singapore Casket",
+    "contactNumber": 62934388,
+    "yearsOfService": 1940.0,
+    "location": "Singapore Casket",
+    "website": "https://www.singaporecasket.com.sg/our-services/funeral-packages/",
+    "packageName": "Parlour",
+    "priceBand": "Upper",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": "$10,134 ",
+      "4": NaN,
+      "5": NaN,
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [],
+      "display": NaN
+    },
+    "catering": {
+      "label": [],
+      "display": NaN
+    },
+    "tentage": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": NaN
+    },
+    "decor": {
+      "label": [
+        "No Decor"
+      ],
+      "display": NaN
+    },
+    "hearse": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": NaN
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": NaN
+    },
+    "prayingItems": {
+      "label": [],
+      "display": NaN
+    }
+  },
+  {
+    "funeralParlourName": "Singapore Funeral and Casket Services ",
+    "contactNumber": 96357989,
+    "yearsOfService": 2021.0,
+    "location": NaN,
+    "website": "https://funeralservices.sg/funeral-packages/",
+    "packageName": NaN,
+    "priceBand": "Lower",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": "$5,232 ",
+      "4": NaN,
+      "5": NaN,
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [
+        "Half-Glass"
+      ],
+      "display": "Half Glass Casket"
+    },
+    "catering": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "tentage": {
+      "label": [
+        "Setup with Coolers"
+      ],
+      "display": "25 Tables, 100 Chairs, Fans, Coolers"
+    },
+    "decor": {
+      "label": [
+        "Backdrop + Floral"
+      ],
+      "display": "Buddhist Backdrop, Flower Arrangements "
+    },
+    "hearse": {
+      "label": [
+        "Luxury Hearse"
+      ],
+      "display": "Glass Hearse"
+    },
+    "personnel": {
+      "label": [
+        "Service Crew"
+      ],
+      "display": "Professional Service Team on Funeral Day"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Incense, Candles and Other Prayer Items"
+    }
+  },
+  {
+    "funeralParlourName": "Singapore Funeral and Casket Services ",
+    "contactNumber": 96357989,
+    "yearsOfService": 2021.0,
+    "location": NaN,
+    "website": "https://funeralservices.sg/funeral-packages/",
+    "packageName": NaN,
+    "priceBand": "Lower",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": "$5,995 ",
+      "4": NaN,
+      "5": NaN,
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [
+        "Half-Glass"
+      ],
+      "display": "Half Glass Casket"
+    },
+    "catering": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "tentage": {
+      "label": [
+        "Setup with Coolers"
+      ],
+      "display": "25 Tables, 100 Chairs, Fans, Coolers"
+    },
+    "decor": {
+      "label": [
+        "Backdrop + Floral"
+      ],
+      "display": "Buddhist Backdrop, Flower Arrangements "
+    },
+    "hearse": {
+      "label": [
+        "Luxury Hearse"
+      ],
+      "display": "Glass Hearse"
+    },
+    "personnel": {
+      "label": [
+        "Service Crew"
+      ],
+      "display": "Professional Service Team on Funeral Day"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Incense, Candles and Other Prayer Items"
+    }
+  },
+  {
+    "funeralParlourName": "Singapore Funeral Committee",
+    "contactNumber": 98448444,
+    "yearsOfService": 2020.0,
+    "location": NaN,
+    "website": "https://www.singaporefuneralcommittee.sg/product/3-days-buddhist-funeral-package-singapore/",
+    "packageName": NaN,
+    "priceBand": "Middle",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": "$6,388 ",
+      "4": NaN,
+      "5": "$6,988 ",
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [
+        "Half-Glass"
+      ],
+      "display": " Polished Wood Half-Glass Casket "
+    },
+    "catering": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "tentage": {
+      "label": [
+        "Basic Setup"
+      ],
+      "display": "Tables, Chairs, Fans"
+    },
+    "decor": {
+      "label": [
+        "Backdrop + Floral"
+      ],
+      "display": "Backdrop, Flower Arrangements"
+    },
+    "hearse": {
+      "label": [
+        "Luxury Hearse"
+      ],
+      "display": "Glass Hearse"
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Incense, Candles and Other Prayer Items"
+    }
+  },
+  {
+    "funeralParlourName": "Singapore Funeral Group",
+    "contactNumber": 96371818,
+    "yearsOfService": 2016.0,
+    "location": NaN,
+    "website": "https://www.funeralgroup.com.sg/public/service/images/Buddhist_Funeral_Services_2024_Landed.pdf",
+    "packageName": "Parlour",
+    "priceBand": "Lower",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": "$4,888 ",
+      "4": NaN,
+      "5": NaN,
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [
+        "Half-Glass"
+      ],
+      "display": "Half Glass Casket"
+    },
+    "catering": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "tentage": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": NaN
+    },
+    "decor": {
+      "label": [
+        "No Decor"
+      ],
+      "display": NaN
+    },
+    "hearse": {
+      "label": [
+        "Luxury Hearse"
+      ],
+      "display": "Full Glass Mercedes Benz Hearse"
+    },
+    "personnel": {
+      "label": [
+        "Emcee"
+      ],
+      "display": "Funeral Emcee"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Incense, Candles and Other Prayer Items"
+    }
+  },
+  {
+    "funeralParlourName": "Singapore Funeral Group",
+    "contactNumber": 96371818,
+    "yearsOfService": 2016.0,
+    "location": NaN,
+    "website": "https://www.funeralgroup.com.sg/public/service/images/Buddhist_Funeral_Services_2024_Landed.pdf",
+    "packageName": "Void Deck",
+    "priceBand": "Middle",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": "$6,388 ",
+      "4": NaN,
+      "5": "$6,988 ",
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [
+        "Half-Glass"
+      ],
+      "display": "Half Glass Casket"
+    },
+    "catering": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "tentage": {
+      "label": [
+        "Setup with Coolers"
+      ],
+      "display": "25 Tables, 100 Chairs, Fans, Coolers"
+    },
+    "decor": {
+      "label": [
+        "Backdrop + Floral"
+      ],
+      "display": " Buddhist Backdrop, Flower Arrangements "
+    },
+    "hearse": {
+      "label": [
+        "Luxury Hearse"
+      ],
+      "display": "Full Glass Mercedes Benz Hearse"
+    },
+    "personnel": {
+      "label": [
+        "Emcee"
+      ],
+      "display": "Funeral Emcee"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Incense, Candles and Other Prayer Items"
+    }
+  },
+  {
+    "funeralParlourName": "Singapore Funeral Group",
+    "contactNumber": 96371818,
+    "yearsOfService": 2016.0,
+    "location": NaN,
+    "website": "https://www.funeralgroup.com.sg/public/service/images/Buddhist_Funeral_Services_2024_Landed.pdf",
+    "packageName": "Direct",
+    "priceBand": NaN,
+    "daysAvailable": {
+      "1": "$1,888 ",
+      "2": NaN,
+      "3": NaN,
+      "4": NaN,
+      "5": NaN,
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [
+        "Half-Glass"
+      ],
+      "display": "Half Glass Casket"
+    },
+    "catering": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "tentage": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": NaN
+    },
+    "decor": {
+      "label": [
+        "No Decor"
+      ],
+      "display": NaN
+    },
+    "hearse": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": NaN
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": NaN
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Not Included"
+    }
+  },
+  {
+    "funeralParlourName": "Singapore Funeral Services",
+    "contactNumber": 18008008888,
+    "yearsOfService": 1997.0,
+    "location": NaN,
+    "website": "https://www.funeralgroup.com.sg/singapore-funeral-packages/buddhist-funeral-services",
+    "packageName": "Essential",
+    "priceBand": "Lower",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": "$5,328 ",
+      "4": NaN,
+      "5": NaN,
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [
+        "Basic"
+      ],
+      "display": "Emerald Cremation Casket"
+    },
+    "catering": {
+      "label": [
+        "Catering"
+      ],
+      "display": "60 Pax Catering; Snacks and Refreshments, Hot Beverages"
+    },
+    "tentage": {
+      "label": [
+        "Setup with Coolers"
+      ],
+      "display": "25 Tables, 100 Chairs, Fans, Coolers"
+    },
+    "decor": {
+      "label": [
+        "Floral Arrangements"
+      ],
+      "display": "Flowers, Floral Arrangements"
+    },
+    "hearse": {
+      "label": [
+        "Luxury Hearse"
+      ],
+      "display": "Premium Hearse"
+    },
+    "personnel": {
+      "label": [
+        "Service Crew"
+      ],
+      "display": "Evening Service Crew for 1 Night"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Not Included"
+    }
+  },
+  {
+    "funeralParlourName": "Singapore Funeral Services",
+    "contactNumber": 18008008888,
+    "yearsOfService": 1997.0,
+    "location": NaN,
+    "website": "https://www.funeralgroup.com.sg/singapore-funeral-packages/buddhist-funeral-services",
+    "packageName": "Classic",
+    "priceBand": "Upper",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": "$8,598 ",
+      "4": NaN,
+      "5": NaN,
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [
+        "Half-Glass"
+      ],
+      "display": "Classic Cremation Casket"
+    },
+    "catering": {
+      "label": [
+        "Catering"
+      ],
+      "display": "120 Pax Catering; Snacks and Refreshments, Hot Beverages"
+    },
+    "tentage": {
+      "label": [
+        "Setup with Coolers"
+      ],
+      "display": "25 Tables, 100 Chairs, Fans, Coolers"
+    },
+    "decor": {
+      "label": [
+        "Floral Arrangements"
+      ],
+      "display": "Flowers, Floral Arrangements"
+    },
+    "hearse": {
+      "label": [
+        "Luxury Hearse"
+      ],
+      "display": "Premium Hearse"
+    },
+    "personnel": {
+      "label": [
+        "Service Crew, Overnight Staff"
+      ],
+      "display": "Evening Service Crew for 2 Nights; Overnight Security Guard for 2 Nights"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Not Included"
+    }
+  },
+  {
+    "funeralParlourName": "Solace Services",
+    "contactNumber": 97563444,
+    "yearsOfService": 2019.0,
+    "location": NaN,
+    "website": "https://solace.sg/funeral-bereavement-care/funeral-package/",
+    "packageName": NaN,
+    "priceBand": NaN,
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": NaN,
+      "4": NaN,
+      "5": NaN,
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [],
+      "display": NaN
+    },
+    "catering": {
+      "label": [],
+      "display": NaN
+    },
+    "tentage": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": NaN
+    },
+    "decor": {
+      "label": [
+        "No Decor"
+      ],
+      "display": NaN
+    },
+    "hearse": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": NaN
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": NaN
+    },
+    "prayingItems": {
+      "label": [],
+      "display": NaN
+    }
+  },
+  {
+    "funeralParlourName": "Teck Hin Funeral Services",
+    "contactNumber": 96644848,
+    "yearsOfService": 2020.0,
+    "location": NaN,
+    "website": "https://teckhinundertaker.com.sg/buddhist/",
+    "packageName": NaN,
+    "priceBand": NaN,
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": NaN,
+      "4": NaN,
+      "5": NaN,
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [],
+      "display": NaN
+    },
+    "catering": {
+      "label": [],
+      "display": NaN
+    },
+    "tentage": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": NaN
+    },
+    "decor": {
+      "label": [
+        "No Decor"
+      ],
+      "display": NaN
+    },
+    "hearse": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": NaN
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": NaN
+    },
+    "prayingItems": {
+      "label": [],
+      "display": NaN
+    }
+  },
+  {
+    "funeralParlourName": "The Life Celebrant",
+    "contactNumber": 66848488,
+    "yearsOfService": 2010.0,
+    "location": NaN,
+    "website": "https://www.thelifecelebrant.sg/buddhist-funeral-services.html",
+    "packageName": NaN,
+    "priceBand": NaN,
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": NaN,
+      "4": NaN,
+      "5": NaN,
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [
+        "Included"
+      ],
+      "display": "Included"
+    },
+    "catering": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "tentage": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": "Included"
+    },
+    "decor": {
+      "label": [
+        "No Decor"
+      ],
+      "display": "Included"
+    },
+    "hearse": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": "Not Included"
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Candles"
+    }
+  },
+  {
+    "funeralParlourName": "Union Casket",
+    "contactNumber": 63538449,
+    "yearsOfService": 2015.0,
+    "location": NaN,
+    "website": "https://unioncasket.com/our-services/personalised-funeral-services/buddhist-funeral/",
+    "packageName": NaN,
+    "priceBand": NaN,
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": NaN,
+      "4": NaN,
+      "5": NaN,
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [
+        "Half-Glass"
+      ],
+      "display": "Half Glass Premium Wood Casket"
+    },
+    "catering": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "tentage": {
+      "label": [
+        "Setup with Coolers"
+      ],
+      "display": "Tables, Chairs, Fans, Coolers"
+    },
+    "decor": {
+      "label": [
+        "Basic Backdrop"
+      ],
+      "display": " Buddhist Backdrop"
+    },
+    "hearse": {
+      "label": [
+        "Luxury Hearse"
+      ],
+      "display": "Premium Mercedes Benz Glass Hearse"
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Incense, Candles and Other Prayer Items; Afterlife Blanket"
+    }
+  },
+  {
+    "funeralParlourName": "Unity Casket",
+    "contactNumber": 62800121,
+    "yearsOfService": 2015.0,
+    "location": NaN,
+    "website": "https://www.unitycasket.sg/buddhist-funeral-service",
+    "packageName": NaN,
+    "priceBand": "Lower",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": 4680,
+      "4": 5180.0,
+      "5": 5680,
+      "6": 6180.0,
+      "7": 6680.0
+    },
+    "casket": {
+      "label": [
+        "Basic"
+      ],
+      "display": "Purity Casket "
+    },
+    "catering": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "tentage": {
+      "label": [
+        "Basic Setup"
+      ],
+      "display": "25 Tables, 100 Chairs, Fans"
+    },
+    "decor": {
+      "label": [
+        "Basic Backdrop"
+      ],
+      "display": " Buddhist Altar "
+    },
+    "hearse": {
+      "label": [
+        "Basic Hearse"
+      ],
+      "display": "Dignified Hearse"
+    },
+    "personnel": {
+      "label": [
+        "Service Crew"
+      ],
+      "display": "Professional Service Team"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Incense, Candles and Other Prayer Items; Afterlife Blanket"
+    }
+  },
+  {
+    "funeralParlourName": "White Lilies Funeral ",
+    "contactNumber": 96668585,
+    "yearsOfService": 2020.0,
+    "location": NaN,
+    "website": "https://www.whiteliliesfuneral.com/funeralceremonies",
+    "packageName": NaN,
+    "priceBand": "Lower",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": "$5,232 ",
+      "4": NaN,
+      "5": NaN,
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [
+        "Basic"
+      ],
+      "display": "Standard Casket"
+    },
+    "catering": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "tentage": {
+      "label": [
+        "Basic Setup"
+      ],
+      "display": "Tables, Chairs  "
+    },
+    "decor": {
+      "label": [
+        "Floral Arrangements"
+      ],
+      "display": "Floral Arrangements"
+    },
+    "hearse": {
+      "label": [
+        "Luxury Hearse"
+      ],
+      "display": "Glass Hearse"
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": " Prayer Necessities"
+    }
+  },
+  {
+    "funeralParlourName": "Woodlands Memorial",
+    "contactNumber": 88337877,
+    "yearsOfService": 2020.0,
+    "location": "Woodlands Memorial",
+    "website": "https://www.woodlandsmemorial.sg/buddhist-funeral-packages",
+    "packageName": "Value",
+    "priceBand": "Upper",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": "$9,688 ",
+      "4": NaN,
+      "5": NaN,
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [
+        "Basic"
+      ],
+      "display": "6-Sided Classic Cremation Casket"
+    },
+    "catering": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "tentage": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": NaN
+    },
+    "decor": {
+      "label": [
+        "No Decor"
+      ],
+      "display": NaN
+    },
+    "hearse": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": "Included"
+    },
+    "personnel": {
+      "label": [
+        "Service Crew"
+      ],
+      "display": "Funeral Day Service Team"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Not Included"
+    }
+  },
+  {
+    "funeralParlourName": "Woodlands Memorial",
+    "contactNumber": 88337877,
+    "yearsOfService": 2020.0,
+    "location": "Woodlands Memorial",
+    "website": "https://www.woodlandsmemorial.sg/buddhist-funeral-packages",
+    "packageName": "Deluxe",
+    "priceBand": "Upper",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": "$15,138 ",
+      "4": NaN,
+      "5": NaN,
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [
+        "Half-Glass"
+      ],
+      "display": "4-Sided Half Glass Casket Cremation Casket"
+    },
+    "catering": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "tentage": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": NaN
+    },
+    "decor": {
+      "label": [
+        "No Decor"
+      ],
+      "display": NaN
+    },
+    "hearse": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": "Included"
+    },
+    "personnel": {
+      "label": [
+        "Emcee, Service Crew"
+      ],
+      "display": "Emcee; Funeral Day Service Team"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Not Included"
+    }
+  },
+  {
+    "funeralParlourName": "Woodlands Memorial",
+    "contactNumber": 88337877,
+    "yearsOfService": 2020.0,
+    "location": "Woodlands Memorial",
+    "website": "https://www.woodlandsmemorial.sg/buddhist-funeral-packages",
+    "packageName": "VIP",
+    "priceBand": "Upper",
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": "$21,678 ",
+      "4": NaN,
+      "5": NaN,
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [
+        "Half-Glass"
+      ],
+      "display": "4-Sided Half Glass Casket Cremation Casket"
+    },
+    "catering": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "tentage": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": NaN
+    },
+    "decor": {
+      "label": [
+        "No Decor"
+      ],
+      "display": NaN
+    },
+    "hearse": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": "Included"
+    },
+    "personnel": {
+      "label": [
+        "Emcee, Service Crew"
+      ],
+      "display": "Emcee; Funeral Day Service Team"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Not Included"
+    }
+  },
+  {
+    "funeralParlourName": "Yang Funeral",
+    "contactNumber": 97981782,
+    "yearsOfService": NaN,
+    "location": NaN,
+    "website": "https://www.yangfuneral.com/buddhist-funeral-package/",
+    "packageName": NaN,
+    "priceBand": NaN,
+    "daysAvailable": {
+      "1": NaN,
+      "2": NaN,
+      "3": NaN,
+      "4": NaN,
+      "5": NaN,
+      "6": NaN,
+      "7": NaN
+    },
+    "casket": {
+      "label": [
+        "Half-Glass"
+      ],
+      "display": "4-Sided or 8-Sided Casket"
+    },
+    "catering": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "tentage": {
+      "label": [
+        "Basic Setup"
+      ],
+      "display": "25 Tables, 100 Chairs, Fans"
+    },
+    "decor": {
+      "label": [
+        "Floral Arrangements"
+      ],
+      "display": " Floral Decorations"
+    },
+    "hearse": {
+      "label": [
+        "Unspecified"
+      ],
+      "display": "Included"
+    },
+    "personnel": {
+      "label": [
+        "Not Included"
+      ],
+      "display": "Not Included"
+    },
+    "prayingItems": {
+      "label": [],
+      "display": "Not Included"
+    }
+  }
+]
