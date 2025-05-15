@@ -53,6 +53,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 // Fetch Funeral Data
 async function fetchFuneralData() {
+  console.log("🚀 fetchFuneralData() started");
   const jsonUrl = "https://raw.githubusercontent.com/Marcellolepoe/pgdata/main/cleaned_buddhist_funeral_directory.json";
   try {
     const response = await fetch(jsonUrl);
@@ -98,6 +99,7 @@ async function fetchFuneralData() {
     setupPriceSliderDiv();
     
     // Apply filters and update the UI.
+    console.log("🔄 Calling applyFilters() after data load");
     applyFilters();
     getFiltersFromURL();
   } catch (error) {
@@ -369,7 +371,7 @@ function updateSelectedFilters() {
         const el = document.createElement("span");
         el.classList.add("filter-tag");
         el.innerHTML = `
-          <strong>Price Band:</strong> ${labels}
+          <strong>Price Band:</strong> ${labels}
           <button class="clear-category" data-category="priceBand">✕</button>
         `;
         selectedFiltersDiv.appendChild(el);
@@ -577,11 +579,28 @@ function adjustCarouselHeight(wrapper) {
 
 // RENDER GROUP CARDS
 function renderGroupedResults(groupedResults) {
+  console.log("🎯 renderGroupedResults() called with", groupedResults?.length || 0, "groups");
   const container = document.getElementById("funeral-cards-container");
+  if (!container) {
+    console.error("🚨 Funeral Cards Container NOT FOUND!");
+    return;
+  }
+
+  // Safety check for data
+  if (!Array.isArray(groupedResults) || groupedResults.length === 0) {
+    console.warn("⚠️ No data to render in renderGroupedResults()");
+    container.innerHTML = "<p class='no-results'>No funeral packages found matching your criteria.</p>";
+    return;
+  }
+
   container.innerHTML = "";
   groupedResults.forEach((group, groupIndex) => {
+    console.log(`📦 Processing group ${groupIndex + 1}/${groupedResults.length}:`, group.name);
     const packages = group.packages;
-    if (!Array.isArray(packages) || packages.length === 0) return;
+    if (!Array.isArray(packages) || packages.length === 0) {
+      console.warn(`⚠️ Group ${group.name} has no packages, skipping`);
+      return;
+    }
     const groupWrapper = document.createElement("div");
     groupWrapper.classList.add("parlour-wrapper");
     const carouselWrapper = document.createElement("div");
@@ -682,10 +701,17 @@ function renderGroupedResults(groupedResults) {
     container.appendChild(groupWrapper);
     updateCarousel(currentIndex);
   });
+  console.log("✅ renderGroupedResults() completed");
 }
 
 // CREATE FUNERAL CARD
 function createFuneralCard(funeral) {
+  console.log("🎨 Creating card for:", funeral["Funeral Parlour Name"]);
+  if (!funeral) {
+    console.error("❌ createFuneralCard called with null/undefined funeral");
+    return null;
+  }
+
   const card = document.createElement("div");
   card.classList.add("funeral-card");
 
@@ -774,16 +800,28 @@ function createFuneralCard(funeral) {
 
 // RENDER RESULTS
 function renderResults(filteredData) {
+  console.log("🎯 renderResults() called with data:", filteredData?.length || 0, "items");
   const funeralCardsContainer = document.getElementById("funeral-cards-container");
   if (!funeralCardsContainer) {
     console.error("🚨 Funeral Cards Container NOT FOUND!");
     return;
   }
+
+  // Safety check for data
+  if (!Array.isArray(filteredData) || filteredData.length === 0) {
+    console.warn("⚠️ No data to render in renderResults()");
+    funeralCardsContainer.innerHTML = "<p class='no-results'>No funeral packages found matching your criteria.</p>";
+    return;
+  }
+
   funeralCardsContainer.innerHTML = "";
   filteredData.forEach(funeral => {
     const card = createFuneralCard(funeral);
-    funeralCardsContainer.appendChild(card);
+    if (card) {
+      funeralCardsContainer.appendChild(card);
+    }
   });
+  console.log("✅ renderResults() completed");
 }
 
 // HELPER: renderIconRow
@@ -950,7 +988,8 @@ function positionThumbs(filteredMin, filteredMax, selectedMin, selectedMax) {
 
 // APPLY FILTERS
 function applyFilters(skipBandReset = false) {
-  console.log("🔍 applyFilters(), skipBandReset =", skipBandReset, "filters:", filters);
+  console.log("🔍 applyFilters() called with filters:", filters);
+  console.log("📊 Initial data count:", funeralData?.length || 0);
 
   // ─── 1) SETUP ────────────────────────────────────────────────────────────────
   const dayMap = {
@@ -995,6 +1034,9 @@ function applyFilters(skipBandReset = false) {
     }
     return true;
   });
+
+  // After non-price filtering
+  console.log("📊 After non-price filtering:", filteredDataForBands?.length || 0, "items");
 
   // ─── 3) PRICE‑BAND vs MANUAL SLIDER ─────────────────────────────────────────
   const stats            = window.sliderMapping || getFullPricingStats();
@@ -1044,6 +1086,9 @@ function applyFilters(skipBandReset = false) {
     return true;
   });
 
+  // After price filtering
+  console.log("📊 After price filtering:", filteredDataWithPrice?.length || 0, "items");
+
   // ─── 6) UPDATE COUNTERS ───────────────────────────────────────────────────
   const allEl  = document.getElementById("all-results");
   const showEl = document.getElementById("showed-results");
@@ -1088,6 +1133,9 @@ function applyFilters(skipBandReset = false) {
     return Array.isArray(v) ? v.length > 0 : !!v;
   });
 
+  // Before rendering
+  console.log("🎨 About to render with anyFilterActive:", anyFilterActive);
+
   if (anyFilterActive) {
     renderResults(filteredDataWithPrice);
   } else {
@@ -1102,20 +1150,7 @@ function applyFilters(skipBandReset = false) {
       }
       mapByName[name].packages.push(item);
     });
-    grouped.forEach(g => {
-      g.packages.sort((a,b) => {
-        let lowA = Infinity, lowB = Infinity;
-        for (let d of selectedDays) {
-          const aRaw = a[dayMap[d]] || "";
-          const bRaw = b[dayMap[d]] || "";
-          const pa   = parseFloat(aRaw.toString().replace(/[^\d.]/g,""));
-          const pb   = parseFloat(bRaw.toString().replace(/[^\d.]/g,""));
-          if (!isNaN(pa) && pa < lowA) lowA = pa;
-          if (!isNaN(pb) && pb < lowB) lowB = pb;
-        }
-        return lowA - lowB;
-      });
-    });
+    console.log("📦 Grouped into", grouped.length, "parlours");
     renderGroupedResults(grouped);
   }
 }
@@ -1342,5 +1377,28 @@ function getFilteredDataExcludingPrice() {
     return true;
   });
 }
+
+// Add a DOM ready check to ensure elements exist
+document.addEventListener("DOMContentLoaded", function() {
+  console.log("🌐 DOM Content Loaded");
+  
+  // Check for required elements
+  const requiredElements = [
+    "funeral-cards-container",
+    "price-band-bar",
+    "price-min",
+    "price-max"
+  ];
+  
+  const missingElements = requiredElements.filter(id => !document.getElementById(id));
+  if (missingElements.length > 0) {
+    console.error("❌ Missing required elements:", missingElements);
+    return;
+  }
+
+  // Initialize the page
+  console.log("🚀 Initializing page...");
+  fetchFuneralData();
+});
 
 </script>
