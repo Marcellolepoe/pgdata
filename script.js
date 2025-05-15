@@ -2,6 +2,8 @@
 // ==============================
 // GLOBAL FILTERS & DATA Setup
 // ==============================
+console.log("📜 Script starting to load...");
+
 window.filters = {
   location: [],
   casket: [],
@@ -15,8 +17,11 @@ window.filters = {
   priceMax: null,
   searchTerm: "",
   sortBy: "",
- 	priceBand: [],
+  priceBand: [],
 };
+
+console.log("⚙️ Global filters initialized");
+
 let funeralData = [];
 let lastFraction = 0;
 let lastMaxFraction = 1;
@@ -25,7 +30,10 @@ let isPriceDragging = false;
 // ==============================
 // Wait for Page Load (after Webflow loads)
 // ==============================
+console.log("⏳ Setting up DOMContentLoaded listener...");
+
 document.addEventListener("DOMContentLoaded", function () {
+  console.log("🌐 DOM Content Loaded - First listener");
   setTimeout(function () {
     console.log("🚀 Webflow loaded. Setting up filters...");
     setupFilters();
