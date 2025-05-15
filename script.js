@@ -1,4 +1,3 @@
-<script>
 // ==============================
 // GLOBAL FILTERS & DATA Setup
 // ==============================
@@ -32,14 +31,32 @@ let isPriceDragging = false;
 // ==============================
 console.log("⏳ Setting up DOMContentLoaded listener...");
 
-document.addEventListener("DOMContentLoaded", function () {
-  console.log("🌐 DOM Content Loaded - First listener");
+// Single initialization function
+function initializePage() {
+  console.log("🌐 DOM Content Loaded - Initializing...");
+  
+  // Check for required elements
+  const requiredElements = [
+    "funeral-cards-container",
+    "price-band-bar",
+    "price-min",
+    "price-max"
+  ];
+  
+  const missingElements = requiredElements.filter(id => !document.getElementById(id));
+  if (missingElements.length > 0) {
+    console.error("❌ Missing required elements:", missingElements);
+    return;
+  }
+
+  // Wait for Webflow to fully load
   setTimeout(function () {
     console.log("🚀 Webflow loaded. Setting up filters...");
     setupFilters();
     getFiltersFromURL();
     updateSelectedFilters();
-    // Sorting Setup (if needed)
+    
+    // Setup sorting
     const sortOptions = [
       "price-asc", "price-desc",
       "google-rating-desc", "facebook-rating-desc",
@@ -56,8 +73,15 @@ document.addEventListener("DOMContentLoaded", function () {
         });
       }
     });
+
+    // Initialize the page
+    console.log("🚀 Initializing page...");
+    fetchFuneralData();
   }, 1500);
-});
+}
+
+// Single DOMContentLoaded listener
+document.addEventListener("DOMContentLoaded", initializePage);
 
 // Fetch Funeral Data
 async function fetchFuneralData() {
@@ -1385,28 +1409,3 @@ function getFilteredDataExcludingPrice() {
     return true;
   });
 }
-
-// Add a DOM ready check to ensure elements exist
-document.addEventListener("DOMContentLoaded", function() {
-  console.log("🌐 DOM Content Loaded");
-  
-  // Check for required elements
-  const requiredElements = [
-    "funeral-cards-container",
-    "price-band-bar",
-    "price-min",
-    "price-max"
-  ];
-  
-  const missingElements = requiredElements.filter(id => !document.getElementById(id));
-  if (missingElements.length > 0) {
-    console.error("❌ Missing required elements:", missingElements);
-    return;
-  }
-
-  // Initialize the page
-  console.log("🚀 Initializing page...");
-  fetchFuneralData();
-});
-
-</script>
