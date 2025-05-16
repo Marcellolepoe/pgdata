@@ -736,124 +736,57 @@ function renderGroupedResults(groupedResults) {
   console.log("✅ renderGroupedResults() completed");
 }
 
-// CREATE FUNERAL CARD
-function createFuneralCard(funeral) {
-  console.log("🎨 Creating card for:", funeral["Funeral Parlour Name"]);
-  if (!funeral) {
-    console.error("❌ createFuneralCard called with null/undefined funeral");
-    return null;
+// CREATE FUNERAL CARD (Webflow population version)
+function populateFuneralCard(cardWrapper, funeral) {
+  console.log("🟢 Webflow card population code is running");
+  if (!cardWrapper || !funeral) {
+    console.error("❌ populateFuneralCard called with missing arguments");
+    return;
   }
-
-  const card = document.createElement("div");
-  card.classList.add("funeral-card");
-
-  // LEFT COLUMN
-  const imageColumn = document.createElement("div");
-  imageColumn.classList.add("funeral-image");
-  imageColumn.innerHTML = `
-    <img src="${funeral.Image || 'https://via.placeholder.com/140'}" alt="Funeral Home Image">
-  `;
-
-  // CENTER COLUMN
-  const detailsColumn = document.createElement("div");
-  detailsColumn.classList.add("funeral-details");
-  let googleReviewHTML = "", facebookReviewHTML = "";
-  if (funeral["Google Rating"]) {
-    googleReviewHTML = `
-      <p class="review-item">
-        <img src="https://cdn.prod.website-files.com/66343534ea61f97f0e1a4dd7/6634357d0946752a82dda663_Google%20Review%20Logo.png" width="25" height="25" alt="Google Icon">
-        <span class="review-stars">${getStarIcons(parseFloat(funeral["Google Rating"]))}</span>
-        <span class="review-rating"><strong>${funeral["Google Rating"]}</strong></span>
-        <span class="review-count">${funeral["Google Reviews"] || 0} Reviews</span>
-      </p>`;
+  // Name
+  const nameEl = cardWrapper.querySelector('.funeral-parlour-name');
+  if (nameEl) nameEl.textContent = funeral["Funeral Parlour Name"] || "Not Available";
+  // Phone
+  const phoneEl = cardWrapper.querySelector('.parlour-phone-number');
+  if (phoneEl) phoneEl.textContent = funeral["Contact Number"] || "Not Available";
+  // Google Review Score (score and number)
+  const googleScoreEl = cardWrapper.querySelectorAll('.google-review-score');
+  if (googleScoreEl && googleScoreEl.length > 0) {
+    googleScoreEl.forEach(el => {
+      if (el.classList.contains('google-review-number')) {
+        el.textContent = funeral["Google Reviews"] || "0";
+      } else {
+        el.textContent = funeral["Google Rating"] || "-";
+      }
+    });
   }
-  if (funeral["Facebook Rating"]) {
-    facebookReviewHTML = `
-      <p class="review-item">
-        <img src="https://cdn.prod.website-files.com/66343534ea61f97f0e1a4dd7/665d617b7b91419c71efe473_facebook.png" width="25" height="25" alt="Facebook Icon">
-        <span class="review-stars">${getStarIcons(parseFloat(funeral["Facebook Rating"]))}</span>
-        <span class="review-rating"><strong>${funeral["Facebook Rating"]}</strong></span>
-        <span class="review-count">${funeral["Facebook Reviews"] || 0} Reviews</span>
-      </p>`;
-  }
-  detailsColumn.innerHTML = `
-    <h3 class="funeral-name">${funeral["Funeral Parlour Name"] || "Not Available"}</h3>
-    <div class="contact-info">
-      <p class="icon-line">
-        <img src="https://cdn.prod.website-files.com/66343534ea61f97f0e1a4dd7/66643a9f8cc1d7a9c6e4fe27_telephone.png" width="20" height="20" alt="Phone Icon" />
-        <span><strong>${funeral["Contact Number"] || "Not Available"}</strong></span>
-      </p>
-      ${funeral["Package Name"] ? `<p class="icon-line"><span>Package: <strong>${funeral["Package Name"]}</strong></span></p>` : ""}
-      <p class="icon-line">
-        <img src="https://cdn.prod.website-files.com/66343534ea61f97f0e1a4dd7/676fa8a03937ff6a6bac090e_calendar%20(1).png" width="20" height="20" alt="Calendar Icon" />
-        <span>Founded: <strong>${funeral["Years of Service"] || "Not Available"}</strong></span>
-      </p>
-      ${funeral.Location && funeral.Location.trim() !== "" ? `
-        <p class="icon-line">
-          <img src="https://cdn.prod.website-files.com/your-site-id/map.png" width="20" height="20" alt="Location Icon" />
-          <span>Location: <strong>${funeral.Location}</strong></span>
-        </p>` : ""}
-    </div>
-    ${googleReviewHTML}
-    ${facebookReviewHTML}
-    ${funeral["Review Excerpt"] && funeral["Review Excerpt"].trim().toLowerCase() !== "no review available" ? `
-      <p class="review-excerpt">
-        <img src="https://cdn.prod.website-files.com/66343534ea61f97f0e1a4dd7/676fa90c4f3d2fbecf11504e_comment.png" width="20" height="20" alt="Review Icon" />
-        <em>${funeral["Review Excerpt"].trim()}</em>
-      </p>` : ""}
-    ${funeral["Parlour Website Link"] ? `
-      <a href="${funeral["Parlour Website Link"]}" target="_blank" class="button-7 w-button">View Site</a>` : ""}
-  `;
-  // RIGHT COLUMN
-  const pricingColumn = document.createElement("div");
-  pricingColumn.classList.add("funeral-pricing");
-  const selectedFilters = window.filters || {};
-  pricingColumn.innerHTML = `
-    <div class="package-pricing">
-      <div class="section-title">Package Pricing:</div>
-      ${formatAvailablePrices(funeral, selectedFilters.days)}
-    </div>
-    <div class="funeral-inclusions">
-      <div class="section-title">Key Inclusions:</div>
-      ${["Casket", "Catering", "Tentage", "Hearse", "Personnel", "Monks"].map(key => `
-        <div class="inclusion-row">
-          <img src="https://cdn.prod.website-files.com/66343534ea61f97f0e1a4dd7/${getIconForKey(key)}" width="20" height="20" alt="${key}">
-          <span class="inclusion-label">${key}:</span>
-          <span class="inclusion-value">${getInclusionValue(funeral, key)}</span>
-        </div>
-      `).join("")}
-    </div>
-  `;
-  card.appendChild(imageColumn);
-  card.appendChild(detailsColumn);
-  card.appendChild(pricingColumn);
-  return card;
+  // Review Excerpt
+  const excerptEl = cardWrapper.querySelector('.review-excerpt');
+  if (excerptEl) excerptEl.textContent = funeral["Review Excerpt"] || "";
 }
 
-// RENDER RESULTS
+// RENDER RESULTS (Webflow population version)
 function renderResults(filteredData) {
-  console.log("🎯 renderResults() called with data:", filteredData?.length || 0, "items");
-  const funeralCardsContainer = document.getElementById("funeral-cards-container");
-  if (!funeralCardsContainer) {
+  console.log("🎯 renderResults() [Webflow population] called with data:", filteredData?.length || 0, "items");
+  const container = document.getElementById("funeral-cards-container");
+  if (!container) {
     console.error("🚨 Funeral Cards Container NOT FOUND!");
     return;
   }
-
-  // Safety check for data
-  if (!Array.isArray(filteredData) || filteredData.length === 0) {
-    console.warn("⚠️ No data to render in renderResults()");
-    funeralCardsContainer.innerHTML = "<p class='no-results'>No funeral packages found matching your criteria.</p>";
+  // Find all card wrappers
+  const cardWrappers = container.querySelectorAll('.funeral-card-wrapper');
+  if (!cardWrappers || cardWrappers.length === 0) {
+    console.warn("⚠️ No .funeral-card-wrapper elements found in container");
     return;
   }
-
-  funeralCardsContainer.innerHTML = "";
-  filteredData.forEach(funeral => {
-    const card = createFuneralCard(funeral);
-    if (card) {
-      funeralCardsContainer.appendChild(card);
-    }
-  });
-  console.log("✅ renderResults() completed");
+  // Only populate as many as we have data for
+  for (let i = 0; i < Math.min(filteredData.length, cardWrappers.length); i++) {
+    populateFuneralCard(cardWrappers[i], filteredData[i]);
+  }
+  // Optionally, hide extra card wrappers if there are more wrappers than data
+  for (let i = filteredData.length; i < cardWrappers.length; i++) {
+    cardWrappers[i].style.display = 'none';
+  }
 }
 
 // HELPER: renderIconRow
