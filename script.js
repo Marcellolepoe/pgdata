@@ -609,6 +609,104 @@ function adjustCarouselHeight(wrapper) {
   }
 }
 
+// CREATE FUNERAL CARD (Webflow population version)
+function populateFuneralCard(cardWrapper, funeral) {
+  console.log("🟢 Webflow card population code is running");
+  if (!cardWrapper || !funeral) {
+    console.error("❌ populateFuneralCard called with missing arguments");
+    return;
+  }
+  // Name
+  const nameEl = cardWrapper.querySelector('.funeral-parlour-name');
+  if (nameEl) nameEl.textContent = funeral["Funeral Parlour Name"] || "Not Available";
+  // Phone
+  const phoneEl = cardWrapper.querySelector('.parlour-phone-number');
+  if (phoneEl) phoneEl.textContent = funeral["Contact Number"] || "Not Available";
+  // Google Review Score (score and number)
+  const googleScoreEl = cardWrapper.querySelectorAll('.google-review-score');
+  if (googleScoreEl && googleScoreEl.length > 0) {
+    googleScoreEl.forEach(el => {
+      if (el.classList.contains('google-review-number')) {
+        el.textContent = funeral["Google Reviews"] || "0";
+      } else {
+        el.textContent = funeral["Google Rating"] || "-";
+      }
+    });
+  }
+  // Review Excerpt
+  const excerptEl = cardWrapper.querySelector('.review-excerpt');
+  if (excerptEl) excerptEl.textContent = funeral["Review Excerpt"] || "";
+}
+
+// ADJUST CAROUSEL HEIGHT
+function adjustCarouselHeight(wrapper) {
+  const activeCard = wrapper.querySelector('.carousel-card.active');
+  if (activeCard) {
+    const height = activeCard.offsetHeight;
+    wrapper.style.height = `${height}px`;
+  }
+}
+
+// CREATE FUNERAL CARD (Dynamic creation version)
+function createFuneralCard(funeral) {
+  const card = document.createElement("div");
+  card.className = "funeral-card";
+  
+  // Basic Info
+  const name = funeral["Funeral Parlour Name"] || "Not Available";
+  const phone = funeral["Contact Number"] || "Not Available";
+  const packageName = funeral["Package Name"] || "Unknown";
+  
+  // Reviews
+  const googleRating = funeral["Google Rating"] || "-";
+  const googleReviews = funeral["Google Reviews"] || "0";
+  const facebookRating = funeral["Facebook Rating"] || "-";
+  const facebookReviews = funeral["Facebook Reviews"] || "0";
+  
+  // Inclusions
+  const inclusions = [
+    { key: "Casket", value: getInclusionValue(funeral, "Casket") },
+    { key: "Catering", value: getInclusionValue(funeral, "Catering") },
+    { key: "Tentage", value: getInclusionValue(funeral, "Tentage") },
+    { key: "Hearse", value: getInclusionValue(funeral, "Hearse") },
+    { key: "Personnel", value: getInclusionValue(funeral, "Personnel") },
+    { key: "Monks", value: getInclusionValue(funeral, "Monks") }
+  ];
+  
+  // Pricing
+  const pricing = formatAvailablePrices(funeral);
+  
+  // Build the card HTML
+  card.innerHTML = `
+    <div class="card-content">
+      <h3 class="funeral-name">${name}</h3>
+      <p>Phone: ${phone}</p>
+      <p>Package: <strong>${packageName}</strong></p>
+      
+      <div class="reviews-section">
+        <div class="google-reviews">
+          <span class="stars">${getStarIcons(googleRating)}</span>
+          <span class="review-count">(${googleReviews})</span>
+        </div>
+        <div class="facebook-reviews">
+          <span class="stars">${getStarIcons(facebookRating)}</span>
+          <span class="review-count">(${facebookReviews})</span>
+        </div>
+      </div>
+      
+      <div class="inclusions-section">
+        ${inclusions.map(inc => renderIconRow(inc.key, inc.value)).join("")}
+      </div>
+      
+      <div class="pricing-section">
+        ${pricing}
+      </div>
+    </div>
+  `;
+  
+  return card;
+}
+
 // RENDER GROUP CARDS
 function renderGroupedResults(groupedResults) {
   console.log("🎯 renderGroupedResults() called with", groupedResults?.length || 0, "groups");
@@ -734,35 +832,6 @@ function renderGroupedResults(groupedResults) {
     updateCarousel(currentIndex);
   });
   console.log("✅ renderGroupedResults() completed");
-}
-
-// CREATE FUNERAL CARD (Webflow population version)
-function populateFuneralCard(cardWrapper, funeral) {
-  console.log("🟢 Webflow card population code is running");
-  if (!cardWrapper || !funeral) {
-    console.error("❌ populateFuneralCard called with missing arguments");
-    return;
-  }
-  // Name
-  const nameEl = cardWrapper.querySelector('.funeral-parlour-name');
-  if (nameEl) nameEl.textContent = funeral["Funeral Parlour Name"] || "Not Available";
-  // Phone
-  const phoneEl = cardWrapper.querySelector('.parlour-phone-number');
-  if (phoneEl) phoneEl.textContent = funeral["Contact Number"] || "Not Available";
-  // Google Review Score (score and number)
-  const googleScoreEl = cardWrapper.querySelectorAll('.google-review-score');
-  if (googleScoreEl && googleScoreEl.length > 0) {
-    googleScoreEl.forEach(el => {
-      if (el.classList.contains('google-review-number')) {
-        el.textContent = funeral["Google Reviews"] || "0";
-      } else {
-        el.textContent = funeral["Google Rating"] || "-";
-      }
-    });
-  }
-  // Review Excerpt
-  const excerptEl = cardWrapper.querySelector('.review-excerpt');
-  if (excerptEl) excerptEl.textContent = funeral["Review Excerpt"] || "";
 }
 
 // RENDER RESULTS (Webflow population version)
