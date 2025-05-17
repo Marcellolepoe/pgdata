@@ -791,6 +791,9 @@ function renderResults(filteredData) {
     return;
   }
 
+  // Debug: Log children before clearing
+  console.log("Before clearing, container children:", container.children.length);
+
   // Remove all previously rendered cards except the template
   Array.from(container.children).forEach(child => {
     if (child !== template) container.removeChild(child);
@@ -798,6 +801,9 @@ function renderResults(filteredData) {
 
   // Hide the template
   template.style.display = "none";
+
+  // Debug: Log filteredData length
+  console.log("Filtered data length:", filteredData.length);
 
   for (let i = 0; i < filteredData.length; i++) {
     const data = filteredData[i];
@@ -808,6 +814,9 @@ function renderResults(filteredData) {
     populateFuneralCard(card, data);
     container.appendChild(card);
   }
+
+  // Debug: Log children after rendering
+  console.log("After rendering, container children:", container.children.length);
 }
 
 // HELPER: renderIconRow
