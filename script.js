@@ -612,52 +612,34 @@ function adjustCarouselHeight(wrapper) {
 // CREATE FUNERAL CARD (Webflow population version)
 function populateFuneralCard(cardWrapper, funeral) {
   console.log("🟢 Webflow card population code is running");
-  console.log("📦 Card wrapper:", cardWrapper);
-  console.log("📄 Funeral data:", funeral);
-  
   if (!cardWrapper || !funeral) {
     console.error("❌ populateFuneralCard called with missing arguments");
     return;
   }
-  
+
   // Name
   const nameEl = cardWrapper.querySelector('.funeral-parlour-name');
-  console.log("🔍 Name element found:", !!nameEl);
-  if (nameEl) {
-    nameEl.textContent = funeral["Funeral Parlour Name"] || "Not Available";
-    console.log("✅ Updated name to:", funeral["Funeral Parlour Name"]);
-  }
-  
+  if (nameEl) nameEl.textContent = funeral["Funeral Parlour Name"] || "Not Available";
+
   // Phone
   const phoneEl = cardWrapper.querySelector('.parlour-phone-number');
-  console.log("🔍 Phone element found:", !!phoneEl);
-  if (phoneEl) {
-    phoneEl.textContent = funeral["Contact Number"] || "Not Available";
-    console.log("✅ Updated phone to:", funeral["Contact Number"]);
-  }
-  
+  if (phoneEl) phoneEl.textContent = funeral["Contact Number"] || "Not Available";
+
   // Google Review Score (score and number)
-  const googleScoreEl = cardWrapper.querySelectorAll('.google-review-score');
-  console.log("🔍 Google review elements found:", googleScoreEl.length);
-  if (googleScoreEl && googleScoreEl.length > 0) {
-    googleScoreEl.forEach(el => {
-      if (el.classList.contains('google-review-number')) {
-        el.textContent = funeral["Google Reviews"] || "0";
-        console.log("✅ Updated Google reviews count to:", funeral["Google Reviews"]);
-      } else {
-        el.textContent = funeral["Google Rating"] || "-";
-        console.log("✅ Updated Google rating to:", funeral["Google Rating"]);
-      }
-    });
-  }
-  
+  const googleScoreEl = cardWrapper.querySelector('.google-review-score');
+  if (googleScoreEl) googleScoreEl.textContent = funeral["Google Rating"] || "-";
+  const googleReviewNumberEl = cardWrapper.querySelector('.google-review-number');
+  if (googleReviewNumberEl) googleReviewNumberEl.textContent = funeral["Google Reviews"] || "0";
+
+  // Facebook Review Score (if you have it)
+  const fbScoreEl = cardWrapper.querySelector('.fb-review-score');
+  if (fbScoreEl) fbScoreEl.textContent = funeral["Facebook Rating"] || "-";
+  const fbReviewNumberEl = cardWrapper.querySelector('.fb-number-reviews');
+  if (fbReviewNumberEl) fbReviewNumberEl.textContent = funeral["Facebook Reviews"] || "0";
+
   // Review Excerpt
   const excerptEl = cardWrapper.querySelector('.review-excerpt');
-  console.log("🔍 Review excerpt element found:", !!excerptEl);
-  if (excerptEl) {
-    excerptEl.textContent = funeral["Review Excerpt"] || "";
-    console.log("✅ Updated review excerpt");
-  }
+  if (excerptEl) excerptEl.textContent = funeral["Review Excerpt"] || "";
 }
 
 // ADJUST CAROUSEL HEIGHT
@@ -802,23 +784,19 @@ function renderGroupedResults(groupedResults) {
 function renderResults(filteredData) {
   console.log("🎯 renderResults() [Webflow population] called with data:", filteredData?.length || 0, "items");
   
-  // Check container
   const container = document.getElementById("funeral-cards-container");
   if (!container) {
     console.error("🚨 Funeral Cards Container NOT FOUND!");
     return;
   }
   console.log("✅ Found funeral-cards-container");
-  console.log("🔍 Container HTML:", container.innerHTML);
-  
-  // Find all card wrappers
+
+  // Find all card wrappers by class
   const cardWrappers = container.querySelectorAll('.funeral-card-wrapper');
   console.log("🔍 Found", cardWrappers.length, "card wrappers");
-  console.log("🔍 All classes in container:", Array.from(container.getElementsByTagName('*')).map(el => el.className));
-  
+
   if (!cardWrappers || cardWrappers.length === 0) {
     console.warn("⚠️ No .funeral-card-wrapper elements found in container");
-    console.warn("⚠️ Available classes:", Array.from(container.getElementsByTagName('*')).map(el => el.className).join(', '));
     return;
   }
   
