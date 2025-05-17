@@ -612,30 +612,52 @@ function adjustCarouselHeight(wrapper) {
 // CREATE FUNERAL CARD (Webflow population version)
 function populateFuneralCard(cardWrapper, funeral) {
   console.log("🟢 Webflow card population code is running");
+  console.log("📦 Card wrapper:", cardWrapper);
+  console.log("📄 Funeral data:", funeral);
+  
   if (!cardWrapper || !funeral) {
     console.error("❌ populateFuneralCard called with missing arguments");
     return;
   }
+  
   // Name
   const nameEl = cardWrapper.querySelector('.funeral-parlour-name');
-  if (nameEl) nameEl.textContent = funeral["Funeral Parlour Name"] || "Not Available";
+  console.log("🔍 Name element found:", !!nameEl);
+  if (nameEl) {
+    nameEl.textContent = funeral["Funeral Parlour Name"] || "Not Available";
+    console.log("✅ Updated name to:", funeral["Funeral Parlour Name"]);
+  }
+  
   // Phone
   const phoneEl = cardWrapper.querySelector('.parlour-phone-number');
-  if (phoneEl) phoneEl.textContent = funeral["Contact Number"] || "Not Available";
+  console.log("🔍 Phone element found:", !!phoneEl);
+  if (phoneEl) {
+    phoneEl.textContent = funeral["Contact Number"] || "Not Available";
+    console.log("✅ Updated phone to:", funeral["Contact Number"]);
+  }
+  
   // Google Review Score (score and number)
   const googleScoreEl = cardWrapper.querySelectorAll('.google-review-score');
+  console.log("🔍 Google review elements found:", googleScoreEl.length);
   if (googleScoreEl && googleScoreEl.length > 0) {
     googleScoreEl.forEach(el => {
       if (el.classList.contains('google-review-number')) {
         el.textContent = funeral["Google Reviews"] || "0";
+        console.log("✅ Updated Google reviews count to:", funeral["Google Reviews"]);
       } else {
         el.textContent = funeral["Google Rating"] || "-";
+        console.log("✅ Updated Google rating to:", funeral["Google Rating"]);
       }
     });
   }
+  
   // Review Excerpt
   const excerptEl = cardWrapper.querySelector('.review-excerpt');
-  if (excerptEl) excerptEl.textContent = funeral["Review Excerpt"] || "";
+  console.log("🔍 Review excerpt element found:", !!excerptEl);
+  if (excerptEl) {
+    excerptEl.textContent = funeral["Review Excerpt"] || "";
+    console.log("✅ Updated review excerpt");
+  }
 }
 
 // ADJUST CAROUSEL HEIGHT
@@ -647,66 +669,7 @@ function adjustCarouselHeight(wrapper) {
   }
 }
 
-// CREATE FUNERAL CARD (Dynamic creation version)
-function createFuneralCard(funeral) {
-  const card = document.createElement("div");
-  card.className = "funeral-card";
-  
-  // Basic Info
-  const name = funeral["Funeral Parlour Name"] || "Not Available";
-  const phone = funeral["Contact Number"] || "Not Available";
-  const packageName = funeral["Package Name"] || "Unknown";
-  
-  // Reviews
-  const googleRating = funeral["Google Rating"] || "-";
-  const googleReviews = funeral["Google Reviews"] || "0";
-  const facebookRating = funeral["Facebook Rating"] || "-";
-  const facebookReviews = funeral["Facebook Reviews"] || "0";
-  
-  // Inclusions
-  const inclusions = [
-    { key: "Casket", value: getInclusionValue(funeral, "Casket") },
-    { key: "Catering", value: getInclusionValue(funeral, "Catering") },
-    { key: "Tentage", value: getInclusionValue(funeral, "Tentage") },
-    { key: "Hearse", value: getInclusionValue(funeral, "Hearse") },
-    { key: "Personnel", value: getInclusionValue(funeral, "Personnel") },
-    { key: "Monks", value: getInclusionValue(funeral, "Monks") }
-  ];
-  
-  // Pricing
-  const pricing = formatAvailablePrices(funeral);
-  
-  // Build the card HTML
-  card.innerHTML = `
-    <div class="card-content">
-      <h3 class="funeral-name">${name}</h3>
-      <p>Phone: ${phone}</p>
-      <p>Package: <strong>${packageName}</strong></p>
-      
-      <div class="reviews-section">
-        <div class="google-reviews">
-          <span class="stars">${getStarIcons(googleRating)}</span>
-          <span class="review-count">(${googleReviews})</span>
-        </div>
-        <div class="facebook-reviews">
-          <span class="stars">${getStarIcons(facebookRating)}</span>
-          <span class="review-count">(${facebookReviews})</span>
-        </div>
-      </div>
-      
-      <div class="inclusions-section">
-        ${inclusions.map(inc => renderIconRow(inc.key, inc.value)).join("")}
-      </div>
-      
-      <div class="pricing-section">
-        ${pricing}
-      </div>
-    </div>
-  `;
-  
-  return card;
-}
-
+/*
 // RENDER GROUP CARDS
 function renderGroupedResults(groupedResults) {
   console.log("🎯 renderGroupedResults() called with", groupedResults?.length || 0, "groups");
@@ -833,6 +796,7 @@ function renderGroupedResults(groupedResults) {
   });
   console.log("✅ renderGroupedResults() completed");
 }
+*/
 
 // RENDER RESULTS (Webflow population version)
 function renderResults(filteredData) {
@@ -842,16 +806,23 @@ function renderResults(filteredData) {
     console.error("🚨 Funeral Cards Container NOT FOUND!");
     return;
   }
+  console.log("✅ Found funeral-cards-container");
+  
   // Find all card wrappers
   const cardWrappers = container.querySelectorAll('.funeral-card-wrapper');
+  console.log("🔍 Found", cardWrappers.length, "card wrappers");
+  
   if (!cardWrappers || cardWrappers.length === 0) {
     console.warn("⚠️ No .funeral-card-wrapper elements found in container");
     return;
   }
+  
   // Only populate as many as we have data for
   for (let i = 0; i < Math.min(filteredData.length, cardWrappers.length); i++) {
+    console.log(`📝 Populating card ${i + 1} with data:`, filteredData[i]["Funeral Parlour Name"]);
     populateFuneralCard(cardWrappers[i], filteredData[i]);
   }
+  
   // Optionally, hide extra card wrappers if there are more wrappers than data
   for (let i = filteredData.length; i < cardWrappers.length; i++) {
     cardWrappers[i].style.display = 'none';
@@ -1170,23 +1141,8 @@ function applyFilters(skipBandReset = false) {
   // Before rendering
   console.log("🎨 About to render with anyFilterActive:", anyFilterActive);
 
-  if (anyFilterActive) {
-    renderResults(filteredDataWithPrice);
-  } else {
-    // no filters: group by parlour with carousel
-    const grouped = [];
-    const mapByName = {};
-    filteredDataWithPrice.forEach(item => {
-      const name = item["Funeral Parlour Name"] || "Unknown";
-      if (!mapByName[name]) {
-        mapByName[name] = { name, packages: [] };
-        grouped.push(mapByName[name]);
-      }
-      mapByName[name].packages.push(item);
-    });
-    console.log("📦 Grouped into", grouped.length, "parlours");
-    renderGroupedResults(grouped);
-  }
+  // Always use Webflow population version
+  renderResults(filteredDataWithPrice);
 }
 
 
