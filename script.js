@@ -801,19 +801,24 @@ function renderGroupedResults(groupedResults) {
 // RENDER RESULTS (Webflow population version)
 function renderResults(filteredData) {
   console.log("🎯 renderResults() [Webflow population] called with data:", filteredData?.length || 0, "items");
+  
+  // Check container
   const container = document.getElementById("funeral-cards-container");
   if (!container) {
     console.error("🚨 Funeral Cards Container NOT FOUND!");
     return;
   }
   console.log("✅ Found funeral-cards-container");
+  console.log("🔍 Container HTML:", container.innerHTML);
   
   // Find all card wrappers
   const cardWrappers = container.querySelectorAll('.funeral-card-wrapper');
   console.log("🔍 Found", cardWrappers.length, "card wrappers");
+  console.log("🔍 All classes in container:", Array.from(container.getElementsByTagName('*')).map(el => el.className));
   
   if (!cardWrappers || cardWrappers.length === 0) {
     console.warn("⚠️ No .funeral-card-wrapper elements found in container");
+    console.warn("⚠️ Available classes:", Array.from(container.getElementsByTagName('*')).map(el => el.className).join(', '));
     return;
   }
   
