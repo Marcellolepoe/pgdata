@@ -783,32 +783,30 @@ function renderGroupedResults(groupedResults) {
 // RENDER RESULTS (Webflow population version)
 function renderResults(filteredData) {
   console.log("🎯 renderResults() [Webflow population] called with data:", filteredData?.length || 0, "items");
-  
+
   const container = document.getElementById("funeral-cards-container");
-  if (!container) {
-    console.error("🚨 Funeral Cards Container NOT FOUND!");
+  const template = document.getElementById("funeral-card-wrapper");
+  if (!container || !template) {
+    console.error("❌ Missing container or template!");
     return;
   }
-  console.log("✅ Found funeral-cards-container");
 
-  // Find all card wrappers by class
-  const cardWrappers = container.querySelectorAll('.funeral-card-wrapper');
-  console.log("🔍 Found", cardWrappers.length, "card wrappers");
+  // Remove all previously rendered cards except the template
+  Array.from(container.children).forEach(child => {
+    if (child !== template) container.removeChild(child);
+  });
 
-  if (!cardWrappers || cardWrappers.length === 0) {
-    console.warn("⚠️ No .funeral-card-wrapper elements found in container");
-    return;
-  }
-  
-  // Only populate as many as we have data for
-  for (let i = 0; i < Math.min(filteredData.length, cardWrappers.length); i++) {
-    console.log(`📝 Populating card ${i + 1} with data:`, filteredData[i]["Funeral Parlour Name"]);
-    populateFuneralCard(cardWrappers[i], filteredData[i]);
-  }
-  
-  // Optionally, hide extra card wrappers if there are more wrappers than data
-  for (let i = filteredData.length; i < cardWrappers.length; i++) {
-    cardWrappers[i].style.display = 'none';
+  // Hide the template
+  template.style.display = "none";
+
+  for (let i = 0; i < filteredData.length; i++) {
+    const data = filteredData[i];
+    const card = template.cloneNode(true);
+    card.id = ""; // Remove ID from clone
+    card.style.display = ""; // Show the card
+
+    populateFuneralCard(card, data);
+    container.appendChild(card);
   }
 }
 
