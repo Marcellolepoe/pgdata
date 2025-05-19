@@ -1135,24 +1135,33 @@ function setupPriceSliderDiv() {
     return;
   }
 
-  // pull in your current band stats (could be global or filtered)
+  // Use the current filtered price band for slider mapping
   const stats = window.sliderMapping || getFullPricingStats();
-  let currentMin = stats.min;
-  let currentMax = stats.max;
+  let currentMin = filters.priceMin ?? stats.min;
+  let currentMax = filters.priceMax ?? stats.max;
   filters.priceMin = currentMin;
   filters.priceMax = currentMax;
 
-  // initial placement & labels
-  positionThumbs(stats.min, stats.max, currentMin, currentMax);
-  if (minOutput) minOutput.textContent = `$${currentMin.toLocaleString()}`;
-  if (maxOutput) maxOutput.textContent = `$${currentMax.toLocaleString()}`;
-  if (minLabel)  minLabel.textContent  = `$${currentMin.toLocaleString()}`;
-  if (maxLabel)  maxLabel.textContent  = `$${currentMax.toLocaleString()}`;
+  // Position thumbs within the price band bar
+  function setThumbPositions() {
+    const { min, p33, p66, max } = stats;
+    const percentMin = valueToPercent(filters.priceMin, min, p33, p66, max);
+    const percentMax = valueToPercent(filters.priceMax, min, p33, p66, max);
+    minThumb.style.left = percentMin + "%";
+    maxThumb.style.left = percentMax + "%";
+    if (minOutput) minOutput.textContent = `$${filters.priceMin.toLocaleString()}`;
+    if (maxOutput) maxOutput.textContent = `$${filters.priceMax.toLocaleString()}`;
+    if (minLabel)  minLabel.textContent  = `$${filters.priceMin.toLocaleString()}`;
+    if (maxLabel)  maxLabel.textContent  = `$${filters.priceMax.toLocaleString()}`;
+    minThumb.style.display = '';
+    maxThumb.style.display = '';
+    // Log for troubleshooting
+    console.log('[Slider] setThumbPositions', {percentMin, percentMax, priceMin: filters.priceMin, priceMax: filters.priceMax});
+  }
+  setThumbPositions();
 
-  minThumb.style.display = '';
-  maxThumb.style.display = '';
-
-  let lastMinFrac = 0, lastMaxFrac = 1;
+  let lastMinFrac = valueToPercent(filters.priceMin, stats.min, stats.p33, stats.p66, stats.max) / 100;
+  let lastMaxFrac = valueToPercent(filters.priceMax, stats.min, stats.p33, stats.p66, stats.max) / 100;
 
   function onDragStart(e, isMin) {
     e.preventDefault();
@@ -1160,16 +1169,13 @@ function setupPriceSliderDiv() {
 
     function onDragMove(evt) {
       evt.preventDefault();
-      // always re‑read the band stats in case non‑price filters changed
       const m = window.sliderMapping || getFullPricingStats();
-
       const clientX = evt.type.startsWith("touch")
         ? evt.touches[0].clientX
         : evt.clientX;
       // Confine x to the price band bar only
       const x = Math.min(Math.max(clientX - rect.left, 0), rect.width);
       let frac = x / rect.width;
-
       // prevent crossing
       if (isMin) {
         const maxPct = parseFloat(maxThumb.style.left) || 100;
@@ -1180,19 +1186,16 @@ function setupPriceSliderDiv() {
         if (frac * 100 < minPct) frac = minPct / 100;
         lastMaxFrac = frac;
       }
-
       if (filters.priceBand.length) {
         filters.priceBand = [];
         document.querySelectorAll('[data-category="priceBand"] input')
           .forEach(cb => cb.checked = false);
         updateSelectedFilters();
       }
-
       // compute the new value
       const value = Math.round(
         piecewisePercentileToValue(frac, m.min, m.p33, m.p66, m.max)
       );
-
       // live‐update
       if (isMin) {
         currentMin = value;
@@ -1207,9 +1210,9 @@ function setupPriceSliderDiv() {
         if (maxOutput) maxOutput.textContent = `$${currentMax.toLocaleString()}`;
         if (maxLabel ) maxLabel.textContent  = `$${currentMax.toLocaleString()}`;
       }
-      // Troubleshooting: log thumb positions and filter values
+      // Log for troubleshooting
       console.log('[Slider] Thumbs moved:', {isMin, currentMin, currentMax, filters: {...filters}});
-      updateSelectedFilters(); // Ensure selected filters panel updates live
+      updateSelectedFilters();
     }
 
     function onDragEnd() {
@@ -1217,7 +1220,6 @@ function setupPriceSliderDiv() {
       document.removeEventListener("mouseup",   onDragEnd);
       document.removeEventListener("touchmove", onDragMove);
       document.removeEventListener("touchend",  onDragEnd);
-
       const m = window.sliderMapping || getFullPricingStats();
       const finalMin = Math.round(
         piecewisePercentileToValue(lastMinFrac, m.min, m.p33, m.p66, m.max)
@@ -1225,17 +1227,12 @@ function setupPriceSliderDiv() {
       const finalMax = Math.round(
         piecewisePercentileToValue(lastMaxFrac, m.min, m.p33, m.p66, m.max)
       );
-
       filters.priceMin = finalMin;
       filters.priceMax = finalMax;
-      applyFilters(true);
-      positionThumbs(m.min, m.max, finalMin, finalMax);
-      if (minOutput) minOutput.textContent = `$${finalMin.toLocaleString()}`;
-      if (maxOutput) maxOutput.textContent = `$${finalMax.toLocaleString()}`;
-      if (minLabel ) minLabel.textContent  = `$${finalMin.toLocaleString()}`;
-      if (maxLabel ) maxLabel.textContent  = `$${finalMax.toLocaleString()}`;
+      setThumbPositions();
       updateSelectedFilters();
-      // Troubleshooting: log after drag end
+      applyFilters(true);
+      // Log for troubleshooting
       console.log('[Slider] Drag end:', {finalMin, finalMax, filters: {...filters}});
     }
 
