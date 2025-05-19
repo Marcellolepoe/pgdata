@@ -652,11 +652,14 @@ function populateFuneralCard(cardWrapper, funeral) {
   const googleStarsEl = cardWrapper.querySelector('.google-stars');
   if (googleStarsEl) {
     const rating = parseFloat(funeral["Google Rating"]);
+    console.log('Google rating:', rating, 'Element:', googleStarsEl);
     if (!isNaN(rating) && rating > 0) {
       googleStarsEl.innerHTML = renderStars(rating);
       googleStarsEl.parentElement.style.display = '';
+      console.log('Google stars HTML:', googleStarsEl.innerHTML);
     } else {
       googleStarsEl.parentElement.style.display = 'none';
+      console.log('No Google rating, hiding stars.');
     }
   }
 
@@ -664,11 +667,14 @@ function populateFuneralCard(cardWrapper, funeral) {
   const fbStarsEl = cardWrapper.querySelector('.fb-stars');
   if (fbStarsEl) {
     const rating = parseFloat(funeral["Facebook Rating"]);
+    console.log('FB rating:', rating, 'Element:', fbStarsEl);
     if (!isNaN(rating) && rating > 0) {
       fbStarsEl.innerHTML = renderStars(rating);
       fbStarsEl.parentElement.style.display = '';
+      console.log('FB stars HTML:', fbStarsEl.innerHTML);
     } else {
       fbStarsEl.parentElement.style.display = 'none';
+      console.log('No FB rating, hiding stars.');
     }
   }
 
@@ -686,22 +692,27 @@ function populateFuneralCard(cardWrapper, funeral) {
 
   // Day Prices (1-7) with day filter logic
   const selectedDays = Array.isArray(filters?.days) && filters.days.length > 0 ? filters.days : [1,2,3,4,5,6,7];
+  console.log('Selected days for pricing:', selectedDays);
   for (let i = 1; i <= 7; i++) {
     const priceKey = `Available Duration (${i} Day${i > 1 ? (i === 2 ? '' : 's') : ''})`;
     const priceEl = cardWrapper.querySelector(`#day${i}-price`);
     const priceDiv = cardWrapper.querySelector(`#day${i}-price-div`);
     let priceVal = funeral[priceKey];
+    console.log(`Day ${i}: priceKey='${priceKey}', priceVal='${priceVal}', priceEl=`, priceEl, 'priceDiv=', priceDiv);
     // Only show if in selectedDays, otherwise hide
     if (priceEl && priceDiv) {
       if (selectedDays.includes(i)) {
         if (priceVal && priceVal.toString().trim() !== "") {
           priceEl.textContent = `$${parseFloat(priceVal).toLocaleString()}`;
           priceDiv.style.display = '';
+          console.log(`Rendering price for day ${i}: $${parseFloat(priceVal).toLocaleString()}`);
         } else {
           priceDiv.style.display = 'none';
+          console.log(`No price for day ${i}, hiding div.`);
         }
       } else {
         priceDiv.style.display = 'none';
+        console.log(`Day ${i} not in selectedDays, hiding div.`);
       }
     }
   }
@@ -730,11 +741,14 @@ function populateFuneralCard(cardWrapper, funeral) {
 
   // Link button to website
   const linkButton = cardWrapper.querySelector('#link-button, .link-button');
+  console.log('Website link in JSON:', funeral["Website Link"], 'Button element:', linkButton);
   if (linkButton && funeral["Website Link"] && funeral["Website Link"].trim() !== "") {
     linkButton.setAttribute('href', funeral["Website Link"]);
     linkButton.style.display = '';
+    console.log('Set link-button href to:', funeral["Website Link"]);
   } else if (linkButton) {
     linkButton.style.display = 'none';
+    console.log('No website link, hiding button.');
   }
 }
 
