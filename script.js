@@ -625,6 +625,17 @@ function populateFuneralCard(cardWrapper, funeral) {
   const phoneEl = cardWrapper.querySelector('.parlour-phone-number');
   if (phoneEl) phoneEl.textContent = funeral["Contact Number"] || "Not Available";
 
+  // Founded In (Years of Service)
+  const foundedInEl = cardWrapper.querySelector('.founded-in');
+  if (foundedInEl) {
+    if (funeral["Years of Service"] && funeral["Years of Service"].toString().trim() !== "") {
+      foundedInEl.textContent = funeral["Years of Service"];
+      foundedInEl.parentElement.style.display = '';
+    } else {
+      foundedInEl.parentElement.style.display = 'none';
+    }
+  }
+
   // Google Review Score (score and number)
   const googleScoreEl = cardWrapper.querySelector('.google-review-score');
   if (googleScoreEl) googleScoreEl.textContent = funeral["Google Rating"] || "-";
@@ -637,9 +648,91 @@ function populateFuneralCard(cardWrapper, funeral) {
   const fbReviewNumberEl = cardWrapper.querySelector('.fb-number-reviews');
   if (fbReviewNumberEl) fbReviewNumberEl.textContent = funeral["Facebook Reviews"] || "0";
 
+  // Google Stars
+  const googleStarsEl = cardWrapper.querySelector('.google-stars');
+  if (googleStarsEl) {
+    const rating = parseFloat(funeral["Google Rating"]);
+    if (!isNaN(rating) && rating > 0) {
+      googleStarsEl.innerHTML = renderStars(rating);
+      googleStarsEl.parentElement.style.display = '';
+    } else {
+      googleStarsEl.parentElement.style.display = 'none';
+    }
+  }
+
+  // Facebook Stars
+  const fbStarsEl = cardWrapper.querySelector('.fb-stars');
+  if (fbStarsEl) {
+    const rating = parseFloat(funeral["Facebook Rating"]);
+    if (!isNaN(rating) && rating > 0) {
+      fbStarsEl.innerHTML = renderStars(rating);
+      fbStarsEl.parentElement.style.display = '';
+    } else {
+      fbStarsEl.parentElement.style.display = 'none';
+    }
+  }
+
   // Review Excerpt
   const excerptEl = cardWrapper.querySelector('.review-excerpt');
-  if (excerptEl) excerptEl.textContent = funeral["Review Excerpt"] || "";
+  const excerptDiv = cardWrapper.querySelector('#review-excerpt-div-1');
+  if (excerptEl && excerptDiv) {
+    if (funeral["Review Excerpt"] && funeral["Review Excerpt"].toString().trim() !== "") {
+      excerptEl.textContent = funeral["Review Excerpt"];
+      excerptDiv.style.display = '';
+    } else {
+      excerptDiv.style.display = 'none';
+    }
+  }
+
+  // Day Prices (1-7)
+  for (let i = 1; i <= 7; i++) {
+    const priceKey = `Available Duration (${i} Day${i > 1 ? (i === 2 ? '' : 's') : ''})`;
+    const priceClass = `.${i}-day-price`;
+    const priceEl = cardWrapper.querySelector(priceClass);
+    const priceDiv = cardWrapper.querySelector(`#${i}-day-price-div`);
+    let priceVal = funeral[priceKey];
+    if (priceEl && priceDiv) {
+      if (priceVal && priceVal.toString().trim() !== "") {
+        priceEl.textContent = priceVal;
+        priceDiv.style.display = '';
+      } else {
+        priceDiv.style.display = 'none';
+      }
+    }
+  }
+
+  // Inclusions (casket, catering, tentage, hearse, personnel, monks)
+  const inclusions = [
+    { key: 'Casket (Display Description)', class: 'casket-description', div: '#casket-div' },
+    { key: 'Catering (Display Description)', class: 'catering-description', div: '#catering-div' },
+    { key: 'Tentage (Display Description)', class: 'tentage-description', div: '#tentage-div' },
+    { key: 'Hearse (Display Description)', class: 'hearse-description', div: '#hearse-div' },
+    { key: 'Personnel (Display Description)', class: 'personnel-description', div: '#personnel-div' },
+    { key: 'Monks (Display Description)', class: 'monk-description', div: '#monks-div' }
+  ];
+  inclusions.forEach(({ key, class: descClass, div }) => {
+    const descEl = cardWrapper.querySelector(`.${descClass}`);
+    const parentDiv = cardWrapper.querySelector(div);
+    if (descEl && parentDiv) {
+      if (funeral[key] && funeral[key].toString().trim() !== "") {
+        descEl.textContent = funeral[key];
+        parentDiv.style.display = '';
+      } else {
+        parentDiv.style.display = 'none';
+      }
+    }
+  });
+}
+
+// Helper to render stars (full stars only, round to nearest)
+function renderStars(rating) {
+  const fullStarURL = "https://cdn.prod.website-files.com/66343534ea61f97f0e1a4dd7/66423ee2f290eb7af2024d7f_Untitled%20design%20(4).png";
+  const rounded = Math.round(rating);
+  let stars = "";
+  for (let i = 0; i < rounded && i < 5; i++) {
+    stars += `<img src="${fullStarURL}" alt="Star" width="16" height="16" />`;
+  }
+  return stars;
 }
 
 // ADJUST CAROUSEL HEIGHT
