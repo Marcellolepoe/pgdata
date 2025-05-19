@@ -648,32 +648,32 @@ function populateFuneralCard(cardWrapper, funeral) {
   const fbReviewNumberEl = cardWrapper.querySelector('.fb-number-reviews');
   if (fbReviewNumberEl) fbReviewNumberEl.textContent = funeral["Facebook Reviews"] || "0";
 
-  // Google Stars
-  const googleStarsEl = cardWrapper.querySelector('.google-stars');
-  if (googleStarsEl) {
-    const rating = parseFloat(funeral["Google Rating"]);
-    console.log('Google rating:', rating, 'Element:', googleStarsEl);
-    if (!isNaN(rating) && rating > 0) {
-      googleStarsEl.innerHTML = renderStars(rating);
-      googleStarsEl.parentElement.style.display = '';
-      console.log('Google stars HTML:', googleStarsEl.innerHTML);
+  // Google Stars (set on google-stars-div)
+  const googleStarsDiv = cardWrapper.querySelector('#google-stars-div, .google-stars-div');
+  const googleRating = parseFloat(funeral["Google Rating"]);
+  console.log('Google rating:', googleRating, 'Element:', googleStarsDiv);
+  if (googleStarsDiv) {
+    if (!isNaN(googleRating) && googleRating > 0) {
+      googleStarsDiv.innerHTML = renderStars(googleRating);
+      googleStarsDiv.style.display = '';
+      console.log('Google stars HTML:', googleStarsDiv.innerHTML);
     } else {
-      googleStarsEl.parentElement.style.display = 'none';
+      googleStarsDiv.style.display = 'none';
       console.log('No Google rating, hiding stars.');
     }
   }
 
-  // Facebook Stars
-  const fbStarsEl = cardWrapper.querySelector('.fb-stars');
-  if (fbStarsEl) {
-    const rating = parseFloat(funeral["Facebook Rating"]);
-    console.log('FB rating:', rating, 'Element:', fbStarsEl);
-    if (!isNaN(rating) && rating > 0) {
-      fbStarsEl.innerHTML = renderStars(rating);
-      fbStarsEl.parentElement.style.display = '';
-      console.log('FB stars HTML:', fbStarsEl.innerHTML);
+  // Facebook Stars (set on fb-stars-div)
+  const fbStarsDiv = cardWrapper.querySelector('#fb-stars-div, .fb-stars-div');
+  const fbRating = parseFloat(funeral["Facebook Rating"]);
+  console.log('FB rating:', fbRating, 'Element:', fbStarsDiv);
+  if (fbStarsDiv) {
+    if (!isNaN(fbRating) && fbRating > 0) {
+      fbStarsDiv.innerHTML = renderStars(fbRating);
+      fbStarsDiv.style.display = '';
+      console.log('FB stars HTML:', fbStarsDiv.innerHTML);
     } else {
-      fbStarsEl.parentElement.style.display = 'none';
+      fbStarsDiv.style.display = 'none';
       console.log('No FB rating, hiding stars.');
     }
   }
@@ -691,7 +691,9 @@ function populateFuneralCard(cardWrapper, funeral) {
   }
 
   // Day Prices (1-7) with day filter logic
-  const selectedDays = Array.isArray(filters?.days) && filters.days.length > 0 ? filters.days : [1,2,3,4,5,6,7];
+  const selectedDays = Array.isArray(filters?.days) && filters.days.length > 0
+    ? filters.days.map(Number)
+    : [1,2,3,4,5,6,7];
   console.log('Selected days for pricing:', selectedDays);
   for (let i = 1; i <= 7; i++) {
     const priceKey = `Available Duration (${i} Day${i > 1 ? (i === 2 ? '' : 's') : ''})`;
@@ -699,7 +701,6 @@ function populateFuneralCard(cardWrapper, funeral) {
     const priceDiv = cardWrapper.querySelector(`#day${i}-price-div`);
     let priceVal = funeral[priceKey];
     console.log(`Day ${i}: priceKey='${priceKey}', priceVal='${priceVal}', priceEl=`, priceEl, 'priceDiv=', priceDiv);
-    // Only show if in selectedDays, otherwise hide
     if (priceEl && priceDiv) {
       if (selectedDays.includes(i)) {
         if (priceVal && priceVal.toString().trim() !== "") {
@@ -739,13 +740,13 @@ function populateFuneralCard(cardWrapper, funeral) {
     }
   });
 
-  // Link button to website
+  // Link button to website (Parlour Website Link)
   const linkButton = cardWrapper.querySelector('#link-button, .link-button');
-  console.log('Website link in JSON:', funeral["Website Link"], 'Button element:', linkButton);
-  if (linkButton && funeral["Website Link"] && funeral["Website Link"].trim() !== "") {
-    linkButton.setAttribute('href', funeral["Website Link"]);
+  console.log('Website link in JSON:', funeral["Parlour Website Link"], 'Button element:', linkButton);
+  if (linkButton && funeral["Parlour Website Link"] && funeral["Parlour Website Link"].trim() !== "") {
+    linkButton.setAttribute('href', funeral["Parlour Website Link"]);
     linkButton.style.display = '';
-    console.log('Set link-button href to:', funeral["Website Link"]);
+    console.log('Set link-button href to:', funeral["Parlour Website Link"]);
   } else if (linkButton) {
     linkButton.style.display = 'none';
     console.log('No website link, hiding button.');
