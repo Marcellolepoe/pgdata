@@ -1059,13 +1059,9 @@ function applyFilters(skipBandReset = false) {
   paginateResults(filteredDataWithPrice);
 }
 
-// After applyFilters is defined, wrap it to always call setThumbPositions after filtering
-const originalApplyFilters = applyFilters;
-applyFilters = function(skipBandReset = false) {
-  originalApplyFilters.call(this, skipBandReset);
-  if (typeof setThumbPositions === 'function') setThumbPositions();
-};
-window.setThumbPositions = setThumbPositions;
+// After every call to applyFilters, call setThumbPositions
+// (Call this after data load, after sorting, after slider drag end, etc.)
+// Example: after fetchFuneralData, after sorting, after clear all, after slider drag end
 
 // GLOBAL PAGINATION SETUP
 let currentPage = 1;
@@ -1128,8 +1124,11 @@ function setupPriceSliderDiv() {
   // Position thumbs within the price band bar
   function setThumbPositions() {
     const { min, p33, p66, max } = stats;
-    const percentMin = valueToPercent(filters.priceMin, min, p33, p66, max);
-    const percentMax = valueToPercent(filters.priceMax, min, p33, p66, max);
+    let percentMin = valueToPercent(filters.priceMin, min, p33, p66, max);
+    let percentMax = valueToPercent(filters.priceMax, min, p33, p66, max);
+    // Clamp to [0, 100]
+    percentMin = Math.max(0, Math.min(100, percentMin));
+    percentMax = Math.max(0, Math.min(100, percentMax));
     minThumb.style.left = percentMin + "%";
     maxThumb.style.left = percentMax + "%";
     if (minOutput) minOutput.textContent = `$${filters.priceMin.toLocaleString()}`;
@@ -1141,6 +1140,7 @@ function setupPriceSliderDiv() {
     // Log for troubleshooting
     console.log('[Slider] setThumbPositions', {percentMin, percentMax, priceMin: filters.priceMin, priceMax: filters.priceMax});
   }
+  window.setThumbPositions = setThumbPositions;
   setThumbPositions();
 
   let lastMinFrac = valueToPercent(filters.priceMin, stats.min, stats.p33, stats.p66, stats.max) / 100;
