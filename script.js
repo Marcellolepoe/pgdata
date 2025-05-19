@@ -700,20 +700,18 @@ function populateFuneralCard(cardWrapper, funeral) {
     const priceEl = cardWrapper.querySelector(`#day${i}-price`);
     const priceDiv = cardWrapper.querySelector(`#day${i}-price-div`);
     let priceVal = funeral[priceKey];
-    console.log(`Day ${i}: priceKey='${priceKey}', priceVal='${priceVal}', priceEl=`, priceEl, 'priceDiv=', priceDiv);
+    let cleanPrice = priceVal ? priceVal.toString().replace(/[^\d.]/g, "") : "";
+    let priceNum = parseFloat(cleanPrice);
     if (priceEl && priceDiv) {
       if (selectedDays.includes(i)) {
-        if (priceVal && priceVal.toString().trim() !== "") {
-          priceEl.textContent = `$${parseFloat(priceVal).toLocaleString()}`;
+        if (!isNaN(priceNum)) {
+          priceEl.textContent = `$${priceNum.toLocaleString()}`;
           priceDiv.style.display = '';
-          console.log(`Rendering price for day ${i}: $${parseFloat(priceVal).toLocaleString()}`);
         } else {
           priceDiv.style.display = 'none';
-          console.log(`No price for day ${i}, hiding div.`);
         }
       } else {
         priceDiv.style.display = 'none';
-        console.log(`Day ${i} not in selectedDays, hiding div.`);
       }
     }
   }
@@ -742,14 +740,13 @@ function populateFuneralCard(cardWrapper, funeral) {
 
   // Link button to website (Parlour Website Link)
   const linkButton = cardWrapper.querySelector('#link-button, .link-button');
-  console.log('Website link in JSON:', funeral["Parlour Website Link"], 'Button element:', linkButton);
   if (linkButton && funeral["Parlour Website Link"] && funeral["Parlour Website Link"].trim() !== "") {
     linkButton.setAttribute('href', funeral["Parlour Website Link"]);
+    linkButton.setAttribute('target', '_blank');
+    linkButton.setAttribute('rel', 'noopener noreferrer');
     linkButton.style.display = '';
-    console.log('Set link-button href to:', funeral["Parlour Website Link"]);
   } else if (linkButton) {
     linkButton.style.display = 'none';
-    console.log('No website link, hiding button.');
   }
 }
 
@@ -1254,13 +1251,35 @@ function applyFilters(skipBandReset = false) {
   console.log("🎨 About to render with anyFilterActive:", anyFilterActive);
 
   // Always use Webflow population version
-  renderResults(filteredDataWithPrice);
+  paginateResults(filteredDataWithPrice);
 }
 
 
 // GLOBAL PAGINATION SETUP
 let currentPage = 1;
 const resultsPerPage = 20;
+function renderPaginationControls(totalPages) {
+  const container = document.getElementById('pagination-container') || document.querySelector('.pagination-container');
+  if (!container) return;
+  container.innerHTML = '';
+  for (let i = 1; i <= totalPages; i++) {
+    const btn = document.createElement('button');
+    btn.textContent = i;
+    if (i === currentPage) {
+      btn.className = 'pagination-button-active';
+    } else {
+      btn.className = 'pagination-button-inactive';
+    }
+    btn.addEventListener('click', () => {
+      if (currentPage !== i) {
+        currentPage = i;
+        applyFilters();
+      }
+    });
+    container.appendChild(btn);
+  }
+}
+
 function paginateResults(filteredData) {
   const totalPages = Math.ceil(filteredData.length / resultsPerPage);
   const startIndex = (currentPage - 1) * resultsPerPage;
