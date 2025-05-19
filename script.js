@@ -687,10 +687,8 @@ function populateFuneralCard(cardWrapper, funeral) {
   // Day Prices (1-7)
   for (let i = 1; i <= 7; i++) {
     const priceKey = `Available Duration (${i} Day${i > 1 ? (i === 2 ? '' : 's') : ''})`;
-    const priceClass = `." + i + "-day-price`;
-    const priceDivClass = `." + i + "-day-price-div`;
-    const priceEl = cardWrapper.querySelector(`.${i}-day-price`);
-    const priceDiv = cardWrapper.querySelector(`.${i}-day-price-div`);
+    const priceEl = cardWrapper.querySelector(`#${i}-day-price`);
+    const priceDiv = cardWrapper.querySelector(`#${i}-day-price-div`);
     let priceVal = funeral[priceKey];
     if (priceEl && priceDiv) {
       if (priceVal && priceVal.toString().trim() !== "") {
@@ -712,7 +710,7 @@ function populateFuneralCard(cardWrapper, funeral) {
     { key: 'Monks (Display Description)', class: 'monk-description', div: '#monks-div' }
   ];
   inclusions.forEach(({ key, class: descClass, div }) => {
-    const descEl = cardWrapper.querySelector(`.${descClass}`);
+    const descEl = cardWrapper.querySelector(`#${descClass}`);
     const parentDiv = cardWrapper.querySelector(div);
     if (descEl && parentDiv) {
       if (funeral[key] && funeral[key].toString().trim() !== "") {
