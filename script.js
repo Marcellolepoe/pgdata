@@ -1,8 +1,3 @@
-// ==============================
-// GLOBAL FILTERS & DATA Setup
-// ==============================
-console.log("📜 Script starting to load...");
-
 window.filters = {
   location: [],
   casket: [],
@@ -19,23 +14,13 @@ window.filters = {
   priceBand: [],
 };
 
-console.log("⚙️ Global filters initialized");
-
 let funeralData = [];
 let lastFraction = 0;
 let lastMaxFraction = 1;
 let isPriceDragging = false;
 
-// ==============================
-// Wait for Page Load (after Webflow loads)
-// ==============================
-console.log("⏳ Setting up DOMContentLoaded listener...");
-
-// Single initialization function
 function initializePage() {
-  console.log("🌐 DOM Content Loaded - Initializing...");
   
-  // Check for required elements
   const requiredElements = [
     "funeral-cards-container",
     "price-band-bar",
@@ -49,14 +34,11 @@ function initializePage() {
     return;
   }
 
-  // Wait for Webflow to fully load
   setTimeout(function () {
-    console.log("🚀 Webflow loaded. Setting up filters...");
     setupFilters();
     getFiltersFromURL();
     updateSelectedFilters();
     
-    // Setup sorting
     const sortOptions = [
       "price-asc", "price-desc",
       "google-rating-desc", "facebook-rating-desc",
@@ -74,18 +56,13 @@ function initializePage() {
       }
     });
 
-    // Initialize the page
-    console.log("🚀 Initializing page...");
     fetchFuneralData();
   }, 1500);
 }
 
-// Single DOMContentLoaded listener
 document.addEventListener("DOMContentLoaded", initializePage);
 
-// Fetch Funeral Data
 async function fetchFuneralData() {
-  console.log("🚀 fetchFuneralData() started");
   const jsonUrl = "https://raw.githubusercontent.com/Marcellolepoe/pgdata/main/cleaned_buddhist_funeral_directory.json";
   try {
     const response = await fetch(jsonUrl);
@@ -97,7 +74,6 @@ async function fetchFuneralData() {
     const allCountEl = document.getElementById("all-results");
   	if (allCountEl) allCountEl.textContent = funeralData.length;
 
-    // Compute full pricing stats using the entire dataset.
     const priceKeys = [
       "Available Duration (1 Day)",
       "Available Duration (2 Day)",
@@ -107,14 +83,13 @@ async function fetchFuneralData() {
       "Available Duration (6 Days)",
       "Available Duration (7 Days)"
     ];
-    // For each package, gather all price values.
+
     const allPrices = funeralData.flatMap(pkg => {
       return priceKeys.map(key => {
         return parseFloat((pkg[key] || "").toString().replace(/[^\d.]/g, ""));
       });
     }).filter(p => !isNaN(p) && p > 0);
     
-    // Set global minimum and maximum from the full dataset.
     window.globalMinPrice = Math.min(...allPrices);  // Should be 988 if present
     window.globalMaxPrice = Math.max(...allPrices);  // E.g., 31610
     
@@ -122,16 +97,12 @@ async function fetchFuneralData() {
     
     window.sliderMapping = getFullPricingStats();
     
-    // Default slider settings: full range (no active price filter).
     filters.priceMin = window.globalMinPrice;
     filters.priceMax = window.globalMaxPrice;
     filters.sortBy = "";
     
-    // Initialize the Price Slider.
     setupPriceSliderDiv();
     
-    // Apply filters and update the UI.
-    console.log("🔄 Calling applyFilters() after data load");
     applyFilters();
     getFiltersFromURL();
   } catch (error) {
@@ -140,7 +111,6 @@ async function fetchFuneralData() {
   
 }
 
-// Load Data on Page Load
 window.onload = async function () {
   await fetchFuneralData();
 };
@@ -180,8 +150,6 @@ function getFullPricingStats() {
   };
 }
 
-
-// Piecewise Mapping Function
 function piecewisePercentileToValue(fraction, minVal, p33, p66, maxVal) {
   if (fraction <= 0.33) {
     const localFrac = fraction / 0.33;
@@ -195,17 +163,14 @@ function piecewisePercentileToValue(fraction, minVal, p33, p66, maxVal) {
   }
 }
 
-// FUNERAL PARLOUR SEARCH
 document.addEventListener("DOMContentLoaded", function () {
   const searchInput = document.getElementById("funeral-parlour-search");
   if (searchInput) {
-    // Prevent Enter from submitting the form
     searchInput.addEventListener("keydown", function (e) {
       if (e.key === "Enter") {
         e.preventDefault();
       }
     });
-    // Re-apply filtering on typing
     searchInput.addEventListener("input", function () {
       filters.searchTerm = this.value.trim().toLowerCase();
       updateSelectedFilters();
@@ -214,7 +179,6 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 
-// PRICE MAX INPUT 
 document.addEventListener("DOMContentLoaded", function () {
   const manualMaxInput = document.getElementById("price-input-max");
   if (manualMaxInput) {
@@ -226,12 +190,12 @@ document.addEventListener("DOMContentLoaded", function () {
         const minValue = window.globalMinPrice;
         const maxValue = window.globalMaxPrice;
         const maxThumb = document.getElementById("price-max");
-        // Calculate percent for new max value
+
         let percentMax = ((val - minValue) / (maxValue - minValue)) * 100;
         percentMax = Math.max(0, Math.min(100, percentMax));
-        // Move the max thumb
+
         maxThumb.style.left = `${percentMax}%`;
-        // (If you later add label elements, update them here.)
+    
         updateSelectedFilters();
         applyFilters();
       }
@@ -239,7 +203,6 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 
-// SORTING FUNCTION
 document.addEventListener("DOMContentLoaded", () => {
   const sortOptions = ["price-asc", "price-desc", "google-rating-desc", "facebook-rating-desc", "google-reviews-desc", "facebook-reviews-desc"];
   sortOptions.forEach(id => {
@@ -264,7 +227,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-// CLEAR ALL BUTTON
 document.addEventListener("DOMContentLoaded", function () {
   const clearAllButton = document.getElementById("clear-all");
   if (clearAllButton) {
@@ -302,7 +264,6 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 
-// SETUP FILTERS FUNCTION
 function setupFilters() {
   document.querySelectorAll(".filter-checkbox input[type='checkbox']").forEach(checkbox => {
     const label = checkbox.closest(".filter-checkbox");
@@ -781,172 +742,29 @@ function adjustCarouselHeight(wrapper) {
   }
 }
 
-/*
-// RENDER GROUP CARDS
-function renderGroupedResults(groupedResults) {
-  console.log("🎯 renderGroupedResults() called with", groupedResults?.length || 0, "groups");
-  const container = document.getElementById("funeral-cards-container");
-  if (!container) {
-    console.error("🚨 Funeral Cards Container NOT FOUND!");
-    return;
-  }
-
-  // Safety check for data
-  if (!Array.isArray(groupedResults) || groupedResults.length === 0) {
-    console.warn("⚠️ No data to render in renderGroupedResults()");
-    container.innerHTML = "<p class='no-results'>No funeral packages found matching your criteria.</p>";
-    return;
-  }
-
-  container.innerHTML = "";
-  groupedResults.forEach((group, groupIndex) => {
-    console.log(`📦 Processing group ${groupIndex + 1}/${groupedResults.length}:`, group.name);
-    const packages = group.packages;
-    if (!Array.isArray(packages) || packages.length === 0) {
-      console.warn(`⚠️ Group ${group.name} has no packages, skipping`);
-      return;
-    }
-    const groupWrapper = document.createElement("div");
-    groupWrapper.classList.add("parlour-wrapper");
-    const carouselWrapper = document.createElement("div");
-    carouselWrapper.classList.add("carousel-wrapper");
-    const heightWrapper = document.createElement("div");
-    heightWrapper.classList.add("carousel-height-wrapper");
-    heightWrapper.appendChild(carouselWrapper);
-    const cards = packages.map((pkg, i) => {
-      const card = createFuneralCard(pkg);
-      card.classList.add("carousel-card");
-      if (i === 0) {
-        card.classList.add("active");
-        card.style.zIndex = 101;
-      } else {
-        card.classList.add("behind");
-        card.style.zIndex = 100 - i;
-      }
-      carouselWrapper.appendChild(card);
-      return card;
-    });
-    const indicatorBar = document.createElement("div");
-    indicatorBar.className = "carousel-indicators";
-    const pills = packages.map((pkg, i) => {
-      const pill = document.createElement("div");
-      pill.className = "indicator-pill";
-      const circle = document.createElement("div");
-      circle.className = "pill-circle";
-      const label = document.createElement("div");
-      label.className = "pill-label";
-      label.innerText = pkg["Package Name"] || `Package ${i + 1}`;
-      pill.appendChild(circle);
-      pill.appendChild(label);
-      pill.addEventListener("click", () => {
-        currentIndex = i;
-        updateCarousel(i);
-      });
-      indicatorBar.appendChild(pill);
-      return pill;
-    });
-    let currentIndex = 0;
-    function updateCarousel(index) {
-      cards.forEach((card, i) => {
-        card.classList.remove("active", "behind", "before");
-        card.style.opacity = "0";
-        card.style.pointerEvents = "none";
-        card.style.zIndex = `${100 - Math.abs(index - i)}`;
-        if (i === index) {
-          card.classList.add("active");
-          card.style.opacity = "1";
-          card.style.transform = "translateX(0) scale(1)";
-          card.style.pointerEvents = "auto";
-          card.style.zIndex = 101;
-          requestAnimationFrame(() => {
-            carouselWrapper.style.height = card.offsetHeight + "px";
-          });
-        } else if (i > index) {
-          card.classList.add("behind");
-          card.style.opacity = "0.4";
-          card.style.transform = "translateX(30px) scale(0.95)";
-        } else if (i < index) {
-          card.classList.add("before");
-          card.style.opacity = "0.4";
-          card.style.transform = "translateX(-30px) scale(0.95)";
-        }
-      });
-      pills.forEach((pill, i) => {
-        pill.classList.toggle("active-pill", i === index);
-      });
-      const activeCard = cards[index];
-      requestAnimationFrame(() => {
-        heightWrapper.style.height = activeCard.offsetHeight + "px";
-      });
-      carouselWrapper.classList.toggle("show-left", index > 0);
-      carouselWrapper.classList.toggle("show-right", index < cards.length - 1);
-    }
-    const prevArrow = document.createElement("button");
-    prevArrow.className = "carousel-nav prev";
-    prevArrow.innerHTML = "‹";
-    prevArrow.addEventListener("click", () => {
-      if (currentIndex > 0) {
-        currentIndex--;
-        updateCarousel(currentIndex);
-      }
-    });
-    const nextArrow = document.createElement("button");
-    nextArrow.className = "carousel-nav next";
-    nextArrow.innerHTML = "›";
-    nextArrow.addEventListener("click", () => {
-      if (currentIndex < cards.length - 1) {
-        currentIndex++;
-        updateCarousel(currentIndex);
-      }
-    });
-    groupWrapper.appendChild(prevArrow);
-    groupWrapper.appendChild(heightWrapper);
-    groupWrapper.appendChild(indicatorBar);
-    groupWrapper.appendChild(nextArrow);
-    container.appendChild(groupWrapper);
-    updateCarousel(currentIndex);
-  });
-  console.log("✅ renderGroupedResults() completed");
-}
-*/
-
 // RENDER RESULTS (Webflow population version)
 function renderResults(filteredData) {
-  console.log("🎯 renderResults() [Webflow population] called with data:", filteredData?.length || 0, "items");
-
   const container = document.getElementById("funeral-cards-container");
   const template = document.getElementById("funeral-card-wrapper");
   if (!container || !template) {
-    console.error("❌ Missing container or template!");
     return;
   }
-
-  // Debug: Log children before clearing
-  console.log("Before clearing, container children:", container.children.length);
-
   // Remove all previously rendered cards except the template
   Array.from(container.children).forEach(child => {
     if (child !== template) container.removeChild(child);
   });
-
-  // Hide the template
   template.style.display = "none";
-
-  // Debug: Log filteredData length
-  console.log("Filtered data length:", filteredData.length);
-
+  // Use document fragment for batch DOM updates
+  const fragment = document.createDocumentFragment();
   for (let i = 0; i < filteredData.length; i++) {
     const data = filteredData[i];
     const card = template.cloneNode(true);
-    card.id = ""; // Remove ID from clone
-    card.style.display = ""; // Show the card
-
+    card.id = "";
+    card.style.display = "";
     populateFuneralCard(card, data);
-    container.appendChild(card);
+    fragment.appendChild(card);
   }
-
-  // Debug: Log children after rendering
-  console.log("After rendering, container children:", container.children.length);
+  container.appendChild(fragment);
 }
 
 // HELPER: renderIconRow
@@ -1314,7 +1132,6 @@ function setupPriceSliderDiv() {
   const maxLabel  = document.getElementById("price-max-value");
 
   if (!track || !minThumb || !maxThumb) {
-    console.error("Slider elements not found");
     return;
   }
 
@@ -1389,16 +1206,16 @@ function setupPriceSliderDiv() {
         if (maxOutput) maxOutput.textContent = `$${currentMax.toLocaleString()}`;
         if (maxLabel ) maxLabel.textContent  = `$${currentMax.toLocaleString()}`;
       }
+      // Troubleshooting: log thumb positions and filter values
+      console.log('Thumbs moved:', {isMin, currentMin, currentMax, filters: {...filters}});
     }
 
     function onDragEnd() {
-      // tear down
       document.removeEventListener("mousemove", onDragMove);
       document.removeEventListener("mouseup",   onDragEnd);
       document.removeEventListener("touchmove", onDragMove);
       document.removeEventListener("touchend",  onDragEnd);
 
-      // compute final from saved fractions
       const m = window.sliderMapping || getFullPricingStats();
       const finalMin = Math.round(
         piecewisePercentileToValue(lastMinFrac, m.min, m.p33, m.p66, m.max)
@@ -1407,22 +1224,17 @@ function setupPriceSliderDiv() {
         piecewisePercentileToValue(lastMaxFrac, m.min, m.p33, m.p66, m.max)
       );
 
-      // update filters & re‑apply
       filters.priceMin = finalMin;
       filters.priceMax = finalMax;
       applyFilters(true);
-
-      // reposition thumbs
       positionThumbs(m.min, m.max, finalMin, finalMax);
-
-      // update displays
       if (minOutput) minOutput.textContent = `$${finalMin.toLocaleString()}`;
       if (maxOutput) maxOutput.textContent = `$${finalMax.toLocaleString()}`;
       if (minLabel ) minLabel.textContent  = `$${finalMin.toLocaleString()}`;
       if (maxLabel ) maxLabel.textContent  = `$${finalMax.toLocaleString()}`;
-
-      // refresh your Selected‑Filters UI
       updateSelectedFilters();
+      // Troubleshooting: log after drag end
+      console.log('Drag end:', {finalMin, finalMax, filters: {...filters}});
     }
 
     document.addEventListener("mousemove", onDragMove, { passive: false });
