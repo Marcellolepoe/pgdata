@@ -1166,6 +1166,7 @@ function setupPriceSliderDiv() {
       const clientX = evt.type.startsWith("touch")
         ? evt.touches[0].clientX
         : evt.clientX;
+      // Confine x to the price band bar only
       const x = Math.min(Math.max(clientX - rect.left, 0), rect.width);
       let frac = x / rect.width;
 
@@ -1207,7 +1208,8 @@ function setupPriceSliderDiv() {
         if (maxLabel ) maxLabel.textContent  = `$${currentMax.toLocaleString()}`;
       }
       // Troubleshooting: log thumb positions and filter values
-      console.log('Thumbs moved:', {isMin, currentMin, currentMax, filters: {...filters}});
+      console.log('[Slider] Thumbs moved:', {isMin, currentMin, currentMax, filters: {...filters}});
+      updateSelectedFilters(); // Ensure selected filters panel updates live
     }
 
     function onDragEnd() {
@@ -1234,7 +1236,7 @@ function setupPriceSliderDiv() {
       if (maxLabel ) maxLabel.textContent  = `$${finalMax.toLocaleString()}`;
       updateSelectedFilters();
       // Troubleshooting: log after drag end
-      console.log('Drag end:', {finalMin, finalMax, filters: {...filters}});
+      console.log('[Slider] Drag end:', {finalMin, finalMax, filters: {...filters}});
     }
 
     document.addEventListener("mousemove", onDragMove, { passive: false });
