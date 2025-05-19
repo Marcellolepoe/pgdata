@@ -383,11 +383,11 @@ function updateURLParams() {
 
 // Update Selected Filters Panel
 function updateSelectedFilters() {
-	console.log("🔔 updateSelectedFilters()", filters.priceMin, filters.priceMax);
+  console.log("🔔 updateSelectedFilters()", filters.priceMin, filters.priceMax);
   const selectedFiltersDiv = document.getElementById("selected-filters");
   if (!selectedFiltersDiv) return;
   selectedFiltersDiv.innerHTML = "";
-  
+
   let hasFilters = false;
   let tagCount = 0;
   Object.keys(filters).forEach((category) => {
@@ -396,20 +396,26 @@ function updateSelectedFilters() {
     const isPrice = category === "priceMin";
     const isSearch = category === "searchTerm" && typeof val === "string" && val.trim().length > 0;
     const isSort = category === "sortBy" && val;
-    
-    if (category === "priceBand" && Array.isArray(val) && val.length>0) {
-        const pretty = { lower:"Lower", middle:"Middle", upper:"Upper" };
-        const labels = val.map(v=>pretty[v]).join(", ");
-        const el = document.createElement("span");
-        el.classList.add("filter-tag");
-        el.innerHTML = `
-          <strong>Price Band:</strong> ${labels}
-          <button class="clear-category" data-category="priceBand">✕</button>
-        `;
-        selectedFiltersDiv.appendChild(el);
-        tagCount++;
-        return; // skip the rest for this category
+
+    if (category === "priceBand" && Array.isArray(val) && val.length > 0) {
+      const pretty = { lower: "Lower", middle: "Middle", upper: "Upper" };
+      const labels = val.map((v) => pretty[v]).join(", ");
+      if (tagCount > 0) {
+        const separator = document.createElement("span");
+        separator.classList.add("filter-separator");
+        separator.innerHTML = " | ";
+        selectedFiltersDiv.appendChild(separator);
       }
+      const el = document.createElement("span");
+      el.classList.add("filter-tag");
+      el.innerHTML = `
+        <strong>Price Band:</strong> ${labels}
+        <button class="clear-category" data-category="priceBand">✕</button>
+      `;
+      selectedFiltersDiv.appendChild(el);
+      tagCount++;
+      return;
+    }
 
     if (isSearch || isPrice || isArray || isSort) {
       hasFilters = true;
@@ -461,34 +467,39 @@ function updateSelectedFilters() {
   if (!hasFilters) {
     selectedFiltersDiv.innerHTML = `<p style="color: gray;">No filters selected.</p>`;
   }
-selectedFiltersDiv.querySelectorAll(".clear-category").forEach(function(button) {
-  button.addEventListener("click", function () {
-    const category = this.dataset.category;
-    if (this.dataset.category === "price") {
-      filters.priceMin = window.globalMinPrice;
-      filters.priceMax = window.globalMaxPrice;
-      resetPriceSlider();
-      const manualMaxInput = document.getElementById("price-input-max");
-      if (manualMaxInput) manualMaxInput.value = "";
-    } else if (category === "searchTerm") {
-      filters.searchTerm = "";
-      const searchInput = document.getElementById("funeral-parlour-search");
-      if (searchInput) searchInput.value = "";
-    } else if (category === "sortBy") {
-      filters.sortBy = "";
-    } else {
-      filters[category] = [];
-      document.querySelectorAll(`.filter-checkbox[data-category="${category}"] input[type="checkbox"]`)
-        .forEach(checkbox => checkbox.checked = false);
-    } if (category==="priceBand") {
-  filters.priceBand = [];
-  document.querySelectorAll('[data-category="priceBand"] input')
-    .forEach(cb=>cb.checked=false);
-		}
-    updateSelectedFilters();
-    applyFilters();
+  // Remove any trailing separator
+  const children = Array.from(selectedFiltersDiv.children);
+  if (children.length > 0 && children[children.length - 1].classList.contains('filter-separator')) {
+    selectedFiltersDiv.removeChild(children[children.length - 1]);
+  }
+  selectedFiltersDiv.querySelectorAll(".clear-category").forEach(function (button) {
+    button.addEventListener("click", function () {
+      const category = this.dataset.category;
+      if (this.dataset.category === "price") {
+        filters.priceMin = window.globalMinPrice;
+        filters.priceMax = window.globalMaxPrice;
+        resetPriceSlider();
+        const manualMaxInput = document.getElementById("price-input-max");
+        if (manualMaxInput) manualMaxInput.value = "";
+      } else if (category === "searchTerm") {
+        filters.searchTerm = "";
+        const searchInput = document.getElementById("funeral-parlour-search");
+        if (searchInput) searchInput.value = "";
+      } else if (category === "sortBy") {
+        filters.sortBy = "";
+      } else {
+        filters[category] = [];
+        document.querySelectorAll(`.filter-checkbox[data-category="${category}"] input[type="checkbox"]`)
+          .forEach(checkbox => checkbox.checked = false);
+      } if (category === "priceBand") {
+        filters.priceBand = [];
+        document.querySelectorAll('[data-category="priceBand"] input')
+          .forEach(cb => cb.checked = false);
+      }
+      updateSelectedFilters();
+      applyFilters();
+    });
   });
-});
 
   updateURLParams();
 }
@@ -1257,7 +1268,7 @@ function applyFilters(skipBandReset = false) {
 
 // GLOBAL PAGINATION SETUP
 let currentPage = 1;
-const resultsPerPage = 20;
+const resultsPerPage = 10;
 function renderPaginationControls(totalPages) {
   const container = document.getElementById('pagination-container') || document.querySelector('.pagination-container');
   if (!container) return;
@@ -1285,8 +1296,11 @@ function paginateResults(filteredData) {
   const startIndex = (currentPage - 1) * resultsPerPage;
   const endIndex = startIndex + resultsPerPage;
   const paginatedData = filteredData.slice(startIndex, endIndex);
-  renderResults(paginatedData);
-  renderPaginationControls(totalPages);
+  // Batch DOM updates for performance
+  requestAnimationFrame(() => {
+    renderResults(paginatedData);
+    renderPaginationControls(totalPages);
+  });
 }
 
 // Price Slider Div Setup
@@ -1318,6 +1332,9 @@ function setupPriceSliderDiv() {
   if (minLabel)  minLabel.textContent  = `$${currentMin.toLocaleString()}`;
   if (maxLabel)  maxLabel.textContent  = `$${currentMax.toLocaleString()}`;
 
+  minThumb.style.display = '';
+  maxThumb.style.display = '';
+
   let lastMinFrac = 0, lastMaxFrac = 1;
 
   function onDragStart(e, isMin) {
@@ -1345,7 +1362,7 @@ function setupPriceSliderDiv() {
         if (frac * 100 < minPct) frac = minPct / 100;
         lastMaxFrac = frac;
       }
-      
+
       if (filters.priceBand.length) {
         filters.priceBand = [];
         document.querySelectorAll('[data-category="priceBand"] input')
