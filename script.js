@@ -684,16 +684,22 @@ function populateFuneralCard(cardWrapper, funeral) {
     }
   }
 
-  // Day Prices (1-7)
+  // Day Prices (1-7) with day filter logic
+  const selectedDays = Array.isArray(filters?.days) && filters.days.length > 0 ? filters.days : [1,2,3,4,5,6,7];
   for (let i = 1; i <= 7; i++) {
     const priceKey = `Available Duration (${i} Day${i > 1 ? (i === 2 ? '' : 's') : ''})`;
     const priceEl = cardWrapper.querySelector(`#day${i}-price`);
     const priceDiv = cardWrapper.querySelector(`#day${i}-price-div`);
     let priceVal = funeral[priceKey];
+    // Only show if in selectedDays, otherwise hide
     if (priceEl && priceDiv) {
-      if (priceVal && priceVal.toString().trim() !== "") {
-        priceEl.textContent = priceVal;
-        priceDiv.style.display = '';
+      if (selectedDays.includes(i)) {
+        if (priceVal && priceVal.toString().trim() !== "") {
+          priceEl.textContent = `$${parseFloat(priceVal).toLocaleString()}`;
+          priceDiv.style.display = '';
+        } else {
+          priceDiv.style.display = 'none';
+        }
       } else {
         priceDiv.style.display = 'none';
       }
@@ -721,14 +727,23 @@ function populateFuneralCard(cardWrapper, funeral) {
       }
     }
   });
+
+  // Link button to website
+  const linkButton = cardWrapper.querySelector('#link-button, .link-button');
+  if (linkButton && funeral["Website Link"] && funeral["Website Link"].trim() !== "") {
+    linkButton.setAttribute('href', funeral["Website Link"]);
+    linkButton.style.display = '';
+  } else if (linkButton) {
+    linkButton.style.display = 'none';
+  }
 }
 
-// Helper to render stars (full stars only, round to nearest)
+// Helper to render stars (full stars only, round to nearest, max 5)
 function renderStars(rating) {
   const fullStarURL = "https://cdn.prod.website-files.com/66343534ea61f97f0e1a4dd7/66423ee2f290eb7af2024d7f_Untitled%20design%20(4).png";
   const rounded = Math.round(rating);
   let stars = "";
-  for (let i = 0; i < rounded && i < 5; i++) {
+  for (let i = 0; i < Math.min(rounded, 5); i++) {
     stars += `<img src="${fullStarURL}" alt="Star" width="16" height="16" />`;
   }
   return stars;
