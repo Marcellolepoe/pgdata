@@ -862,6 +862,13 @@ function applyFilters(skipBandReset = false) {
   const selectedDays = filters.days.length ? filters.days : Object.keys(dayMap);
   const term = filters.searchTerm.trim().toLowerCase();
 
+  console.log('[DEBUG] applyFilters start:', {
+    filters: { ...filters },
+    priceBand: filters.priceBand,
+    priceMin: filters.priceMin,
+    priceMax: filters.priceMax
+  });
+
   // 2) NON‑PRICE FILTERING
   const filteredDataForBands = funeralData.filter(item => {
     // 2a) Parlour name search
@@ -877,14 +884,14 @@ function applyFilters(skipBandReset = false) {
       if (category === "days") {
         // require at least one valid day price
         const ok = selectedDays.some(d => {
-          const raw = item[ dayMap[d] ] || "";
+          const raw = item[dayMap[d]] || "";
           const p = parseFloat(raw.toString().replace(/[^\d.]/g,""));
           return !isNaN(p);
         });
         if (!ok) return false;
       } else {
         const field = filterKeyMap[category];
-        const val   = (item[field] || "").toString().toLowerCase();
+        const val = (item[field] || "").toString().toLowerCase();
         if (!vals.some(v => val.includes(v.toLowerCase()))) return false;
       }
     }
@@ -892,90 +899,87 @@ function applyFilters(skipBandReset = false) {
   });
 
   // 3) PRICE‑BAND vs MANUAL SLIDER
-  const stats            = window.sliderMapping || getFullPricingStats();
-  const bandRanges       = (filters.priceBand||[]).map(b => {
-    if (b === "lower")  return [stats.min, stats.p33];
+  const stats = window.sliderMapping || getFullPricingStats();
+  const bandRanges = (filters.priceBand || []).map(b => {
+    if (b === "lower") return [stats.min, stats.p33];
     if (b === "middle") return [stats.p33, stats.p66];
-    if (b === "upper")  return [stats.p66, stats.max];
+    if (b === "upper") return [stats.p66, stats.max];
   });
-  const priceBandActive   = bandRanges.length > 0;
-  const priceFilterActive = !priceBandActive
-    && (filters.priceMin !== window.globalMinPrice
-     || filters.priceMax !== window.globalMaxPrice);
 
-  // 3a) SNAP THUMBS INTO BAND RANGE ONCE
-  if (priceBandActive && !window.isPriceDragging) {
-    const newMin = Math.min(...bandRanges.map(([lo,hi]) => lo));
-    const newMax = Math.max(...bandRanges.map(([lo,hi]) => hi));
-    filters.priceMin = newMin;
-    filters.priceMax = newMax;
-    positionThumbs(stats.min, stats.max, newMin, newMax);
-  }
+  console.log('[DEBUG] Price filtering:', {
+    priceBand: filters.priceBand,
+    bandRanges,
+    priceMin: filters.priceMin,
+    priceMax: filters.priceMax,
+    stats
+  });
 
-  // 4) UPDATE THE COLORED BANDS VISUALS
-  if (!window.isPriceDragging) {
-    updatePricingBands(filteredDataForBands, priceBandActive);
-  }
-
-  // 5) FINAL PRICE FILTERING
+  // 4) FINAL PRICE FILTERING
   const filteredDataWithPrice = filteredDataForBands.filter(item => {
-    if (priceBandActive) {
-      // include any package in any selected band
-      return Object.keys(dayMap).some(d => {
-        const raw = item[dayMap[d]] || "";
-        const p   = parseFloat(raw.toString().replace(/[^\d.]/g,""));
-        return bandRanges.some(([lo,hi]) => p >= lo && p <= hi);
-      });
+    // Get all valid prices for this item
+    const prices = selectedDays.map(d => {
+      const raw = item[dayMap[d]] || "";
+      return parseFloat(raw.toString().replace(/[^\d.]/g,""));
+    }).filter(p => !isNaN(p));
+
+    if (prices.length === 0) return false;
+
+    // If price band is active, check if any price falls within the band
+    if (filters.priceBand.length > 0) {
+      return prices.some(price => 
+        bandRanges.some(([min, max]) => price >= min && price <= max)
+      );
     }
-    if (priceFilterActive) {
-      // manual slider
-      return Object.keys(dayMap).some(d => {
-        const raw = item[dayMap[d]] || "";
-        const p   = parseFloat(raw.toString().replace(/[^\d.]/g,""));
-        return !isNaN(p) && p >= filters.priceMin && p <= filters.priceMax;
-      });
+    
+    // If manual price range is active, check if any price falls within the range
+    if (filters.priceMin !== window.globalMinPrice || filters.priceMax !== window.globalMaxPrice) {
+      return prices.some(price => 
+        price >= filters.priceMin && price <= filters.priceMax
+      );
     }
+
     return true;
   });
 
-  // 6) UPDATE COUNTERS
-  const allEl  = document.getElementById("all-results");
+  console.log('[DEBUG] Filter results:', {
+    totalItems: funeralData.length,
+    afterNonPrice: filteredDataForBands.length,
+    afterPrice: filteredDataWithPrice.length
+  });
+
+  // 5) UPDATE COUNTERS
+  const allEl = document.getElementById("all-results");
   const showEl = document.getElementById("showed-results");
-  if (allEl)  allEl.textContent  = funeralData.length;
+  if (allEl) allEl.textContent = funeralData.length;
   if (showEl) showEl.textContent = filteredDataWithPrice.length;
 
-  // 7) SORTING
+  // 6) SORTING
   if (filters.sortBy) {
     filteredDataWithPrice.sort((a,b) => {
       const lowPrice = item => {
         let low = Infinity;
         for (let d of selectedDays) {
           const raw = item[dayMap[d]] || "";
-          const p   = parseFloat(raw.toString().replace(/[^\d.]/g,""));
+          const p = parseFloat(raw.toString().replace(/[^\d.]/g,""));
           if (!isNaN(p) && p < low) low = p;
         }
         return low;
       };
       const A = lowPrice(a), B = lowPrice(b);
       switch (filters.sortBy) {
-        case "price-asc":           return A - B;
-        case "price-desc":          return B - A;
-        case "google-rating-desc":  return (parseFloat(b["Google Rating"])||0)
-                                     - (parseFloat(a["Google Rating"])||0);
-        case "facebook-rating-desc":return (parseFloat(b["Facebook Rating"])||0)
-                                     - (parseFloat(a["Facebook Rating"])||0);
-        case "google-reviews-desc": return (parseInt(b["Google Reviews"])||0)
-                                     - (parseInt(a["Google Reviews"])||0);
-        case "facebook-reviews-desc":return (parseInt(b["Facebook Reviews"])||0)
-                                     - (parseInt(a["Facebook Reviews"])||0);
+        case "price-asc": return A - B;
+        case "price-desc": return B - A;
+        case "google-rating-desc": return (parseFloat(b["Google Rating"])||0) - (parseFloat(a["Google Rating"])||0);
+        case "facebook-rating-desc": return (parseFloat(b["Facebook Rating"])||0) - (parseFloat(a["Facebook Rating"])||0);
+        case "google-reviews-desc": return (parseInt(b["Google Reviews"])||0) - (parseInt(a["Google Reviews"])||0);
+        case "facebook-reviews-desc": return (parseInt(b["Facebook Reviews"])||0) - (parseInt(a["Facebook Reviews"])||0);
         default: return 0;
       }
     });
   }
 
-  // 8) RENDER RESULTS
+  // 7) RENDER RESULTS
   paginateResults(filteredDataWithPrice);
-  console.debug('[SLIDER] applyFilters complete', {priceMin: filters.priceMin, priceMax: filters.priceMax, skipBandReset, _sliderJustDragged: window._sliderJustDragged});
 }
 
 // After every call to applyFilters, call setThumbPositions
@@ -1526,7 +1530,7 @@ function syncPriceFilterUI() {
 
   // Force thumb positions with !important
   if (minThumb) {
-    minThumb.style.cssText = `left: ${percentMin}% !important;`;
+    minThumb.style.left = `${percentMin}%`;
     console.log('[DEBUG] Setting min thumb position:', percentMin);
   }
   if (maxThumb) {
