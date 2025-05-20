@@ -1401,17 +1401,32 @@ function bandRangeMatches(min, max, stats, band) {
         const percentMin = valueToPercent(min, stats.min, stats.p33, stats.p66, stats.max);
         const percentMax = valueToPercent(max, stats.min, stats.p33, stats.p66, stats.max);
         
-        minThumb.style.left = `${percentMin}%`;
-        maxThumb.style.left = `${percentMax}%`;
+        // Force thumb positions with !important
+        minThumb.style.cssText = `left: ${percentMin}% !important;`;
+        maxThumb.style.cssText = `left: ${percentMax}% !important;`;
+        
+        // Also update the labels immediately
+        const minLabel = document.getElementById("price-min-value");
+        const maxLabel = document.getElementById("price-max-value");
+        if (minLabel) minLabel.textContent = `$${min.toLocaleString()}`;
+        if (maxLabel) maxLabel.textContent = `$${max.toLocaleString()}`;
         
         console.log('[DEBUG] Band Click:', {
           band,
           min,
           max,
           percentMin,
-          percentMax
+          percentMax,
+          thumbPositions: {
+            min: minThumb.style.left,
+            max: maxThumb.style.left
+          }
         });
       }
+
+      // Force a reflow to ensure styles are applied
+      void minThumb.offsetHeight;
+      void maxThumb.offsetHeight;
 
       syncPriceFilterUI();
       updateSelectedFilters();
@@ -1509,13 +1524,13 @@ function syncPriceFilterUI() {
   const percentMin = valueToPercent(filters.priceMin, stats.min, stats.p33, stats.p66, stats.max);
   const percentMax = valueToPercent(filters.priceMax, stats.min, stats.p33, stats.p66, stats.max);
 
-  // Force thumb positions
+  // Force thumb positions with !important
   if (minThumb) {
-    minThumb.style.left = `${percentMin}%`;
+    minThumb.style.cssText = `left: ${percentMin}% !important;`;
     console.log('[DEBUG] Setting min thumb position:', percentMin);
   }
   if (maxThumb) {
-    maxThumb.style.left = `${percentMax}%`;
+    maxThumb.style.cssText = `left: ${percentMax}% !important;`;
     console.log('[DEBUG] Setting max thumb position:', percentMax);
   }
   
@@ -1526,6 +1541,10 @@ function syncPriceFilterUI() {
   if (maxOutput) maxOutput.textContent = priceMaxStr;
   if (minLabel) minLabel.textContent = priceMinStr;
   if (maxLabel) maxLabel.textContent = priceMaxStr;
+
+  // Force a reflow to ensure styles are applied
+  if (minThumb) void minThumb.offsetHeight;
+  if (maxThumb) void maxThumb.offsetHeight;
 
   console.log('[DEBUG] syncPriceFilterUI complete:', {
     percentMin,
