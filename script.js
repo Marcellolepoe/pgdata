@@ -1400,100 +1400,92 @@ function bandRangeMatches(min, max, stats, band) {
   const el = document.getElementById('band-' + band);
   if (el) {
     el.addEventListener('click', function() {
-      const stats = window.sliderMapping || getFullPricingStats();
-      console.log('[DEBUG] Band Click - Initial Stats:', {
-        stats,
-        currentFilters: { ...filters }
+      console.log('[DEBUG] Band Click Start:', {
+        band,
+        element: {
+          id: el.id,
+          className: el.className
+        }
       });
 
-      let min, max, percentMin, percentMax;
-      
-      // Set the price range based on band
+      const elements = verifyPriceElements();
+      const stats = window.sliderMapping || getFullPricingStats();
+
+      // Set exact percentages and prices
+      let percentMin, percentMax, min, max;
       if (band === 'lower') {
+        percentMin = 0;
+        percentMax = 33.33;
         min = stats.min;
         max = stats.p33;
-        percentMin = 0;
-        percentMax = 33;
       } else if (band === 'middle') {
+        percentMin = 33.33;
+        percentMax = 66.66;
         min = stats.p33;
         max = stats.p66;
-        percentMin = 33;
-        percentMax = 66;
       } else if (band === 'upper') {
+        percentMin = 66.66;
+        percentMax = 100;
         min = stats.p66;
         max = stats.max;
-        percentMin = 66;
-        percentMax = 100;
       }
 
-      console.log('[DEBUG] Band Click - Calculated Values:', {
-        band,
-        min,
-        max,
-        percentMin,
-        percentMax
-      });
-
-      // Update filters
+      // Update filters first
       filters.priceMin = min;
       filters.priceMax = max;
       filters.priceBand = [band];
 
-      // Force immediate thumb updates
-      const minThumb = document.getElementById("price-min");
-      const maxThumb = document.getElementById("price-max");
-      
-      if (minThumb && maxThumb) {
-        // Force thumb positions with direct style manipulation
-        minThumb.style.cssText = `left: ${percentMin}% !important; transition: none;`;
-        maxThumb.style.cssText = `left: ${percentMax}% !important; transition: none;`;
-        
-        // Update price labels
-        const minLabel = document.getElementById("price-min-value");
-        const maxLabel = document.getElementById("price-max-value");
-        const minOutput = document.getElementById("price-range-min");
-        const maxOutput = document.getElementById("price-range-max");
-        
-        const minStr = `$${min.toLocaleString()}`;
-        const maxStr = `$${max.toLocaleString()}`;
-        
-        if (minLabel) minLabel.textContent = minStr;
-        if (maxLabel) maxLabel.textContent = maxStr;
-        if (minOutput) minOutput.textContent = minStr;
-        if (maxOutput) maxOutput.textContent = maxStr;
-
-        // Update band labels
-        if (band === 'lower') {
-          updateTextForAll(".lowest-price-display", min);
-          updateTextForAll(".lower-band-range", max);
-        } else if (band === 'middle') {
-          updateTextForAll(".lower-band-range", min);
-          updateTextForAll(".upper-band-range", max);
-        } else if (band === 'upper') {
-          updateTextForAll(".upper-band-range", min);
-          updateTextForAll(".highest-price-display", max);
+      console.log('[DEBUG] Band Values:', {
+        percentMin,
+        percentMax,
+        min,
+        max,
+        elements: {
+          minThumb: elements.minThumb?.style?.left,
+          maxThumb: elements.maxThumb?.style?.left
         }
+      });
 
-        console.log('[DEBUG] Band Click - UI Updates:', {
-          thumbPositions: {
-            min: minThumb.style.left,
-            max: maxThumb.style.left
-          },
-          labels: {
-            min: minStr,
-            max: maxStr
-          }
+      // Direct DOM updates
+      if (elements.minThumb && elements.maxThumb) {
+        // Force immediate style updates
+        requestAnimationFrame(() => {
+          elements.minThumb.style.cssText = `left: ${percentMin}% !important; position: absolute;`;
+          elements.maxThumb.style.cssText = `left: ${percentMax}% !important; position: absolute;`;
+          
+          // Verify position after update
+          console.log('[DEBUG] Thumb Positions After Update:', {
+            minThumb: elements.minThumb.style.left,
+            maxThumb: elements.maxThumb.style.left,
+            minThumbRect: elements.minThumb.getBoundingClientRect(),
+            maxThumbRect: elements.maxThumb.getBoundingClientRect()
+          });
         });
       }
 
-      // Force a reflow
-      void minThumb.offsetHeight;
-      void maxThumb.offsetHeight;
+      // Update all price displays
+      const formatPrice = p => `$${Math.round(p).toLocaleString()}`;
+      if (elements.minLabel) elements.minLabel.textContent = formatPrice(min);
+      if (elements.maxLabel) elements.maxLabel.textContent = formatPrice(max);
+      if (elements.minOutput) elements.minOutput.textContent = formatPrice(min);
+      if (elements.maxOutput) elements.maxOutput.textContent = formatPrice(max);
 
-      // Update UI and apply filters
-      syncPriceFilterUI();
-      updateSelectedFilters();
+      // Update result counts
       applyFilters(true);
+
+      // Verify final state
+      setTimeout(() => {
+        const finalElements = verifyPriceElements();
+        console.log('[DEBUG] Final State:', {
+          filters: { ...filters },
+          elements: {
+            minThumb: finalElements.minThumb?.style?.left,
+            maxThumb: finalElements.maxThumb?.style?.left,
+            minLabel: finalElements.minLabel?.textContent,
+            maxLabel: finalElements.maxLabel?.textContent
+          }
+        });
+      }, 100);
     });
   }
 });
@@ -1642,3 +1634,71 @@ function setThumbPositions() {
   });
 }
 // --- End Global setThumbPositions ---
+
+// Add DOM verification
+function verifyPriceElements() {
+  const elements = {
+    minThumb: document.getElementById("price-min"),
+    maxThumb: document.getElementById("price-max"),
+    bandBar: document.getElementById("price-band-bar"),
+    minLabel: document.getElementById("price-min-value"),
+    maxLabel: document.getElementById("price-max-value"),
+    minOutput: document.getElementById("price-range-min"),
+    maxOutput: document.getElementById("price-range-max"),
+    showedResults: document.getElementById("showed-results"),
+    allResults: document.getElementById("all-results")
+  };
+
+  console.log('[DEBUG] DOM Elements Check:', {
+    elements: Object.fromEntries(
+      Object.entries(elements).map(([k, v]) => [k, {
+        exists: !!v,
+        id: v?.id,
+        className: v?.className,
+        style: v?.style?.cssText,
+        position: v?.getBoundingClientRect()
+      }])
+    )
+  });
+
+  return elements;
+}
+
+// Modify clear all handler
+document.getElementById("clear-all")?.addEventListener("click", function() {
+  console.log('[DEBUG] Clear All Start');
+  
+  // Reset filters
+  Object.keys(filters).forEach(key => {
+    if (Array.isArray(filters[key])) {
+      filters[key] = [];
+    } else if (key === 'priceMin') {
+      filters.priceMin = window.globalMinPrice;
+    } else if (key === 'priceMax') {
+      filters.priceMax = window.globalMaxPrice;
+    } else if (key === 'searchTerm') {
+      filters.searchTerm = "";
+    }
+  });
+
+  // Reset UI elements
+  const elements = verifyPriceElements();
+  if (elements.minThumb) elements.minThumb.style.left = '0%';
+  if (elements.maxThumb) elements.maxThumb.style.left = '100%';
+  
+  // Reset checkboxes
+  document.querySelectorAll('.filter-checkbox input[type="checkbox"]')
+    .forEach(cb => cb.checked = false);
+
+  // Clear price band selection
+  filters.priceBand = [];
+  
+  // Update UI
+  updateSelectedFilters();
+  applyFilters(false);
+
+  console.log('[DEBUG] Clear All Complete:', {
+    filters: { ...filters },
+    elements: verifyPriceElements()
+  });
+});
