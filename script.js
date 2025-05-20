@@ -1409,6 +1409,8 @@ function bandRangeMatches(min, max, stats, band) {
   if (el) {
     el.addEventListener('click', function() {
       setPriceFilter({ band });
+      // Force immediate UI update
+      syncPriceFilterUI();
     });
   }
 });
@@ -1416,13 +1418,21 @@ function bandRangeMatches(min, max, stats, band) {
 
 // --- Centralized Price Filter Logic ---
 function setPriceFilter({ band = null, min = null, max = null, manual = false, maxInput = false }) {
+  const stats = window.sliderMapping || getFullPricingStats();
+  
   if (band) {
-    const stats = window.sliderMapping || getFullPricingStats();
-    if (band === 'lower')  { min = stats.min;  max = stats.p33; }
-    if (band === 'middle') { min = stats.p33; max = stats.p66; }
-    if (band === 'upper')  { min = stats.p66; max = stats.max; }
-    filters.priceMin = min;
-    filters.priceMax = max;
+    if (band === 'lower')  { 
+      filters.priceMin = stats.min; 
+      filters.priceMax = stats.p33; 
+    }
+    else if (band === 'middle') { 
+      filters.priceMin = stats.p33; 
+      filters.priceMax = stats.p66; 
+    }
+    else if (band === 'upper')  { 
+      filters.priceMin = stats.p66; 
+      filters.priceMax = stats.max; 
+    }
     filters.priceBand = [band];
   } else if (manual) {
     filters.priceBand = [];
@@ -1433,90 +1443,55 @@ function setPriceFilter({ band = null, min = null, max = null, manual = false, m
     filters.priceMin = window.globalMinPrice;
     filters.priceMax = max;
   }
+
+  // Force UI update
   syncPriceFilterUI();
   updateSelectedFilters();
   applyFilters(true);
-  console.debug('[PRICE] State Change', {band, min, max, manual, maxInput, filters: {...filters}});
 }
-// --- End Centralized Price Filter Logic ---
-
-// --- Patch Manual Slider Drag ---
-// In setupPriceSliderDiv, inside onDragEnd, replace price logic with:
-// setPriceFilter({ manual: true, min: finalMin, max: finalMax });
-// Remove direct manipulation of filters.priceBand, setBandHighlight, etc.
-// --- End Patch Manual Slider Drag ---
-
-// --- Patch Max Price Input ---
-document.addEventListener("DOMContentLoaded", function () {
-  const manualMaxInput = document.getElementById("price-input-max");
-  if (manualMaxInput) {
-    manualMaxInput.addEventListener("input", () => {
-      const val = parseInt(manualMaxInput.value.replace(/[^\d]/g, ""), 10);
-      if (!isNaN(val) && val > 0) {
-        setPriceFilter({ maxInput: true, max: val });
-      }
-    });
-  }
-});
-// --- End Patch Max Price Input ---
-
-// --- Patch Selected Filters Panel ---
-// In updateSelectedFilters, for price, if filters.priceBand is set, show both band and price range.
-// Otherwise, show only price range. Add debug log for what is shown.
-// --- End Patch Selected Filters Panel ---
 
 // --- UI State Synchronization for Price Filters ---
 function syncPriceFilterUI() {
-  // 1. Sync price band checkboxes
+  const minThumb = document.getElementById("price-min");
+  const maxThumb = document.getElementById("price-max");
+  const minOutput = document.getElementById("price-range-min");
+  const maxOutput = document.getElementById("price-range-max");
+  const minLabel = document.getElementById("price-min-value");
+  const maxLabel = document.getElementById("price-max-value");
+  const maxInput = document.getElementById('price-input-max');
+  const stats = window.sliderMapping || getFullPricingStats();
+
+  // 1. Update price band checkboxes
   ['lower', 'middle', 'upper'].forEach(band => {
-    const cb = document.querySelector('.filter-checkbox[data-category="priceBand"][data-value="' + band + '"] input');
-    if (cb) {
-      cb.checked = Array.isArray(filters.priceBand) && filters.priceBand.includes(band);
+    const checkbox = document.querySelector(`.filter-checkbox[data-category="priceBand"][data-value="${band}"] input`);
+    if (checkbox) {
+      checkbox.checked = filters.priceBand.includes(band);
     }
   });
-  // 2. Sync max price input
-  const maxInput = document.getElementById('price-input-max');
+
+  // 2. Update max price input
   if (maxInput) {
-    if (filters.priceBand.length || (filters.priceMin !== window.globalMinPrice && filters.priceMax !== window.globalMaxPrice)) {
+    if (filters.priceBand.length || filters.priceMax === window.globalMaxPrice) {
       maxInput.value = '';
-    } else if (filters.priceMin === window.globalMinPrice && filters.priceMax !== window.globalMaxPrice) {
+    } else {
       maxInput.value = filters.priceMax;
     }
   }
-  // 3. Always move slider thumbs to match filters
-  setThumbPositions();
-  console.debug('[UI] syncPriceFilterUI', {
-    priceBand: filters.priceBand,
-    priceMin: filters.priceMin,
-    priceMax: filters.priceMax,
-    maxInput: maxInput ? maxInput.value : null
-  });
-}
-// --- End UI State Synchronization ---
 
-// Patch setPriceFilter to always call syncPriceFilterUI after setting filter state
-function setPriceFilter({ band = null, min = null, max = null, manual = false, maxInput = false }) {
-  if (band) {
-    const stats = window.sliderMapping || getFullPricingStats();
-    if (band === 'lower')  { min = stats.min;  max = stats.p33; }
-    if (band === 'middle') { min = stats.p33; max = stats.p66; }
-    if (band === 'upper')  { min = stats.p66; max = stats.max; }
-    filters.priceMin = min;
-    filters.priceMax = max;
-    filters.priceBand = [band];
-  } else if (manual) {
-    filters.priceBand = [];
-    filters.priceMin = min;
-    filters.priceMax = max;
-  } else if (maxInput) {
-    filters.priceBand = [];
-    filters.priceMin = window.globalMinPrice;
-    filters.priceMax = max;
-  }
-  syncPriceFilterUI();
-  updateSelectedFilters();
-  applyFilters(true);
-  console.debug('[PRICE] State Change', {band, min, max, manual, maxInput, filters: {...filters}});
+  // 3. Update slider thumbs and labels
+  const percentMin = valueToPercent(filters.priceMin, stats.min, stats.p33, stats.p66, stats.max);
+  const percentMax = valueToPercent(filters.priceMax, stats.min, stats.p33, stats.p66, stats.max);
+
+  if (minThumb) minThumb.style.left = `${percentMin}%`;
+  if (maxThumb) maxThumb.style.left = `${percentMax}%`;
+  
+  const priceMinStr = `$${filters.priceMin.toLocaleString()}`;
+  const priceMaxStr = `$${filters.priceMax.toLocaleString()}`;
+
+  if (minOutput) minOutput.textContent = priceMinStr;
+  if (maxOutput) maxOutput.textContent = priceMaxStr;
+  if (minLabel) minLabel.textContent = priceMinStr;
+  if (maxLabel) maxLabel.textContent = priceMaxStr;
 }
 
 // Patch all price filter triggers to use syncPriceFilterUI after any change
