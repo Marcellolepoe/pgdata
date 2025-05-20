@@ -326,116 +326,82 @@ function updateURLParams() {
 function updateSelectedFilters() {
   const selectedFiltersDiv = document.getElementById("selected-filters");
   if (!selectedFiltersDiv) return;
+  
   selectedFiltersDiv.innerHTML = "";
   let hasFilters = false;
   let tagCount = 0;
-  Object.keys(filters).forEach((category) => {
-    const val = filters[category];
-    const isArray = Array.isArray(val) && val.length > 0;
-    const isPrice = category === "priceMin";
-    const isSearch = category === "searchTerm" && typeof val === "string" && val.trim().length > 0;
-    const isSort = category === "sortBy" && val;
-    if (category === "priceBand" && Array.isArray(val) && val.length > 0) {
-      const pretty = { lower: "Lower", middle: "Middle", upper: "Upper" };
-      const labels = val.map((v) => pretty[v]).join(", ");
-      if (tagCount > 0) {
-        const separator = document.createElement("span");
-        separator.classList.add("filter-separator");
-        separator.innerHTML = " | ";
-        selectedFiltersDiv.appendChild(separator);
-      }
-      const el = document.createElement("span");
-      el.classList.add("filter-tag");
-      el.innerHTML = `
-        <strong>Price Band:</strong> ${labels}
-        <button class="clear-category" data-category="priceBand">✕</button>
-      `;
-      selectedFiltersDiv.appendChild(el);
-      tagCount++;
-      return;
+
+  // Helper to add a filter tag
+  const addFilterTag = (label, value, category) => {
+    if (tagCount > 0) {
+      const separator = document.createElement("span");
+      separator.classList.add("filter-separator");
+      separator.innerHTML = " | ";
+      selectedFiltersDiv.appendChild(separator);
     }
-    if (isSearch || isPrice || isArray || isSort) {
-      hasFilters = true;
-      if (tagCount > 0) {
-        const separator = document.createElement("span");
-        separator.classList.add("filter-separator");
-        separator.innerHTML = " | ";
-        selectedFiltersDiv.appendChild(separator);
-      }
-      const filterTag = document.createElement("span");
-      filterTag.classList.add("filter-tag");
-      if (isSearch) {
-        filterTag.innerHTML = `<strong>Parlour:</strong> ${val}
-          <button class="clear-category" data-category="searchTerm">✕</button>`;
-      } else if (isPrice && typeof filters.priceMin === "number" && typeof filters.priceMax === "number") {
-        const manualMaxInput = document.getElementById("price-input-max");
-        const manualMaxEntered = manualMaxInput && manualMaxInput.value && filters.priceMax !== window.globalMaxPrice;
-        if (manualMaxEntered || filters.priceMin > window.globalMinPrice || filters.priceMax < window.globalMaxPrice) {
-          const label = manualMaxEntered
-            ? `$${filters.priceMax.toLocaleString()} Max`
-            : `$${filters.priceMin.toLocaleString()} – $${filters.priceMax.toLocaleString()}`;
-          filterTag.innerHTML = `<strong>Price:</strong> ${label}
-            <button class="clear-category" data-category="price">✕</button>`;
-        } else {
-          return;
-        }
-      } else if (isArray) {
-        const formattedCategory = category.charAt(0).toUpperCase() + category.slice(1);
-        const label = val.join(", ");
-        filterTag.innerHTML = `<strong>${formattedCategory}:</strong> ${label}
-          <button class="clear-category" data-category="${category}">✕</button>`;
-      } else if (isSort) {
-        const labelMap = {
-          "price-asc": "Price ↑",
-          "price-desc": "Price ↓",
-          "google-rating-desc": "Google ★",
-          "facebook-rating-desc": "Facebook ★",
-          "google-reviews-desc": "Google Reviews",
-          "facebook-reviews-desc": "Facebook Reviews"
-        };
-        const label = labelMap[val] || val;
-        filterTag.innerHTML = `<strong>Sort:</strong> ${label}
-          <button class="clear-category" data-category="sortBy">✕</button>`;
-      }
-      selectedFiltersDiv.appendChild(filterTag);
-      tagCount++;
+    const filterTag = document.createElement("span");
+    filterTag.classList.add("filter-tag");
+    filterTag.innerHTML = `<strong>${label}:</strong> ${value}
+      <button class="clear-category" data-category="${category}">✕</button>`;
+    selectedFiltersDiv.appendChild(filterTag);
+    tagCount++;
+    hasFilters = true;
+  };
+
+  // Handle price band filters
+  if (filters.priceBand.length > 0) {
+    const band = filters.priceBand[0];
+    const stats = window.sliderMapping || getFullPricingStats();
+    let range;
+    if (band === 'lower') range = `$${stats.min.toLocaleString()} – $${stats.p33.toLocaleString()}`;
+    else if (band === 'middle') range = `$${stats.p33.toLocaleString()} – $${stats.p66.toLocaleString()}`;
+    else if (band === 'upper') range = `$${stats.p66.toLocaleString()} – $${stats.max.toLocaleString()}`;
+    addFilterTag('Price Band', range, 'priceBand');
+  }
+  // Handle manual price range
+  else if (filters.priceMin !== window.globalMinPrice || filters.priceMax !== window.globalMaxPrice) {
+    const isMaxOnly = filters.priceMin === window.globalMinPrice && filters.priceMax !== window.globalMaxPrice;
+    if (isMaxOnly) {
+      addFilterTag('Price', `$${filters.priceMax.toLocaleString()} Max`, 'price');
+    } else {
+      addFilterTag('Price', `$${filters.priceMin.toLocaleString()} – $${filters.priceMax.toLocaleString()}`, 'price');
+    }
+  }
+
+  // Handle other filters...
+  Object.keys(filters).forEach((category) => {
+    if (category === 'priceBand' || category === 'priceMin' || category === 'priceMax') return;
+    const val = filters[category];
+    if (Array.isArray(val) && val.length > 0) {
+      const formattedCategory = category.charAt(0).toUpperCase() + category.slice(1);
+      addFilterTag(formattedCategory, val.join(", "), category);
     }
   });
+
   if (!hasFilters) {
     selectedFiltersDiv.innerHTML = `<p style="color: gray;">No filters selected.</p>`;
   }
-  const children = Array.from(selectedFiltersDiv.children);
-  if (children.length > 0 && children[children.length - 1].classList.contains('filter-separator')) {
-    selectedFiltersDiv.removeChild(children[children.length - 1]);
-  }
-  selectedFiltersDiv.querySelectorAll(".clear-category").forEach(function (button) {
-    button.addEventListener("click", function () {
+
+  // Add click handlers for clear buttons
+  selectedFiltersDiv.querySelectorAll(".clear-category").forEach(button => {
+    button.addEventListener("click", function() {
       const category = this.dataset.category;
-      if (this.dataset.category === "price") {
+      if (category === 'priceBand') {
+        filters.priceBand = [];
+        document.querySelectorAll('[data-category="priceBand"] input')
+          .forEach(cb => cb.checked = false);
+      } else if (category === 'price') {
         filters.priceMin = window.globalMinPrice;
         filters.priceMax = window.globalMaxPrice;
         resetPriceSlider();
         const manualMaxInput = document.getElementById("price-input-max");
         if (manualMaxInput) manualMaxInput.value = "";
-      } else if (category === "searchTerm") {
-        filters.searchTerm = "";
-        const searchInput = document.getElementById("funeral-parlour-search");
-        if (searchInput) searchInput.value = "";
-      } else if (category === "sortBy") {
-        filters.sortBy = "";
-      } else {
-        filters[category] = [];
-        document.querySelectorAll(`.filter-checkbox[data-category="${category}"] input[type="checkbox"]`)
-          .forEach(checkbox => checkbox.checked = false);
-      } if (category === "priceBand") {
-        filters.priceBand = [];
-        document.querySelectorAll('[data-category="priceBand"] input')
-          .forEach(cb => cb.checked = false);
       }
       updateSelectedFilters();
+      syncPriceFilterUI();
+      applyFilters(true);
     });
   });
-  updateURLParams();
 }
 
 // Reset Price Slider (Full Range)
@@ -1419,6 +1385,7 @@ function bandRangeMatches(min, max, stats, band) {
 // --- Centralized Price Filter Logic ---
 function setPriceFilter({ band = null, min = null, max = null, manual = false, maxInput = false }) {
   const stats = window.sliderMapping || getFullPricingStats();
+  const oldState = { ...filters };
   
   if (band) {
     if (band === 'lower')  { 
@@ -1444,6 +1411,13 @@ function setPriceFilter({ band = null, min = null, max = null, manual = false, m
     filters.priceMax = max;
   }
 
+  console.log('[DEBUG] Price Filter State Change:', {
+    trigger: { band, min, max, manual, maxInput },
+    oldState,
+    newState: { ...filters },
+    stats
+  });
+
   // Force UI update
   syncPriceFilterUI();
   updateSelectedFilters();
@@ -1460,6 +1434,20 @@ function syncPriceFilterUI() {
   const maxLabel = document.getElementById("price-max-value");
   const maxInput = document.getElementById('price-input-max');
   const stats = window.sliderMapping || getFullPricingStats();
+
+  console.log('[DEBUG] syncPriceFilterUI:', {
+    currentFilters: { ...filters },
+    stats,
+    elements: {
+      minThumb: !!minThumb,
+      maxThumb: !!maxThumb,
+      minOutput: !!minOutput,
+      maxOutput: !!maxOutput,
+      minLabel: !!minLabel,
+      maxLabel: !!maxLabel,
+      maxInput: !!maxInput
+    }
+  });
 
   // 1. Update price band checkboxes
   ['lower', 'middle', 'upper'].forEach(band => {
@@ -1492,6 +1480,13 @@ function syncPriceFilterUI() {
   if (maxOutput) maxOutput.textContent = priceMaxStr;
   if (minLabel) minLabel.textContent = priceMinStr;
   if (maxLabel) maxLabel.textContent = priceMaxStr;
+
+  console.log('[DEBUG] syncPriceFilterUI complete:', {
+    percentMin,
+    percentMax,
+    priceMinStr,
+    priceMaxStr
+  });
 }
 
 // Patch all price filter triggers to use syncPriceFilterUI after any change
