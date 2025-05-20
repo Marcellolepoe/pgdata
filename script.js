@@ -1081,14 +1081,14 @@ function setupPriceSliderDiv() {
     let percentMax = valueToPercent(filters.priceMax, min, p33, p66, max);
     percentMin = Math.max(0, Math.min(100, percentMin));
     percentMax = Math.max(0, Math.min(100, percentMax));
-    minThumb.style.left = percentMin + "%";
-    maxThumb.style.left = percentMax + "%";
+    if (minThumb) minThumb.style.left = percentMin + "%";
+    if (maxThumb) maxThumb.style.left = percentMax + "%";
     if (minOutput) minOutput.textContent = `$${filters.priceMin.toLocaleString()}`;
     if (maxOutput) maxOutput.textContent = `$${filters.priceMax.toLocaleString()}`;
     if (minLabel)  minLabel.textContent  = `$${filters.priceMin.toLocaleString()}`;
     if (maxLabel)  maxLabel.textContent  = `$${filters.priceMax.toLocaleString()}`;
-    minThumb.style.display = '';
-    maxThumb.style.display = '';
+    if (minThumb) minThumb.style.display = '';
+    if (maxThumb) maxThumb.style.display = '';
     console.debug('[SLIDER] setThumbPositions', {
       priceMin: filters.priceMin,
       priceMax: filters.priceMax,
