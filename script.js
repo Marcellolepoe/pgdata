@@ -1187,6 +1187,22 @@ function setupPriceSliderDiv() {
       applyFilters(true);
       // After applyFilters, clear the justDragged flag (on next tick)
       setTimeout(() => { window._sliderJustDragged = false; }, 0);
+
+      // --- Price Band Click & Highlight Logic ---
+      let matched = null;
+      if (bandRangeMatches(finalMin, finalMax, m, 'lower')) matched = 'lower';
+      if (bandRangeMatches(finalMin, finalMax, m, 'middle')) matched = 'middle';
+      if (bandRangeMatches(finalMin, finalMax, m, 'upper')) matched = 'upper';
+      if (matched) {
+        filters.priceBand = [matched];
+        setBandHighlight(matched);
+        console.debug('[BAND] Slider drag matches band', matched);
+      } else {
+        filters.priceBand = [];
+        clearBandHighlight();
+        console.debug('[BAND] Slider drag: no band match, highlight cleared');
+      }
+      // --- End Band Click Logic ---
     }
 
     document.addEventListener("mousemove", onDragMove, { passive: false });
@@ -1375,3 +1391,46 @@ window.closeFilterOverlay = function() {
     overlay.style.display = 'none';
   }
 };
+
+// --- Price Band Click & Highlight Logic ---
+function setBandHighlight(band) {
+  ['lower', 'middle', 'upper'].forEach(b => {
+    const el = document.getElementById('band-' + b);
+    if (el) el.classList.toggle('band-active', b === band);
+  });
+}
+function clearBandHighlight() {
+  ['lower', 'middle', 'upper'].forEach(b => {
+    const el = document.getElementById('band-' + b);
+    if (el) el.classList.remove('band-active');
+  });
+}
+function bandRangeMatches(min, max, stats, band) {
+  if (band === 'lower')  return min === stats.min && max === stats.p33;
+  if (band === 'middle') return min === stats.p33 && max === stats.p66;
+  if (band === 'upper')  return min === stats.p66 && max === stats.max;
+  return false;
+}
+// Attach click handlers to bands
+['lower', 'middle', 'upper'].forEach(band => {
+  const el = document.getElementById('band-' + band);
+  if (el) {
+    el.addEventListener('click', function() {
+      const stats = window.sliderMapping || getFullPricingStats();
+      let min, max;
+      if (band === 'lower')  { min = stats.min;  max = stats.p33; }
+      if (band === 'middle') { min = stats.p33; max = stats.p66; }
+      if (band === 'upper')  { min = stats.p66; max = stats.max; }
+      filters.priceMin = min;
+      filters.priceMax = max;
+      filters.priceBand = [band];
+      setThumbPositions();
+      setBandHighlight(band);
+      window._sliderJustDragged = false; // treat as programmatic
+      console.debug('[BAND] Clicked', {band, min, max});
+      updateSelectedFilters();
+      applyFilters(true); // skipBandReset = true
+    });
+  }
+});
+// --- End Band Click Logic ---
