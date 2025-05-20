@@ -182,19 +182,7 @@ document.addEventListener("DOMContentLoaded", function () {
     manualMaxInput.addEventListener("input", () => {
       const val = parseInt(manualMaxInput.value.replace(/[^\d]/g, ""), 10);
       if (!isNaN(val) && val > 0) {
-        filters.priceMin = window.globalMinPrice;
-        filters.priceMax = val;
-        const minValue = window.globalMinPrice;
-        const maxValue = window.globalMaxPrice;
-        const maxThumb = document.getElementById("price-max");
-
-        let percentMax = ((val - minValue) / (maxValue - minValue)) * 100;
-        percentMax = Math.max(0, Math.min(100, percentMax));
-
-        maxThumb.style.left = `${percentMax}%`;
-    
-        updateSelectedFilters();
-        applyFilters();
+        setPriceFilter({ maxInput: true, max: val });
       }
     });
   }
@@ -1416,21 +1404,73 @@ function bandRangeMatches(min, max, stats, band) {
   const el = document.getElementById('band-' + band);
   if (el) {
     el.addEventListener('click', function() {
-      const stats = window.sliderMapping || getFullPricingStats();
-      let min, max;
-      if (band === 'lower')  { min = stats.min;  max = stats.p33; }
-      if (band === 'middle') { min = stats.p33; max = stats.p66; }
-      if (band === 'upper')  { min = stats.p66; max = stats.max; }
-      filters.priceMin = min;
-      filters.priceMax = max;
-      filters.priceBand = [band];
-      setThumbPositions();
-      setBandHighlight(band);
-      window._sliderJustDragged = false; // treat as programmatic
-      console.debug('[BAND] Clicked', {band, min, max});
-      updateSelectedFilters();
-      applyFilters(true); // skipBandReset = true
+      setPriceFilter({ band });
     });
   }
 });
 // --- End Band Click Logic ---
+
+// --- Centralized Price Filter Logic ---
+function setPriceFilter({ band = null, min = null, max = null, manual = false, maxInput = false }) {
+  // Only one price filter can be active at a time
+  if (band) {
+    // Set band, clear manual and max input
+    const stats = window.sliderMapping || getFullPricingStats();
+    if (band === 'lower')  { min = stats.min;  max = stats.p33; }
+    if (band === 'middle') { min = stats.p33; max = stats.p66; }
+    if (band === 'upper')  { min = stats.p66; max = stats.max; }
+    filters.priceMin = min;
+    filters.priceMax = max;
+    filters.priceBand = [band];
+    if (document.getElementById('price-input-max')) document.getElementById('price-input-max').value = '';
+    setThumbPositions();
+    setBandHighlight(band);
+    window._sliderJustDragged = false;
+    console.debug('[PRICE] State Change: Band', {band, min, max, filters: {...filters}});
+  } else if (manual) {
+    // Manual slider drag: clear band and max input
+    filters.priceBand = [];
+    clearBandHighlight();
+    if (document.getElementById('price-input-max')) document.getElementById('price-input-max').value = '';
+    filters.priceMin = min;
+    filters.priceMax = max;
+    setThumbPositions();
+    console.debug('[PRICE] State Change: Manual Slider', {min, max, filters: {...filters}});
+  } else if (maxInput) {
+    // Manual max price input: clear band and manual slider
+    filters.priceBand = [];
+    clearBandHighlight();
+    filters.priceMin = window.globalMinPrice;
+    filters.priceMax = max;
+    setThumbPositions();
+    console.debug('[PRICE] State Change: Max Input', {max, filters: {...filters}});
+  }
+  updateSelectedFilters();
+  applyFilters(true);
+}
+// --- End Centralized Price Filter Logic ---
+
+// --- Patch Manual Slider Drag ---
+// In setupPriceSliderDiv, inside onDragEnd, replace price logic with:
+// setPriceFilter({ manual: true, min: finalMin, max: finalMax });
+// Remove direct manipulation of filters.priceBand, setBandHighlight, etc.
+// --- End Patch Manual Slider Drag ---
+
+// --- Patch Max Price Input ---
+document.addEventListener("DOMContentLoaded", function () {
+  const manualMaxInput = document.getElementById("price-input-max");
+  if (manualMaxInput) {
+    manualMaxInput.addEventListener("input", () => {
+      const val = parseInt(manualMaxInput.value.replace(/[^\d]/g, ""), 10);
+      if (!isNaN(val) && val > 0) {
+        setPriceFilter({ maxInput: true, max: val });
+      }
+    });
+  }
+});
+// --- End Patch Max Price Input ---
+
+// --- Patch Selected Filters Panel ---
+// In updateSelectedFilters, for price, if filters.priceBand is set, show both band and price range.
+// Otherwise, show only price range. Add debug log for what is shown.
+// --- End Patch Selected Filters Panel ---
