@@ -1374,9 +1374,48 @@ function bandRangeMatches(min, max, stats, band) {
   const el = document.getElementById('band-' + band);
   if (el) {
     el.addEventListener('click', function() {
-      setPriceFilter({ band });
+      const stats = window.sliderMapping || getFullPricingStats();
+      let min, max;
+      
+      if (band === 'lower') {
+        min = stats.min;
+        max = stats.p33;
+      } else if (band === 'middle') {
+        min = stats.p33;
+        max = stats.p66;
+      } else if (band === 'upper') {
+        min = stats.p66;
+        max = stats.max;
+      }
+
+      // Update filters
+      filters.priceMin = min;
+      filters.priceMax = max;
+      filters.priceBand = [band];
+
       // Force immediate UI update
+      const minThumb = document.getElementById("price-min");
+      const maxThumb = document.getElementById("price-max");
+      
+      if (minThumb && maxThumb) {
+        const percentMin = valueToPercent(min, stats.min, stats.p33, stats.p66, stats.max);
+        const percentMax = valueToPercent(max, stats.min, stats.p33, stats.p66, stats.max);
+        
+        minThumb.style.left = `${percentMin}%`;
+        maxThumb.style.left = `${percentMax}%`;
+        
+        console.log('[DEBUG] Band Click:', {
+          band,
+          min,
+          max,
+          percentMin,
+          percentMax
+        });
+      }
+
       syncPriceFilterUI();
+      updateSelectedFilters();
+      applyFilters(true);
     });
   }
 });
@@ -1435,7 +1474,7 @@ function syncPriceFilterUI() {
   const maxInput = document.getElementById('price-input-max');
   const stats = window.sliderMapping || getFullPricingStats();
 
-  console.log('[DEBUG] syncPriceFilterUI:', {
+  console.log('[DEBUG] syncPriceFilterUI start:', {
     currentFilters: { ...filters },
     stats,
     elements: {
@@ -1470,8 +1509,15 @@ function syncPriceFilterUI() {
   const percentMin = valueToPercent(filters.priceMin, stats.min, stats.p33, stats.p66, stats.max);
   const percentMax = valueToPercent(filters.priceMax, stats.min, stats.p33, stats.p66, stats.max);
 
-  if (minThumb) minThumb.style.left = `${percentMin}%`;
-  if (maxThumb) maxThumb.style.left = `${percentMax}%`;
+  // Force thumb positions
+  if (minThumb) {
+    minThumb.style.left = `${percentMin}%`;
+    console.log('[DEBUG] Setting min thumb position:', percentMin);
+  }
+  if (maxThumb) {
+    maxThumb.style.left = `${percentMax}%`;
+    console.log('[DEBUG] Setting max thumb position:', percentMax);
+  }
   
   const priceMinStr = `$${filters.priceMin.toLocaleString()}`;
   const priceMaxStr = `$${filters.priceMax.toLocaleString()}`;
@@ -1485,7 +1531,11 @@ function syncPriceFilterUI() {
     percentMin,
     percentMax,
     priceMinStr,
-    priceMaxStr
+    priceMaxStr,
+    thumbPositions: {
+      min: minThumb ? minThumb.style.left : 'N/A',
+      max: maxThumb ? maxThumb.style.left : 'N/A'
+    }
   });
 }
 
