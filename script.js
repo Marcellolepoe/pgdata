@@ -1089,7 +1089,12 @@ function setupPriceSliderDiv() {
     if (maxLabel)  maxLabel.textContent  = `$${filters.priceMax.toLocaleString()}`;
     minThumb.style.display = '';
     maxThumb.style.display = '';
-    console.debug('[SLIDER] setThumbPositions', {priceMin: filters.priceMin, priceMax: filters.priceMax});
+    console.debug('[SLIDER] setThumbPositions', {
+      priceMin: filters.priceMin,
+      priceMax: filters.priceMax,
+      percentMin,
+      percentMax
+    });
   }
   window.setThumbPositions = setThumbPositions;
   setThumbPositions();
@@ -1480,7 +1485,7 @@ function syncPriceFilterUI() {
     }
   }
   // 3. Always move slider thumbs to match filters
-  if (typeof setThumbPositions === 'function') setThumbPositions();
+  setThumbPositions();
   console.debug('[UI] syncPriceFilterUI', {
     priceBand: filters.priceBand,
     priceMin: filters.priceMin,
