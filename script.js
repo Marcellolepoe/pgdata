@@ -1126,7 +1126,6 @@ function setupPriceSliderDiv() {
     const { min, p33, p66, max } = stats;
     let percentMin = valueToPercent(filters.priceMin, min, p33, p66, max);
     let percentMax = valueToPercent(filters.priceMax, min, p33, p66, max);
-    // Clamp to [0, 100]
     percentMin = Math.max(0, Math.min(100, percentMin));
     percentMax = Math.max(0, Math.min(100, percentMax));
     minThumb.style.left = percentMin + "%";
@@ -1212,7 +1211,7 @@ function setupPriceSliderDiv() {
       );
       filters.priceMin = finalMin;
       filters.priceMax = finalMax;
-      setThumbPositions();
+      setThumbPositions(); // Only update to current values
       updateSelectedFilters();
       applyFilters(true);
       // Log for troubleshooting
@@ -1309,3 +1308,69 @@ function getFilteredDataExcludingPrice() {
     return true;
   });
 }
+
+document.querySelectorAll('[data-band]').forEach(bandEl => {
+  bandEl.addEventListener('click', function() {
+    const band = this.getAttribute('data-band'); // 'lower', 'middle', 'upper'
+    const stats = window.sliderMapping || getFullPricingStats();
+    if (band === 'lower') {
+      filters.priceMin = stats.min;
+      filters.priceMax = stats.p33;
+    } else if (band === 'middle') {
+      filters.priceMin = stats.p33;
+      filters.priceMax = stats.p66;
+    } else if (band === 'upper') {
+      filters.priceMin = stats.p66;
+      filters.priceMax = stats.max;
+    }
+    setThumbPositions();
+    updateSelectedFilters();
+    applyFilters();
+  });
+});
+
+// Add this CSS via JS for slider thumbs and All Filters panel
+const style = document.createElement('style');
+style.innerHTML = `
+#price-min, #price-max {
+  position: absolute;
+  top: 0;
+  z-index: 2;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #4caf50;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+}
+#price-max {
+  transform: translateX(-60%); /* Add a little leftward shift so it doesn't overflow the bar */
+}
+#price-min {
+  transform: translateX(-50%);
+}
+#price-min:active, #price-max:active {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+.filter-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow-y: auto;
+  z-index: 1000;
+  background: rgba(255,255,255,0.98);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+.all-filters-panel {
+  max-height: 90vh;
+  overflow-y: auto;
+  margin-top: 0;
+}
+`;
+document.head.appendChild(style);
