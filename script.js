@@ -1401,28 +1401,38 @@ function bandRangeMatches(min, max, stats, band) {
   if (el) {
     el.addEventListener('click', function() {
       const stats = window.sliderMapping || getFullPricingStats();
-      let min, max;
+      console.log('[DEBUG] Band Click - Initial Stats:', {
+        stats,
+        currentFilters: { ...filters }
+      });
+
+      let min, max, percentMin, percentMax;
       
       // Set the price range based on band
       if (band === 'lower') {
         min = stats.min;
         max = stats.p33;
-        // Update band labels
-        updateTextForAll(".lowest-price-display", min);
-        updateTextForAll(".lower-band-range", max);
+        percentMin = 0;
+        percentMax = 33;
       } else if (band === 'middle') {
         min = stats.p33;
         max = stats.p66;
-        // Update band labels
-        updateTextForAll(".lower-band-range", min);
-        updateTextForAll(".upper-band-range", max);
+        percentMin = 33;
+        percentMax = 66;
       } else if (band === 'upper') {
         min = stats.p66;
         max = stats.max;
-        // Update band labels
-        updateTextForAll(".upper-band-range", min);
-        updateTextForAll(".highest-price-display", max);
+        percentMin = 66;
+        percentMax = 100;
       }
+
+      console.log('[DEBUG] Band Click - Calculated Values:', {
+        band,
+        min,
+        max,
+        percentMin,
+        percentMax
+      });
 
       // Update filters
       filters.priceMin = min;
@@ -1434,11 +1444,9 @@ function bandRangeMatches(min, max, stats, band) {
       const maxThumb = document.getElementById("price-max");
       
       if (minThumb && maxThumb) {
-        const percentMin = valueToPercent(min, stats.min, stats.p33, stats.p66, stats.max);
-        const percentMax = valueToPercent(max, stats.min, stats.p33, stats.p66, stats.max);
-        
-        minThumb.style.left = `${percentMin}%`;
-        maxThumb.style.left = `${percentMax}%`;
+        // Force thumb positions with direct style manipulation
+        minThumb.style.cssText = `left: ${percentMin}% !important; transition: none;`;
+        maxThumb.style.cssText = `left: ${percentMax}% !important; transition: none;`;
         
         // Update price labels
         const minLabel = document.getElementById("price-min-value");
@@ -1446,12 +1454,43 @@ function bandRangeMatches(min, max, stats, band) {
         const minOutput = document.getElementById("price-range-min");
         const maxOutput = document.getElementById("price-range-max");
         
-        if (minLabel) minLabel.textContent = `$${min.toLocaleString()}`;
-        if (maxLabel) maxLabel.textContent = `$${max.toLocaleString()}`;
-        if (minOutput) minOutput.textContent = `$${min.toLocaleString()}`;
-        if (maxOutput) maxOutput.textContent = `$${max.toLocaleString()}`;
+        const minStr = `$${min.toLocaleString()}`;
+        const maxStr = `$${max.toLocaleString()}`;
+        
+        if (minLabel) minLabel.textContent = minStr;
+        if (maxLabel) maxLabel.textContent = maxStr;
+        if (minOutput) minOutput.textContent = minStr;
+        if (maxOutput) maxOutput.textContent = maxStr;
+
+        // Update band labels
+        if (band === 'lower') {
+          updateTextForAll(".lowest-price-display", min);
+          updateTextForAll(".lower-band-range", max);
+        } else if (band === 'middle') {
+          updateTextForAll(".lower-band-range", min);
+          updateTextForAll(".upper-band-range", max);
+        } else if (band === 'upper') {
+          updateTextForAll(".upper-band-range", min);
+          updateTextForAll(".highest-price-display", max);
+        }
+
+        console.log('[DEBUG] Band Click - UI Updates:', {
+          thumbPositions: {
+            min: minThumb.style.left,
+            max: maxThumb.style.left
+          },
+          labels: {
+            min: minStr,
+            max: maxStr
+          }
+        });
       }
 
+      // Force a reflow
+      void minThumb.offsetHeight;
+      void maxThumb.offsetHeight;
+
+      // Update UI and apply filters
       syncPriceFilterUI();
       updateSelectedFilters();
       applyFilters(true);
@@ -1527,37 +1566,22 @@ function syncPriceFilterUI() {
     }
   });
 
-  // 1. Update price band checkboxes
-  ['lower', 'middle', 'upper'].forEach(band => {
-    const checkbox = document.querySelector(`.filter-checkbox[data-category="priceBand"][data-value="${band}"] input`);
-    if (checkbox) {
-      checkbox.checked = filters.priceBand.includes(band);
-    }
-  });
+  // Don't update thumb positions if price band is active
+  if (!filters.priceBand.length) {
+    const percentMin = valueToPercent(filters.priceMin, stats.min, stats.p33, stats.p66, stats.max);
+    const percentMax = valueToPercent(filters.priceMax, stats.min, stats.p33, stats.p66, stats.max);
 
-  // 2. Update max price input
-  if (maxInput) {
-    if (filters.priceBand.length || filters.priceMax === window.globalMaxPrice) {
-      maxInput.value = '';
-    } else {
-      maxInput.value = filters.priceMax;
+    if (minThumb) {
+      minThumb.style.cssText = `left: ${percentMin}% !important; transition: none;`;
+      console.log('[DEBUG] Setting min thumb position:', percentMin);
+    }
+    if (maxThumb) {
+      maxThumb.style.cssText = `left: ${percentMax}% !important; transition: none;`;
+      console.log('[DEBUG] Setting max thumb position:', percentMax);
     }
   }
 
-  // 3. Update slider thumbs and labels
-  const percentMin = valueToPercent(filters.priceMin, stats.min, stats.p33, stats.p66, stats.max);
-  const percentMax = valueToPercent(filters.priceMax, stats.min, stats.p33, stats.p66, stats.max);
-
-  // Force thumb positions with !important
-  if (minThumb) {
-    minThumb.style.left = `${percentMin}%`;
-    console.log('[DEBUG] Setting min thumb position:', percentMin);
-  }
-  if (maxThumb) {
-    maxThumb.style.cssText = `left: ${percentMax}% !important;`;
-    console.log('[DEBUG] Setting max thumb position:', percentMax);
-  }
-  
+  // Always update labels
   const priceMinStr = `$${filters.priceMin.toLocaleString()}`;
   const priceMaxStr = `$${filters.priceMax.toLocaleString()}`;
 
@@ -1566,15 +1590,10 @@ function syncPriceFilterUI() {
   if (minLabel) minLabel.textContent = priceMinStr;
   if (maxLabel) maxLabel.textContent = priceMaxStr;
 
-  // Force a reflow to ensure styles are applied
-  if (minThumb) void minThumb.offsetHeight;
-  if (maxThumb) void maxThumb.offsetHeight;
-
   console.log('[DEBUG] syncPriceFilterUI complete:', {
-    percentMin,
-    percentMax,
-    priceMinStr,
-    priceMaxStr,
+    priceBand: filters.priceBand,
+    priceMin: filters.priceMin,
+    priceMax: filters.priceMax,
     thumbPositions: {
       min: minThumb ? minThumb.style.left : 'N/A',
       max: maxThumb ? maxThumb.style.left : 'N/A'
