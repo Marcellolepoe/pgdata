@@ -20,7 +20,6 @@ let lastMaxFraction = 1;
 let isPriceDragging = false;
 
 function initializePage() {
-  
   const requiredElements = [
     "funeral-cards-container",
     "price-band-bar",
@@ -50,7 +49,6 @@ function initializePage() {
         el.addEventListener("click", function (e) {
           e.preventDefault();
           filters.sortBy = id;
-          console.log("🔁 Sort By Set To:", id);
           applyFilters();
         });
       }
@@ -68,11 +66,10 @@ async function fetchFuneralData() {
     const response = await fetch(jsonUrl);
     if (!response.ok) throw new Error("Failed to fetch data.");
     funeralData = await response.json();
-    console.log(`✅ Loaded ${funeralData.length} funeral packages.`);
     window.funeralData = funeralData;
     
     const allCountEl = document.getElementById("all-results");
-  	if (allCountEl) allCountEl.textContent = funeralData.length;
+    if (allCountEl) allCountEl.textContent = funeralData.length;
 
     const priceKeys = [
       "Available Duration (1 Day)",
@@ -90,10 +87,8 @@ async function fetchFuneralData() {
       });
     }).filter(p => !isNaN(p) && p > 0);
     
-    window.globalMinPrice = Math.min(...allPrices);  // Should be 988 if present
-    window.globalMaxPrice = Math.max(...allPrices);  // E.g., 31610
-    
-    console.log("Global Prices:", {globalMin: window.globalMinPrice, globalMax: window.globalMaxPrice});
+    window.globalMinPrice = Math.min(...allPrices);
+    window.globalMaxPrice = Math.max(...allPrices);
     
     window.sliderMapping = getFullPricingStats();
     
@@ -108,7 +103,6 @@ async function fetchFuneralData() {
   } catch (error) {
     console.error("❌ Error fetching funeral data:", error);
   }
-  
 }
 
 window.onload = async function () {
@@ -284,7 +278,6 @@ function setupFilters() {
         filters[category] = filters[category].filter(v => v !== value);
       }
       updateSelectedFilters();
-      applyFilters();
       
       const nonPriceFiltered = getFilteredDataExcludingPrice();
       updatePricingBands(nonPriceFiltered, false);
@@ -1136,8 +1129,6 @@ function setupPriceSliderDiv() {
     if (maxLabel)  maxLabel.textContent  = `$${filters.priceMax.toLocaleString()}`;
     minThumb.style.display = '';
     maxThumb.style.display = '';
-    // Log for troubleshooting
-    console.log('[Slider] setThumbPositions', {percentMin, percentMax, priceMin: filters.priceMin, priceMax: filters.priceMax});
   }
   window.setThumbPositions = setThumbPositions;
   setThumbPositions();
@@ -1147,6 +1138,7 @@ function setupPriceSliderDiv() {
 
   function onDragStart(e, isMin) {
     e.preventDefault();
+    isPriceDragging = true;
     const rect = track.getBoundingClientRect();
 
     function onDragMove(evt) {
@@ -1155,10 +1147,9 @@ function setupPriceSliderDiv() {
       const clientX = evt.type.startsWith("touch")
         ? evt.touches[0].clientX
         : evt.clientX;
-      // Confine x to the price band bar only
       const x = Math.min(Math.max(clientX - rect.left, 0), rect.width);
       let frac = x / rect.width;
-      // prevent crossing
+      
       if (isMin) {
         const maxPct = parseFloat(maxThumb.style.left) || 100;
         if (frac * 100 > maxPct) frac = maxPct / 100;
@@ -1168,40 +1159,41 @@ function setupPriceSliderDiv() {
         if (frac * 100 < minPct) frac = minPct / 100;
         lastMaxFrac = frac;
       }
+      
       if (filters.priceBand.length) {
         filters.priceBand = [];
         document.querySelectorAll('[data-category="priceBand"] input')
           .forEach(cb => cb.checked = false);
         updateSelectedFilters();
       }
-      // compute the new value
+      
       const value = Math.round(
         piecewisePercentileToValue(frac, m.min, m.p33, m.p66, m.max)
       );
-      // live‐update
+      
       if (isMin) {
         currentMin = value;
         minThumb.style.left = `${(frac * 100).toFixed(2)}%`;
-        filters.priceMin    = currentMin;
+        filters.priceMin = currentMin;
         if (minOutput) minOutput.textContent = `$${currentMin.toLocaleString()}`;
-        if (minLabel ) minLabel.textContent  = `$${currentMin.toLocaleString()}`;
+        if (minLabel) minLabel.textContent = `$${currentMin.toLocaleString()}`;
       } else {
         currentMax = value;
         maxThumb.style.left = `${(frac * 100).toFixed(2)}%`;
-        filters.priceMax    = currentMax;
+        filters.priceMax = currentMax;
         if (maxOutput) maxOutput.textContent = `$${currentMax.toLocaleString()}`;
-        if (maxLabel ) maxLabel.textContent  = `$${currentMax.toLocaleString()}`;
+        if (maxLabel) maxLabel.textContent = `$${currentMax.toLocaleString()}`;
       }
-      // Log for troubleshooting
-      console.log('[Slider] Thumbs moved:', {isMin, currentMin, currentMax, filters: {...filters}});
       updateSelectedFilters();
     }
 
     function onDragEnd() {
+      isPriceDragging = false;
       document.removeEventListener("mousemove", onDragMove);
-      document.removeEventListener("mouseup",   onDragEnd);
+      document.removeEventListener("mouseup", onDragEnd);
       document.removeEventListener("touchmove", onDragMove);
-      document.removeEventListener("touchend",  onDragEnd);
+      document.removeEventListener("touchend", onDragEnd);
+      
       const m = window.sliderMapping || getFullPricingStats();
       const finalMin = Math.round(
         piecewisePercentileToValue(lastMinFrac, m.min, m.p33, m.p66, m.max)
@@ -1209,23 +1201,23 @@ function setupPriceSliderDiv() {
       const finalMax = Math.round(
         piecewisePercentileToValue(lastMaxFrac, m.min, m.p33, m.p66, m.max)
       );
+      
+      // Update filters and thumb positions without resetting
       filters.priceMin = finalMin;
       filters.priceMax = finalMax;
-      setThumbPositions(); // Only update to current values
+      setThumbPositions();
       updateSelectedFilters();
-      applyFilters(true);
-      // Log for troubleshooting
-      console.log('[Slider] Drag end:', {finalMin, finalMax, filters: {...filters}});
+      applyFilters(true); // Pass true to prevent band reset
     }
 
     document.addEventListener("mousemove", onDragMove, { passive: false });
-    document.addEventListener("mouseup",   onDragEnd);
+    document.addEventListener("mouseup", onDragEnd);
     document.addEventListener("touchmove", onDragMove, { passive: false });
-    document.addEventListener("touchend",  onDragEnd);
+    document.addEventListener("touchend", onDragEnd);
   }
 
-  minThumb.addEventListener("mousedown",  e => onDragStart(e, true));
-  maxThumb.addEventListener("mousedown",  e => onDragStart(e, false));
+  minThumb.addEventListener("mousedown", e => onDragStart(e, true));
+  maxThumb.addEventListener("mousedown", e => onDragStart(e, false));
   minThumb.addEventListener("touchstart", e => onDragStart(e, true));
   maxThumb.addEventListener("touchstart", e => onDragStart(e, false));
 }
@@ -1336,8 +1328,8 @@ style.innerHTML = `
   position: absolute;
   top: 0;
   z-index: 2;
-  width: 16px;
-  height: 16px;
+  width: 21px;
+  height: 21px;
   border-radius: 50%;
   background: #4caf50;
   box-shadow: 0 2px 6px rgba(0,0,0,0.2);
@@ -1345,7 +1337,7 @@ style.innerHTML = `
   transition: box-shadow 0.2s;
 }
 #price-max {
-  transform: translateX(-60%); /* Add a little leftward shift so it doesn't overflow the bar */
+  transform: translateX(-80%);
 }
 #price-min {
   transform: translateX(-50%);
@@ -1371,6 +1363,38 @@ style.innerHTML = `
   max-height: 90vh;
   overflow-y: auto;
   margin-top: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100vw;
+  background: #fff;
+  z-index: 1001;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  border-bottom: 1px solid #eee;
+}
+.all-filters-close {
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 1002;
+  padding: 12px 16px;
+  border-bottom: 1px solid #eee;
+  text-align: right;
 }
 `;
 document.head.appendChild(style);
+
+// Example overlay open/close stub (add if not present):
+window.openFilterOverlay = function() {
+  const overlay = document.querySelector('.filter-overlay');
+  if (overlay) {
+    overlay.style.display = 'flex';
+  }
+};
+window.closeFilterOverlay = function() {
+  const overlay = document.querySelector('.filter-overlay');
+  if (overlay) {
+    overlay.style.display = 'none';
+  }
+};
