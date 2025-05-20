@@ -19,6 +19,9 @@ let lastFraction = 0;
 let lastMaxFraction = 1;
 let isPriceDragging = false;
 
+// Add global flag for slider drag state
+window._sliderJustDragged = false;
+
 function initializePage() {
   const requiredElements = [
     "funeral-cards-container",
@@ -265,11 +268,9 @@ function setupFilters() {
     const category = label.dataset.category;
     const value = label.dataset.value;
     if (!category || !value) {
-      console.warn("⚠️ Checkbox missing data-category or data-value:", checkbox);
       return;
     }
     checkbox.addEventListener("change", function () {
-      console.log(`🔍 Filter changed: ${category} = ${value} (${this.checked ? "checked" : "unchecked"})`);
       if (this.checked) {
         if (!filters[category].includes(value)) {
           filters[category].push(value);
@@ -278,12 +279,11 @@ function setupFilters() {
         filters[category] = filters[category].filter(v => v !== value);
       }
       updateSelectedFilters();
-      
+      applyFilters();
       const nonPriceFiltered = getFilteredDataExcludingPrice();
       updatePricingBands(nonPriceFiltered, false);
     });
   });
-  console.log("✅ Filters set up successfully.");
 }
 
 // GET FILTERS FROM URL
@@ -304,7 +304,6 @@ function getFiltersFromURL() {
       filters.priceBand = params.get("priceBand") ? params.get("priceBand").split(",") : [];
     }
   });
-  console.log("✅ Filters Loaded from URL:", filters);
   document.querySelectorAll(".filter-checkbox input[type='checkbox']").forEach(checkbox => {
     let category = checkbox.closest(".filter-checkbox")?.dataset.category;
     let selectedValue = checkbox.dataset.value;
@@ -337,11 +336,9 @@ function updateURLParams() {
 
 // Update Selected Filters Panel
 function updateSelectedFilters() {
-  console.log("🔔 updateSelectedFilters()", filters.priceMin, filters.priceMax);
   const selectedFiltersDiv = document.getElementById("selected-filters");
   if (!selectedFiltersDiv) return;
   selectedFiltersDiv.innerHTML = "";
-
   let hasFilters = false;
   let tagCount = 0;
   Object.keys(filters).forEach((category) => {
@@ -350,7 +347,6 @@ function updateSelectedFilters() {
     const isPrice = category === "priceMin";
     const isSearch = category === "searchTerm" && typeof val === "string" && val.trim().length > 0;
     const isSort = category === "sortBy" && val;
-
     if (category === "priceBand" && Array.isArray(val) && val.length > 0) {
       const pretty = { lower: "Lower", middle: "Middle", upper: "Upper" };
       const labels = val.map((v) => pretty[v]).join(", ");
@@ -370,7 +366,6 @@ function updateSelectedFilters() {
       tagCount++;
       return;
     }
-
     if (isSearch || isPrice || isArray || isSort) {
       hasFilters = true;
       if (tagCount > 0) {
@@ -394,7 +389,7 @@ function updateSelectedFilters() {
           filterTag.innerHTML = `<strong>Price:</strong> ${label}
             <button class="clear-category" data-category="price">✕</button>`;
         } else {
-          return; // Price is default, so do not render.
+          return;
         }
       } else if (isArray) {
         const formattedCategory = category.charAt(0).toUpperCase() + category.slice(1);
@@ -421,7 +416,6 @@ function updateSelectedFilters() {
   if (!hasFilters) {
     selectedFiltersDiv.innerHTML = `<p style="color: gray;">No filters selected.</p>`;
   }
-  // Remove any trailing separator
   const children = Array.from(selectedFiltersDiv.children);
   if (children.length > 0 && children[children.length - 1].classList.contains('filter-separator')) {
     selectedFiltersDiv.removeChild(children[children.length - 1]);
@@ -451,13 +445,10 @@ function updateSelectedFilters() {
           .forEach(cb => cb.checked = false);
       }
       updateSelectedFilters();
-      applyFilters();
     });
   });
-
   updateURLParams();
 }
-
 
 // Reset Price Slider (Full Range)
 function resetPriceSlider() {
@@ -469,7 +460,6 @@ function resetPriceSlider() {
   }
   filters.priceMin = window.globalMinPrice;
   filters.priceMax = window.globalMaxPrice;
-  console.log("🔁 Price slider reset to full range.");
 }
 
 // HELPER: getDisplayValue
@@ -576,7 +566,6 @@ function adjustCarouselHeight(wrapper) {
 
 // CREATE FUNERAL CARD (Webflow population version)
 function populateFuneralCard(cardWrapper, funeral) {
-  console.log("🟢 Webflow card population code is running");
   if (!cardWrapper || !funeral) {
     console.error("❌ populateFuneralCard called with missing arguments");
     return;
@@ -616,30 +605,24 @@ function populateFuneralCard(cardWrapper, funeral) {
   // Google Stars (set on google-stars-div)
   const googleStarsDiv = cardWrapper.querySelector('#google-stars-div, .google-stars-div');
   const googleRating = parseFloat(funeral["Google Rating"]);
-  console.log('Google rating:', googleRating, 'Element:', googleStarsDiv);
   if (googleStarsDiv) {
     if (!isNaN(googleRating) && googleRating > 0) {
       googleStarsDiv.innerHTML = renderStars(googleRating);
       googleStarsDiv.style.display = '';
-      console.log('Google stars HTML:', googleStarsDiv.innerHTML);
     } else {
       googleStarsDiv.style.display = 'none';
-      console.log('No Google rating, hiding stars.');
     }
   }
 
   // Facebook Stars (set on fb-stars-div)
   const fbStarsDiv = cardWrapper.querySelector('#fb-stars-div, .fb-stars-div');
   const fbRating = parseFloat(funeral["Facebook Rating"]);
-  console.log('FB rating:', fbRating, 'Element:', fbStarsDiv);
   if (fbStarsDiv) {
     if (!isNaN(fbRating) && fbRating > 0) {
       fbStarsDiv.innerHTML = renderStars(fbRating);
       fbStarsDiv.style.display = '';
-      console.log('FB stars HTML:', fbStarsDiv.innerHTML);
     } else {
       fbStarsDiv.style.display = 'none';
-      console.log('No FB rating, hiding stars.');
     }
   }
 
@@ -659,7 +642,6 @@ function populateFuneralCard(cardWrapper, funeral) {
   const selectedDays = Array.isArray(filters?.days) && filters.days.length > 0
     ? filters.days.map(Number)
     : [1,2,3,4,5,6,7];
-  console.log('Selected days for pricing:', selectedDays);
   for (let i = 1; i <= 7; i++) {
     const priceKey = `Available Duration (${i} Day${i > 1 ? (i === 2 ? '' : 's') : ''})`;
     const priceEl = cardWrapper.querySelector(`#day${i}-price`);
@@ -846,7 +828,6 @@ function updateBandWidths(minPrice, lowerBand, upperBand, maxPrice) {
 
 // UPDATE PRICING BANDS
 function updatePricingBands(filteredData, skipFilterReset = false) {
-console.log("🔧 updatePricingBands()", "skipFilterReset=", skipFilterReset, "filters before band‑reset:", JSON.stringify(filters));
   const dayMap = {
     "1": "Available Duration (1 Day)",
     "2": "Available Duration (2 Day)",
@@ -856,14 +837,12 @@ console.log("🔧 updatePricingBands()", "skipFilterReset=", skipFilterReset, "f
     "6": "Available Duration (6 Days)",
     "7": "Available Duration (7 Days)"
   };
-  // If you only selected one day, only look at that column:
   let priceKeys;
   if (Array.isArray(filters.days) && filters.days.length === 1) {
     priceKeys = [ dayMap[filters.days[0]] ];
   } else {
     priceKeys = Object.values(dayMap);
   }
-
   const prices = filteredData
     .flatMap(item =>
       priceKeys.map(k =>
@@ -872,34 +851,26 @@ console.log("🔧 updatePricingBands()", "skipFilterReset=", skipFilterReset, "f
     )
     .filter(p => !isNaN(p));
   if (prices.length === 0) return;
-
   const sorted      = prices.sort((a, b) => a - b);
   const filteredMin = sorted[0];
   const filteredMax = sorted[sorted.length - 1];
   const median      = sorted[Math.floor(sorted.length / 2)];
   const lowerBand   = Math.round(sorted[Math.floor(sorted.length * 0.33)]);
   const upperBand   = Math.round(sorted[Math.floor(sorted.length * 0.66)]);
-
-  // Update the numeric displays:
   updateTextForAll(".lowest-price-display",  filteredMin);
   updateTextForAll(".lower-band-range",     lowerBand);
   updateTextForAll(".median-price-display", median);
   updateTextForAll(".upper-band-range",     upperBand);
   updateTextForAll(".highest-price-display",filteredMax);
-
-  // Update the colored bands visually:
   updatePriceBandsVisual(filteredMin, lowerBand, upperBand, filteredMax);
-
-  // Save for the slider logic:
   window.sliderMapping = { min: filteredMin, p33: lowerBand, p66: upperBand, max: filteredMax };
-
-  // **Only** overwrite the filters & reset thumbs when skipFilterReset===false
-  if (!skipFilterReset) {
+  // Only reset thumbs if skipFilterReset is false, NOT currently dragging, and not just dragged
+  if (!skipFilterReset && !window.isPriceDragging && !window._sliderJustDragged) {
+    console.debug('[SLIDER] Thumbs forcibly reset by updatePricingBands', {filteredMin, filteredMax});
     filters.priceMin = filteredMin;
     filters.priceMax = filteredMax;
     positionThumbs(filteredMin, filteredMax, filteredMin, filteredMax);
   } else {
-    // leave filters.priceMin/max alone, but still reposition thumbs
     positionThumbs(filteredMin, filteredMax, filters.priceMin, filters.priceMax);
   }
 }
@@ -979,7 +950,7 @@ function applyFilters(skipBandReset = false) {
      || filters.priceMax !== window.globalMaxPrice);
 
   // 3a) SNAP THUMBS INTO BAND RANGE ONCE
-  if (priceBandActive && !isPriceDragging) {
+  if (priceBandActive && !window.isPriceDragging) {
     const newMin = Math.min(...bandRanges.map(([lo,hi]) => lo));
     const newMax = Math.max(...bandRanges.map(([lo,hi]) => hi));
     filters.priceMin = newMin;
@@ -988,7 +959,7 @@ function applyFilters(skipBandReset = false) {
   }
 
   // 4) UPDATE THE COLORED BANDS VISUALS
-  if (!isPriceDragging) {
+  if (!window.isPriceDragging) {
     updatePricingBands(filteredDataForBands, priceBandActive);
   }
 
@@ -1050,6 +1021,7 @@ function applyFilters(skipBandReset = false) {
 
   // 8) RENDER RESULTS
   paginateResults(filteredDataWithPrice);
+  console.debug('[SLIDER] applyFilters complete', {priceMin: filters.priceMin, priceMax: filters.priceMax, skipBandReset, _sliderJustDragged: window._sliderJustDragged});
 }
 
 // After every call to applyFilters, call setThumbPositions
@@ -1129,6 +1101,7 @@ function setupPriceSliderDiv() {
     if (maxLabel)  maxLabel.textContent  = `$${filters.priceMax.toLocaleString()}`;
     minThumb.style.display = '';
     maxThumb.style.display = '';
+    console.debug('[SLIDER] setThumbPositions', {priceMin: filters.priceMin, priceMax: filters.priceMax});
   }
   window.setThumbPositions = setThumbPositions;
   setThumbPositions();
@@ -1138,7 +1111,8 @@ function setupPriceSliderDiv() {
 
   function onDragStart(e, isMin) {
     e.preventDefault();
-    isPriceDragging = true;
+    window.isPriceDragging = true;
+    console.debug('[SLIDER] Drag Start', {isMin, priceMin: filters.priceMin, priceMax: filters.priceMax});
     const rect = track.getBoundingClientRect();
 
     function onDragMove(evt) {
@@ -1188,7 +1162,8 @@ function setupPriceSliderDiv() {
     }
 
     function onDragEnd() {
-      isPriceDragging = false;
+      window.isPriceDragging = false;
+      window._sliderJustDragged = true;
       document.removeEventListener("mousemove", onDragMove);
       document.removeEventListener("mouseup", onDragEnd);
       document.removeEventListener("touchmove", onDragMove);
@@ -1207,7 +1182,11 @@ function setupPriceSliderDiv() {
       filters.priceMax = finalMax;
       setThumbPositions();
       updateSelectedFilters();
-      applyFilters(true); // Pass true to prevent band reset
+      console.debug('[SLIDER] Drag End', {finalMin, finalMax});
+      // applyFilters with skipBandReset true so thumbs never reset after drag
+      applyFilters(true);
+      // After applyFilters, clear the justDragged flag (on next tick)
+      setTimeout(() => { window._sliderJustDragged = false; }, 0);
     }
 
     document.addEventListener("mousemove", onDragMove, { passive: false });
@@ -1221,7 +1200,6 @@ function setupPriceSliderDiv() {
   minThumb.addEventListener("touchstart", e => onDragStart(e, true));
   maxThumb.addEventListener("touchstart", e => onDragStart(e, false));
 }
-
 
 // UPDATE SLIDER UI (for filtering via manual input)
 function updateSliderUI() {
@@ -1263,7 +1241,6 @@ function resetPriceSlider() {
 
   filters.priceMin = minValue;
   filters.priceMax = maxValue;
-  console.log("🔁 Resetting price slider to full range");
 }
 
 // RESET SLIDER THUMBS ONLY
