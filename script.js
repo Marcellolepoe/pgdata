@@ -1074,9 +1074,29 @@ function setupPriceSliderDiv() {
   filters.priceMin = currentMin;
   filters.priceMax = currentMax;
 
-  // REMOVE the local setThumbPositions definition here
-  // Instead, always use the global version:
-  window.setThumbPositions();
+  // Restore the local setThumbPositions function
+  function setThumbPositions() {
+    const { min, p33, p66, max } = stats;
+    let percentMin = valueToPercent(filters.priceMin, min, p33, p66, max);
+    let percentMax = valueToPercent(filters.priceMax, min, p33, p66, max);
+    percentMin = Math.max(0, Math.min(100, percentMin));
+    percentMax = Math.max(0, Math.min(100, percentMax));
+    if (minThumb) minThumb.style.left = percentMin + "%";
+    if (maxThumb) maxThumb.style.left = percentMax + "%";
+    if (minOutput) minOutput.textContent = `$${filters.priceMin.toLocaleString()}`;
+    if (maxOutput) maxOutput.textContent = `$${filters.priceMax.toLocaleString()}`;
+    if (minLabel)  minLabel.textContent  = `$${filters.priceMin.toLocaleString()}`;
+    if (maxLabel)  maxLabel.textContent  = `$${filters.priceMax.toLocaleString()}`;
+    if (minThumb) minThumb.style.display = '';
+    if (maxThumb) maxThumb.style.display = '';
+    console.debug('[SLIDER] setThumbPositions', {
+      priceMin: filters.priceMin,
+      priceMax: filters.priceMax,
+      percentMin,
+      percentMax
+    });
+  }
+  setThumbPositions();
 
   let lastMinFrac = valueToPercent(filters.priceMin, stats.min, stats.p33, stats.p66, stats.max) / 100;
   let lastMaxFrac = valueToPercent(filters.priceMax, stats.min, stats.p33, stats.p66, stats.max) / 100;
@@ -1152,7 +1172,7 @@ function setupPriceSliderDiv() {
       // Update filters and thumb positions without resetting
       filters.priceMin = finalMin;
       filters.priceMax = finalMax;
-      window.setThumbPositions();
+      setThumbPositions();
       updateSelectedFilters();
       console.debug('[SLIDER] Drag End', {finalMin, finalMax});
       // applyFilters with skipBandReset true so thumbs never reset after drag
