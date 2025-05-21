@@ -22,6 +22,13 @@ let isPriceDragging = false;
 // Add global flag for slider drag state
 window._sliderJustDragged = false;
 
+// Add this at the top level
+const PRICE_BAND_STATES = {
+  lower: { min: null, max: null },
+  middle: { min: null, max: null },
+  upper: { min: null, max: null }
+};
+
 function initializePage() {
   const requiredElements = [
     "funeral-cards-container",
@@ -1433,78 +1440,7 @@ function bandRangeMatches(min, max, stats, band) {
 ['lower', 'middle', 'upper'].forEach(band => {
   const el = document.getElementById('band-' + band);
   if (el) {
-    el.addEventListener('click', function() {
-      console.log('[DEBUG] Band Click Start:', {
-        band,
-        currentFilters: { ...filters }
-      });
-
-      const stats = window.sliderMapping || getFullPricingStats();
-      
-      // CRITICAL: Stop any ongoing price dragging
-      window.isPriceDragging = false;
-      window._sliderJustDragged = false;
-
-      // Clear other band selections
-      document.querySelectorAll('[data-band]').forEach(b => {
-        b.classList.remove('selected');
-      });
-      this.classList.add('selected');
-
-      // Set price range based on band
-      let min, max;
-      if (band === 'lower') {
-        min = stats.min;
-        max = stats.p33;
-      } else if (band === 'middle') {
-        min = stats.p33;
-        max = stats.p66;
-      } else if (band === 'upper') {
-        min = stats.p66;
-        max = stats.max;
-      }
-
-      // Update filters first
-      filters.priceMin = min;
-      filters.priceMax = max;
-      filters.priceBand = [band];
-
-      console.log('[DEBUG] Band Click Values Set:', {
-        band,
-        min,
-        max,
-        filters: { ...filters }
-      });
-
-      // Update UI elements directly
-      const minThumb = document.getElementById("price-min");
-      const maxThumb = document.getElementById("price-max");
-      const minValue = document.getElementById("price-min-value");
-      const maxValue = document.getElementById("price-max-value");
-      const minRange = document.getElementById("price-range-min");
-      const maxRange = document.getElementById("price-range-max");
-
-      if (minThumb && maxThumb) {
-        const percentMin = valueToPercent(min, stats.min, stats.p33, stats.p66, stats.max);
-        const percentMax = valueToPercent(max, stats.min, stats.p33, stats.p66, stats.max);
-        
-        minThumb.style.left = `${percentMin}%`;
-        maxThumb.style.left = `${percentMax}%`;
-      }
-
-      if (minValue) minValue.textContent = `$${min.toLocaleString()}`;
-      if (maxValue) maxValue.textContent = `$${max.toLocaleString()}`;
-      if (minRange) minRange.textContent = `$${min.toLocaleString()}`;
-      if (maxRange) maxRange.textContent = `$${max.toLocaleString()}`;
-
-      // Update filters and results
-      updateSelectedFilters();
-      applyFilters(true);
-
-      console.log('[DEBUG] Band Click Complete:', {
-        finalFilters: { ...filters }
-      });
-    });
+    el.addEventListener('click', () => handlePriceBandSelection(band));
   }
 });
 // --- End Band Click Logic ---
@@ -1657,4 +1593,85 @@ function verifyPriceElements() {
   });
 
   return elements;
+}
+
+// New function to handle band selection
+function handlePriceBandSelection(band) {
+  console.log('[DEBUG] Band Selection Start:', { band });
+  
+  // Get current stats
+  const stats = window.sliderMapping || getFullPricingStats();
+  if (!stats) {
+    console.error('[ERROR] No price stats available');
+    return;
+  }
+
+  // Calculate band ranges
+  PRICE_BAND_STATES.lower = { min: stats.min, max: stats.p33 };
+  PRICE_BAND_STATES.middle = { min: stats.p33, max: stats.p66 };
+  PRICE_BAND_STATES.upper = { min: stats.p66, max: stats.max };
+
+  // Get the selected band's range
+  const selectedRange = PRICE_BAND_STATES[band];
+  if (!selectedRange) {
+    console.error('[ERROR] Invalid band selection:', band);
+    return;
+  }
+
+  console.log('[DEBUG] Band Range:', {
+    band,
+    range: selectedRange,
+    stats
+  });
+
+  // Update filter state
+  filters.priceMin = selectedRange.min;
+  filters.priceMax = selectedRange.max;
+  filters.priceBand = [band];
+
+  // Update UI elements
+  const elements = {
+    minThumb: document.getElementById("price-min"),
+    maxThumb: document.getElementById("price-max"),
+    minValue: document.getElementById("price-min-value"),
+    maxValue: document.getElementById("price-max-value"),
+    minRange: document.getElementById("price-range-min"),
+    maxRange: document.getElementById("price-range-max")
+  };
+
+  // Calculate percentages
+  const percentMin = valueToPercent(selectedRange.min, stats.min, stats.p33, stats.p66, stats.max);
+  const percentMax = valueToPercent(selectedRange.max, stats.min, stats.p33, stats.p66, stats.max);
+
+  console.log('[DEBUG] UI Update:', {
+    percentMin,
+    percentMax,
+    elements: Object.keys(elements).filter(k => elements[k] !== null)
+  });
+
+  // Update thumb positions
+  if (elements.minThumb) elements.minThumb.style.left = `${percentMin}%`;
+  if (elements.maxThumb) elements.maxThumb.style.left = `${percentMax}%`;
+
+  // Update price displays
+  const priceFormat = (val) => `$${val.toLocaleString()}`;
+  if (elements.minValue) elements.minValue.textContent = priceFormat(selectedRange.min);
+  if (elements.maxValue) elements.maxValue.textContent = priceFormat(selectedRange.max);
+  if (elements.minRange) elements.minRange.textContent = priceFormat(selectedRange.min);
+  if (elements.maxRange) elements.maxRange.textContent = priceFormat(selectedRange.max);
+
+  // Update band selection UI
+  document.querySelectorAll('[data-band]').forEach(el => {
+    el.classList.toggle('selected', el.getAttribute('data-band') === band);
+  });
+
+  // Apply filters
+  updateSelectedFilters();
+  applyFilters(true);
+
+  console.log('[DEBUG] Band Selection Complete:', {
+    band,
+    filters: { ...filters },
+    range: selectedRange
+  });
 }
