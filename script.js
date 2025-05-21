@@ -1387,3 +1387,57 @@ document.addEventListener("DOMContentLoaded", function() {
     observer.observe(maxThumb, { attributes: true });
   }
 });
+
+// Add this after setupPriceSliderDiv
+function getFilteredDataExcludingPrice() {
+  console.log('[DEBUG] getFilteredDataExcludingPrice start');
+  
+  // Get all non-price filters
+  const nonPriceFilters = Object.entries(filters).filter(([key]) => 
+    !['priceMin', 'priceMax', 'priceBand', 'sortBy'].includes(key)
+  );
+
+  // If no non-price filters are active, return all data
+  if (!nonPriceFilters.some(([_, value]) => 
+    Array.isArray(value) ? value.length > 0 : value.trim() !== ''
+  )) {
+    console.log('[DEBUG] No non-price filters active, returning all data');
+    return funeralData;
+  }
+
+  // Apply non-price filters
+  const filtered = funeralData.filter(item => {
+    // Search term filter
+    if (filters.searchTerm) {
+      const name = (item["Funeral Parlour Name"] || "").toLowerCase();
+      if (!name.includes(filters.searchTerm.toLowerCase())) {
+        return false;
+      }
+    }
+
+    // Array filters (location, casket, etc.)
+    for (const [category, values] of nonPriceFilters) {
+      if (!Array.isArray(values) || values.length === 0) continue;
+      
+      const field = filterKeyMap[category];
+      if (!field) continue;
+
+      const itemValue = (item[field] || "").toString().toLowerCase();
+      if (!values.some(val => itemValue.includes(val.toLowerCase()))) {
+        return false;
+      }
+    }
+
+    return true;
+  });
+
+  console.log('[DEBUG] getFilteredDataExcludingPrice results:', {
+    totalItems: funeralData.length,
+    filteredItems: filtered.length,
+    activeFilters: nonPriceFilters.filter(([_, value]) => 
+      Array.isArray(value) ? value.length > 0 : value.trim() !== ''
+    ).map(([key]) => key)
+  });
+
+  return filtered;
+}
