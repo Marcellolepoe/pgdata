@@ -29,6 +29,12 @@ const PRICE_BAND_STATES = {
   upper: { min: null, max: null }
 };
 
+// Add this at the top level
+let lastThumbPositions = {
+  min: null,
+  max: null
+};
+
 function initializePage() {
   const requiredElements = [
     "funeral-cards-container",
@@ -1489,37 +1495,41 @@ function setPriceFilter({ band = null, min = null, max = null, manual = false, m
 
 // --- UI State Synchronization for Price Filters ---
 function syncPriceFilterUI() {
-  // If we don't have valid price values, don't proceed
-  if (typeof filters.priceMin !== 'number' || typeof filters.priceMax !== 'number') {
-    console.log('[DEBUG] syncPriceFilterUI: Invalid price values, skipping');
-    return;
-  }
-
-  // If a price band is active, don't update thumb positions
+  // If a price band is active, don't do anything
   if (filters.priceBand && filters.priceBand.length > 0) {
     console.log('[DEBUG] syncPriceFilterUI: Price band active, skipping');
     return;
   }
 
+  // Only sync if we have valid price values
+  if (typeof filters.priceMin !== 'number' || typeof filters.priceMax !== 'number') {
+    console.log('[DEBUG] syncPriceFilterUI: Invalid price values, skipping');
+    return;
+  }
+
+  const stats = window.sliderMapping || getFullPricingStats();
+  if (!stats) {
+    console.log('[DEBUG] syncPriceFilterUI: No stats available');
+    return;
+  }
+
   const minThumb = document.getElementById("price-min");
   const maxThumb = document.getElementById("price-max");
-  const stats = window.sliderMapping || getFullPricingStats();
-
-  if (!minThumb || !maxThumb || !stats) {
-    console.log('[DEBUG] syncPriceFilterUI: Missing required elements');
+  if (!minThumb || !maxThumb) {
+    console.log('[DEBUG] syncPriceFilterUI: Missing thumb elements');
     return;
   }
 
   const percentMin = valueToPercent(filters.priceMin, stats.min, stats.p33, stats.p66, stats.max);
   const percentMax = valueToPercent(filters.priceMax, stats.min, stats.p33, stats.p66, stats.max);
-  
-  console.log('[DEBUG] syncPriceFilterUI Update:', {
-    priceMin: filters.priceMin,
-    priceMax: filters.priceMax,
+
+  console.log('[DEBUG] syncPriceFilterUI setting positions:', {
     percentMin,
-    percentMax
+    percentMax,
+    currentMin: minThumb.style.left,
+    currentMax: maxThumb.style.left
   });
-  
+
   minThumb.style.left = `${percentMin}%`;
   maxThumb.style.left = `${percentMax}%`;
 }
@@ -1607,12 +1617,13 @@ function handlePriceBandSelection(band) {
   }
 
   // Calculate band ranges
-  PRICE_BAND_STATES.lower = { min: stats.min, max: stats.p33 };
-  PRICE_BAND_STATES.middle = { min: stats.p33, max: stats.p66 };
-  PRICE_BAND_STATES.upper = { min: stats.p66, max: stats.max };
+  const ranges = {
+    lower: { min: stats.min, max: stats.p33 },
+    middle: { min: stats.p33, max: stats.p66 },
+    upper: { min: stats.p66, max: stats.max }
+  };
 
-  // Get the selected band's range
-  const selectedRange = PRICE_BAND_STATES[band];
+  const selectedRange = ranges[band];
   if (!selectedRange) {
     console.error('[ERROR] Invalid band selection:', band);
     return;
@@ -1624,12 +1635,16 @@ function handlePriceBandSelection(band) {
     stats
   });
 
+  // CRITICAL: Stop any ongoing price dragging
+  window.isPriceDragging = false;
+  window._sliderJustDragged = false;
+
   // Update filter state
   filters.priceMin = selectedRange.min;
   filters.priceMax = selectedRange.max;
   filters.priceBand = [band];
 
-  // Update UI elements
+  // Get all UI elements
   const elements = {
     minThumb: document.getElementById("price-min"),
     maxThumb: document.getElementById("price-max"),
@@ -1639,19 +1654,50 @@ function handlePriceBandSelection(band) {
     maxRange: document.getElementById("price-range-max")
   };
 
-  // Calculate percentages
-  const percentMin = valueToPercent(selectedRange.min, stats.min, stats.p33, stats.p66, stats.max);
-  const percentMax = valueToPercent(selectedRange.max, stats.min, stats.p33, stats.p66, stats.max);
-
-  console.log('[DEBUG] UI Update:', {
-    percentMin,
-    percentMax,
-    elements: Object.keys(elements).filter(k => elements[k] !== null)
+  // Log element availability
+  console.log('[DEBUG] UI Elements:', {
+    available: Object.entries(elements).reduce((acc, [key, el]) => {
+      acc[key] = !!el;
+      return acc;
+    }, {})
   });
 
-  // Update thumb positions
-  if (elements.minThumb) elements.minThumb.style.left = `${percentMin}%`;
-  if (elements.maxThumb) elements.maxThumb.style.left = `${percentMax}%`;
+  // Calculate exact percentages
+  let percentMin, percentMax;
+  if (band === 'lower') {
+    percentMin = 0;
+    percentMax = 33.33;
+  } else if (band === 'middle') {
+    percentMin = 33.33;
+    percentMax = 66.66;
+  } else if (band === 'upper') {
+    percentMin = 66.66;
+    percentMax = 100;
+  }
+
+  console.log('[DEBUG] Setting thumb positions:', {
+    band,
+    percentMin,
+    percentMax,
+    range: selectedRange
+  });
+
+  // Force thumb positions directly
+  if (elements.minThumb) {
+    elements.minThumb.style.left = `${percentMin}%`;
+    console.log('[DEBUG] Set min thumb position:', {
+      element: elements.minThumb,
+      position: elements.minThumb.style.left
+    });
+  }
+  
+  if (elements.maxThumb) {
+    elements.maxThumb.style.left = `${percentMax}%`;
+    console.log('[DEBUG] Set max thumb position:', {
+      element: elements.maxThumb,
+      position: elements.maxThumb.style.left
+    });
+  }
 
   // Update price displays
   const priceFormat = (val) => `$${val.toLocaleString()}`;
@@ -1669,9 +1715,37 @@ function handlePriceBandSelection(band) {
   updateSelectedFilters();
   applyFilters(true);
 
-  console.log('[DEBUG] Band Selection Complete:', {
-    band,
-    filters: { ...filters },
-    range: selectedRange
+  // Verify final positions
+  console.log('[DEBUG] Final thumb positions:', {
+    minThumb: elements.minThumb?.style.left,
+    maxThumb: elements.maxThumb?.style.left,
+    filters: { ...filters }
   });
 }
+
+// Add this after DOM content loaded
+document.addEventListener("DOMContentLoaded", function() {
+  // Observe thumb position changes
+  const minThumb = document.getElementById("price-min");
+  const maxThumb = document.getElementById("price-max");
+  
+  if (minThumb && maxThumb) {
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+          const newLeft = mutation.target.style.left;
+          console.log('[DEBUG] Thumb position changed:', {
+            element: mutation.target.id,
+            oldPosition: lastThumbPositions[mutation.target.id === 'price-min' ? 'min' : 'max'],
+            newPosition: newLeft,
+            stack: new Error().stack
+          });
+          lastThumbPositions[mutation.target.id === 'price-min' ? 'min' : 'max'] = newLeft;
+        }
+      });
+    });
+
+    observer.observe(minThumb, { attributes: true });
+    observer.observe(maxThumb, { attributes: true });
+  }
+});
