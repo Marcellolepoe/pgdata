@@ -41,6 +41,35 @@ let currentBandState = {
   values: null
 };
 
+// Add at the top level
+const FILTER_TYPES = {
+  PRICE: {
+    BAND: 'priceBand',
+    RANGE: 'priceRange',
+    MAX: 'priceMax'
+  },
+  NON_PRICE: {
+    LOCATION: 'location',
+    CASKET: 'casket',
+    TENTAGE: 'tentage',
+    CATERING: 'catering',
+    HEARSE: 'hearse',
+    PERSONNEL: 'personnel',
+    MONKS: 'monks',
+    DAYS: 'days',
+    SEARCH: 'searchTerm',
+    SORT: 'sortBy'
+  }
+};
+
+// Add at the top level
+let activePriceFilter = {
+  type: null, // 'band', 'range', or null
+  value: null, // band name or {min, max} for range
+  positions: null, // {min, max} percentages
+  values: null // {min, max} actual values
+};
+
 function initializePage() {
   const requiredElements = [
     "funeral-cards-container",
@@ -108,7 +137,9 @@ async function fetchFuneralData() {
     window.funeralData = funeralData;
     
     const allCountEl = document.getElementById("all-results");
+    const showEl = document.getElementById("showed-results");
     if (allCountEl) allCountEl.textContent = funeralData.length;
+    if (showEl) showEl.textContent = funeralData.length;
 
     const priceKeys = [
       "Available Duration (1 Day)",
@@ -131,13 +162,17 @@ async function fetchFuneralData() {
     
     window.sliderMapping = getFullPricingStats();
     
+    // Initialize with full range
     filters.priceMin = window.globalMinPrice;
     filters.priceMax = window.globalMaxPrice;
     filters.sortBy = "";
     
     setupPriceSliderDiv();
     
-    applyFilters();
+    // Show all results initially
+    renderResults(funeralData);
+    
+    // Then apply any URL parameters
     getFiltersFromURL();
   } catch (error) {
     console.error("❌ Error fetching funeral data:", error);
@@ -1126,17 +1161,8 @@ function setupPriceSliderDiv() {
     window._sliderJustDragged = false;
     
     // Clear any active band selection
-    if (currentBandState.active) {
-      currentBandState = {
-        active: false,
-        band: null,
-        positions: null,
-        values: null
-      };
-      filters.priceBand = [];
-      document.querySelectorAll('[data-band]').forEach(el => {
-        el.classList.remove('selected');
-      });
+    if (activePriceFilter.type === 'band') {
+      clearPriceFilter();
     }
 
     const rect = track.getBoundingClientRect();
@@ -1165,16 +1191,11 @@ function setupPriceSliderDiv() {
         }
       }
 
-      // Update price displays
-      const minValue = document.getElementById("price-min-value");
-      const maxValue = document.getElementById("price-max-value");
-      const minRange = document.getElementById("price-range-min");
-      const maxRange = document.getElementById("price-range-max");
-
-      if (minValue) minValue.textContent = `$${filters.priceMin.toLocaleString()}`;
-      if (maxValue) maxValue.textContent = `$${filters.priceMax.toLocaleString()}`;
-      if (minRange) minRange.textContent = `$${filters.priceMin.toLocaleString()}`;
-      if (maxRange) maxRange.textContent = `$${filters.priceMax.toLocaleString()}`;
+      // Update price filter
+      setPriceFilter('range', null, null, {
+        min: filters.priceMin,
+        max: filters.priceMax
+      });
 
       updateSelectedFilters();
     }
@@ -1189,8 +1210,7 @@ function setupPriceSliderDiv() {
       document.removeEventListener("touchend", onDragEnd);
 
       applyFilters(true);
-      
-      // Clear the justDragged flag after a short delay
+
       setTimeout(() => {
         window._sliderJustDragged = false;
       }, 100);
@@ -1210,7 +1230,7 @@ function setupPriceSliderDiv() {
 
 // Modify handlePriceBandSelection
 function handlePriceBandSelection(band) {
-  console.log('[DEBUG] Band Selection Start:', { band, currentState: currentBandState });
+  console.log('[DEBUG] Band Selection Start:', { band, currentState: activePriceFilter });
   
   const stats = window.sliderMapping || getFullPricingStats();
   if (!stats) {
@@ -1219,51 +1239,8 @@ function handlePriceBandSelection(band) {
   }
 
   // If clicking the same band, clear it
-  if (currentBandState.active && currentBandState.band === band) {
-    console.log('[DEBUG] Clearing band selection');
-    currentBandState = {
-      active: false,
-      band: null,
-      positions: null,
-      values: null
-    };
-    
-    // Reset to full range
-    filters.priceMin = stats.min;
-    filters.priceMax = stats.max;
-    filters.priceBand = [];
-    
-    // Reset UI
-    const elements = {
-      minThumb: document.getElementById("price-min"),
-      maxThumb: document.getElementById("price-max"),
-      minValue: document.getElementById("price-min-value"),
-      maxValue: document.getElementById("price-max-value"),
-      minRange: document.getElementById("price-range-min"),
-      maxRange: document.getElementById("price-range-max")
-    };
-
-    // Force thumb positions to reset
-    if (elements.minThumb) {
-      elements.minThumb.style.left = "0%";
-      console.log('[DEBUG] Reset min thumb to 0%');
-    }
-    if (elements.maxThumb) {
-      elements.maxThumb.style.left = "100%";
-      console.log('[DEBUG] Reset max thumb to 100%');
-    }
-    
-    const priceFormat = (val) => `$${val.toLocaleString()}`;
-    if (elements.minValue) elements.minValue.textContent = priceFormat(stats.min);
-    if (elements.maxValue) elements.maxValue.textContent = priceFormat(stats.max);
-    if (elements.minRange) elements.minRange.textContent = priceFormat(stats.min);
-    if (elements.maxRange) elements.maxRange.textContent = priceFormat(stats.max);
-
-    // Clear band selection UI
-    document.querySelectorAll('[data-band]').forEach(el => {
-      el.classList.remove('selected');
-    });
-
+  if (activePriceFilter.type === 'band' && activePriceFilter.value === band) {
+    clearPriceFilter();
     updateSelectedFilters();
     applyFilters(true);
     return;
@@ -1291,20 +1268,75 @@ function handlePriceBandSelection(band) {
 
   const values = priceValues[band];
 
-  // Update state
-  currentBandState = {
-    active: true,
-    band,
+  // Set the price filter
+  setPriceFilter('band', band, positions, values);
+
+  // Apply filters
+  updateSelectedFilters();
+  applyFilters(true);
+}
+
+// Add this function to handle price filter state
+function setPriceFilter(type, value, positions = null, values = null) {
+  console.log('[DEBUG] Setting price filter:', { type, value, positions, values });
+  
+  // Clear any existing price filter
+  clearPriceFilter();
+  
+  // Set new price filter
+  activePriceFilter = {
+    type,
+    value,
     positions,
     values
   };
 
-  // Update filter state
-  filters.priceMin = values.min;
-  filters.priceMax = values.max;
-  filters.priceBand = [band];
+  // Update filter state based on type
+  switch (type) {
+    case 'band':
+      filters.priceBand = [value];
+      filters.priceMin = values.min;
+      filters.priceMax = values.max;
+      break;
+    case 'range':
+      filters.priceBand = [];
+      filters.priceMin = values.min;
+      filters.priceMax = values.max;
+      break;
+    case 'max':
+      filters.priceBand = [];
+      filters.priceMin = window.globalMinPrice;
+      filters.priceMax = values;
+      break;
+  }
 
-  // Get UI elements
+  // Update UI
+  updatePriceFilterUI();
+}
+
+// Add this function to clear price filter state
+function clearPriceFilter() {
+  console.log('[DEBUG] Clearing price filter');
+  
+  // Reset filter state
+  filters.priceBand = [];
+  filters.priceMin = window.globalMinPrice;
+  filters.priceMax = window.globalMaxPrice;
+  activePriceFilter = {
+    type: null,
+    value: null,
+    positions: null,
+    values: null
+  };
+
+  // Reset UI
+  updatePriceFilterUI();
+}
+
+// Add this function to update price filter UI
+function updatePriceFilterUI() {
+  console.log('[DEBUG] Updating price filter UI:', activePriceFilter);
+  
   const elements = {
     minThumb: document.getElementById("price-min"),
     maxThumb: document.getElementById("price-max"),
@@ -1314,15 +1346,45 @@ function handlePriceBandSelection(band) {
     maxRange: document.getElementById("price-range-max")
   };
 
-  // Force thumb positions to update
+  // Get current stats
+  const stats = window.sliderMapping || getFullPricingStats();
+  
+  // Determine positions and values
+  let positions, values;
+  
+  if (activePriceFilter.type === 'band') {
+    positions = activePriceFilter.positions;
+    values = activePriceFilter.values;
+  } else if (activePriceFilter.type === 'range') {
+    positions = {
+      min: valueToPercent(activePriceFilter.values.min, stats.min, stats.p33, stats.p66, stats.max),
+      max: valueToPercent(activePriceFilter.values.max, stats.min, stats.p33, stats.p66, stats.max)
+    };
+    values = activePriceFilter.values;
+  } else if (activePriceFilter.type === 'max') {
+    positions = {
+      min: 0,
+      max: valueToPercent(activePriceFilter.value, stats.min, stats.p33, stats.p66, stats.max)
+    };
+    values = {
+      min: stats.min,
+      max: activePriceFilter.value
+    };
+  } else {
+    // No active price filter
+    positions = { min: 0, max: 100 };
+    values = { min: stats.min, max: stats.max };
+  }
+
+  // Update thumb positions
   if (elements.minThumb) {
     elements.minThumb.style.left = `${positions.min}%`;
-    console.log('[DEBUG] Set min thumb:', { position: positions.min });
+    elements.minThumb.offsetHeight; // Force reflow
   }
   
   if (elements.maxThumb) {
     elements.maxThumb.style.left = `${positions.max}%`;
-    console.log('[DEBUG] Set max thumb:', { position: positions.max });
+    elements.maxThumb.offsetHeight; // Force reflow
   }
 
   // Update price displays
@@ -1334,23 +1396,10 @@ function handlePriceBandSelection(band) {
 
   // Update band selection UI
   document.querySelectorAll('[data-band]').forEach(el => {
-    el.classList.toggle('selected', el.getAttribute('data-band') === band);
-  });
-
-  // Force a reflow to ensure thumb positions update
-  if (elements.minThumb) elements.minThumb.offsetHeight;
-  if (elements.maxThumb) elements.maxThumb.offsetHeight;
-
-  // Apply filters
-  updateSelectedFilters();
-  applyFilters(true);
-
-  console.log('[DEBUG] Band Selection Complete:', {
-    band,
-    positions,
-    values,
-    state: currentBandState,
-    filters: { ...filters }
+    el.classList.toggle('selected', 
+      activePriceFilter.type === 'band' && 
+      el.getAttribute('data-band') === activePriceFilter.value
+    );
   });
 }
 
