@@ -1292,13 +1292,6 @@ function handlePriceBandSelection(band) {
     values
   };
 
-  console.log('[DEBUG] Band Selection Values:', {
-    band,
-    positions,
-    values,
-    state: currentBandState
-  });
-
   // Update filter state
   filters.priceMin = values.min;
   filters.priceMax = values.max;
@@ -1459,15 +1452,20 @@ document.addEventListener("DOMContentLoaded", function() {
 function getFilteredDataExcludingPrice() {
   console.log('[DEBUG] getFilteredDataExcludingPrice start');
   
-  // Get all non-price filters
+  // Get all non-price filters, but include priceBand for proper state tracking
   const nonPriceFilters = Object.entries(filters).filter(([key]) => 
-    !['priceMin', 'priceMax', 'priceBand', 'sortBy'].includes(key)
+    !['priceMin', 'priceMax', 'sortBy'].includes(key)
   );
 
-  // If no non-price filters are active, return all data
-  if (!nonPriceFilters.some(([_, value]) => 
-    Array.isArray(value) ? value.length > 0 : value.trim() !== ''
-  )) {
+  // Check if we have any active filters (including priceBand)
+  const hasActiveFilters = nonPriceFilters.some(([key, value]) => {
+    if (key === 'priceBand') {
+      return Array.isArray(value) && value.length > 0;
+    }
+    return Array.isArray(value) ? value.length > 0 : value.trim() !== '';
+  });
+
+  if (!hasActiveFilters) {
     console.log('[DEBUG] No non-price filters active, returning all data');
     return funeralData;
   }
@@ -1486,6 +1484,41 @@ function getFilteredDataExcludingPrice() {
     for (const [category, values] of nonPriceFilters) {
       if (!Array.isArray(values) || values.length === 0) continue;
       
+      // Special handling for priceBand
+      if (category === 'priceBand') {
+        const stats = window.sliderMapping || getFullPricingStats();
+        const dayMap = {
+          "1": "Available Duration (1 Day)",
+          "2": "Available Duration (2 Day)",
+          "3": "Available Duration (3 Days)",
+          "4": "Available Duration (4 Days)",
+          "5": "Available Duration (5 Days)",
+          "6": "Available Duration (6 Days)",
+          "7": "Available Duration (7 Days)"
+        };
+        
+        // Get all valid prices for this item
+        const prices = Object.values(dayMap).map(key => {
+          const raw = item[key] || "";
+          return parseFloat(raw.toString().replace(/[^\d.]/g, ""));
+        }).filter(p => !isNaN(p));
+
+        // Check if any price falls within the selected band
+        const bandRanges = values.map(band => {
+          if (band === "lower") return [stats.min, stats.p33];
+          if (band === "middle") return [stats.p33, stats.p66];
+          if (band === "upper") return [stats.p66, stats.max];
+          return null;
+        }).filter(Boolean);
+
+        const hasValidPrice = prices.some(price => 
+          bandRanges.some(([min, max]) => price >= min && price <= max)
+        );
+
+        if (!hasValidPrice) return false;
+        continue;
+      }
+
       const field = filterKeyMap[category];
       if (!field) continue;
 
@@ -1501,9 +1534,10 @@ function getFilteredDataExcludingPrice() {
   console.log('[DEBUG] getFilteredDataExcludingPrice results:', {
     totalItems: funeralData.length,
     filteredItems: filtered.length,
-    activeFilters: nonPriceFilters.filter(([_, value]) => 
+    activeFilters: nonPriceFilters.filter(([key, value]) => 
       Array.isArray(value) ? value.length > 0 : value.trim() !== ''
-    ).map(([key]) => key)
+    ).map(([key]) => key),
+    priceBand: filters.priceBand
   });
 
   return filtered;
