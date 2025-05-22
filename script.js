@@ -393,10 +393,51 @@ function setupFilters() {
       }
       updateSelectedFilters();
       applyFilters();
-      const nonPriceFiltered = getFilteredDataExcludingPrice();
-      updatePricingBands(nonPriceFiltered, false);
     });
   });
+}
+
+// Add this helper to handle band selection
+function handlePriceBandSelection(band) {
+  const stats = window.priceStats.original;
+  if (!stats) return;
+
+  // If clicking the same band, clear it
+  if (filters.priceBand[0] === band) {
+    clearPriceFilter();
+    return;
+  }
+
+  // Set the band filter
+  filters.priceBand = [band];
+  
+  // Update thumbs based on band
+  const minThumb = document.getElementById("price-min");
+  const maxThumb = document.getElementById("price-max");
+  if (minThumb && maxThumb) {
+    let minPos, maxPos;
+    switch(band) {
+      case 'lower':
+        minPos = 0;
+        maxPos = 33.33;
+        break;
+      case 'middle':
+        minPos = 33.33;
+        maxPos = 66.66;
+        break;
+      case 'upper':
+        minPos = 66.66;
+        maxPos = 100;
+        break;
+    }
+    requestAnimationFrame(() => {
+      minThumb.style.left = `${minPos}%`;
+      maxThumb.style.left = `${maxPos}%`;
+    });
+  }
+
+  updateSelectedFilters();
+  applyFilters(true);
 }
 
 // GET FILTERS FROM URL
