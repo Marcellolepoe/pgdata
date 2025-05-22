@@ -1243,8 +1243,15 @@ function handlePriceBandSelection(band) {
       maxRange: document.getElementById("price-range-max")
     };
 
-    if (elements.minThumb) elements.minThumb.style.left = "0%";
-    if (elements.maxThumb) elements.maxThumb.style.left = "100%";
+    // Force thumb positions to reset
+    if (elements.minThumb) {
+      elements.minThumb.style.left = "0%";
+      console.log('[DEBUG] Reset min thumb to 0%');
+    }
+    if (elements.maxThumb) {
+      elements.maxThumb.style.left = "100%";
+      console.log('[DEBUG] Reset max thumb to 100%');
+    }
     
     const priceFormat = (val) => `$${val.toLocaleString()}`;
     if (elements.minValue) elements.minValue.textContent = priceFormat(stats.min);
@@ -1307,7 +1314,7 @@ function handlePriceBandSelection(band) {
     maxRange: document.getElementById("price-range-max")
   };
 
-  // Update UI directly
+  // Force thumb positions to update
   if (elements.minThumb) {
     elements.minThumb.style.left = `${positions.min}%`;
     console.log('[DEBUG] Set min thumb:', { position: positions.min });
@@ -1330,6 +1337,10 @@ function handlePriceBandSelection(band) {
     el.classList.toggle('selected', el.getAttribute('data-band') === band);
   });
 
+  // Force a reflow to ensure thumb positions update
+  if (elements.minThumb) elements.minThumb.offsetHeight;
+  if (elements.maxThumb) elements.maxThumb.offsetHeight;
+
   // Apply filters
   updateSelectedFilters();
   applyFilters(true);
@@ -1341,6 +1352,18 @@ function handlePriceBandSelection(band) {
     state: currentBandState,
     filters: { ...filters }
   });
+}
+
+// Add this helper function to ensure thumb positions are updated
+function forceThumbUpdate(minThumb, maxThumb, minPos, maxPos) {
+  if (minThumb) {
+    minThumb.style.left = `${minPos}%`;
+    minThumb.offsetHeight; // Force reflow
+  }
+  if (maxThumb) {
+    maxThumb.style.left = `${maxPos}%`;
+    maxThumb.offsetHeight; // Force reflow
+  }
 }
 
 // Add this CSS via JS for slider thumbs and All Filters panel
