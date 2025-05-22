@@ -961,6 +961,11 @@ function applyFilters(skipBandReset = false) {
     "7": "Available Duration (7 Days)"
   };
 
+  // Store original stats if they don't exist
+  if (!window.originalBandStats) {
+    window.originalBandStats = getFullPricingStats();
+  }
+
   // Non-price filter keys
   const nonPriceKeys = [
     'location', 'casket', 'tentage', 'catering', 'hearse', 'personnel', 'monks', 'days', 'searchTerm', 'sortBy'
@@ -980,18 +985,19 @@ function applyFilters(skipBandReset = false) {
     if (key === 'sortBy') return filters[key] !== '';
     return false;
   });
+
+  // Always use original stats for price bands display
+  window.currentBandStats = window.originalBandStats;
+
   if (!hasActiveFilters) {
     paginateResults(funeralData);
-    window.currentBandStats = getFullPricingStats();
-    logUpdate('applyFilters (no filters)', { stats: window.currentBandStats });
-    updatePricingBands(funeralData, true); // true: skip thumb reset
+    updatePricingBands(funeralData, true);
     return;
   }
 
-  // Only updatePricingBands if a non-price filter is changed
-  let filteredDataForBands = funeralData;
+  let filteredDataForDisplay = funeralData;
   if (hasNonPriceFilters) {
-    filteredDataForBands = funeralData.filter(item => {
+    filteredDataForDisplay = funeralData.filter(item => {
       if (filters.searchTerm) {
         const name = (item["Funeral Parlour Name"] || "").toLowerCase();
         if (!name.includes(filters.searchTerm.trim().toLowerCase())) return false;
@@ -1014,13 +1020,10 @@ function applyFilters(skipBandReset = false) {
       }
       return true;
     });
-    window.currentBandStats = getStatsFromData(filteredDataForBands);
-    logUpdate('applyFilters (non-price filter changed)', { stats: window.currentBandStats });
-    updatePricingBands(filteredDataForBands, true); // true: skip thumb reset
   }
 
-  // Use window.currentBandStats for all price band and thumb calculations
-  const stats = window.currentBandStats || getFullPricingStats();
+  // Use original stats for all price band calculations
+  const stats = window.originalBandStats;
   const selectedDays = filters.days.length ? filters.days : Object.keys(dayMap);
   const bandRanges = (filters.priceBand || []).map(b => {
     if (b === "lower") return [stats.min, stats.p33];
@@ -1029,7 +1032,7 @@ function applyFilters(skipBandReset = false) {
   });
 
   // Final price filtering
-  const filteredDataWithPrice = filteredDataForBands.filter(item => {
+  const filteredDataWithPrice = filteredDataForDisplay.filter(item => {
     if (!filters.priceBand.length && 
         filters.priceMin === window.globalMinPrice && 
         filters.priceMax === window.globalMaxPrice) {
@@ -1058,32 +1061,7 @@ function applyFilters(skipBandReset = false) {
   if (allEl) allEl.textContent = funeralData.length;
   if (showEl) showEl.textContent = filteredDataWithPrice.length;
 
-  // Sorting (unchanged)
-  if (filters.sortBy) {
-    filteredDataWithPrice.sort((a,b) => {
-      const lowPrice = item => {
-        let low = Infinity;
-        for (let d of selectedDays) {
-          const raw = item[dayMap[d]] || "";
-          const p = parseFloat(raw.toString().replace(/[^\d.]/g,""));
-          if (!isNaN(p) && p < low) low = p;
-        }
-        return low;
-      };
-      const A = lowPrice(a), B = lowPrice(b);
-      switch (filters.sortBy) {
-        case "price-asc": return A - B;
-        case "price-desc": return B - A;
-        case "google-rating-desc": return (parseFloat(b["Google Rating"])||0) - (parseFloat(a["Google Rating"])||0);
-        case "facebook-rating-desc": return (parseFloat(b["Facebook Rating"])||0) - (parseFloat(a["Facebook Rating"])||0);
-        case "google-reviews-desc": return (parseInt(b["Google Reviews"])||0) - (parseInt(a["Google Reviews"])||0);
-        case "facebook-reviews-desc": return (parseInt(b["Facebook Reviews"])||0) - (parseInt(a["Facebook Reviews"])||0);
-        default: return 0;
-      }
-    });
-  }
-
-  // Render results
+  // Paginate the results
   paginateResults(filteredDataWithPrice);
 }
 
@@ -1503,7 +1481,7 @@ function setupPriceSliderDiv() {
   }
 
   // Initialize positions
-  const stats = window.sliderMapping || getFullPricingStats();
+  const stats = window.originalBandStats || getFullPricingStats();
   if (!stats) {
     console.error('[ERROR] No price stats available');
     return;
@@ -1513,62 +1491,88 @@ function setupPriceSliderDiv() {
   minThumb.style.left = "0%";
   maxThumb.style.left = "100%";
 
+  let isDragging = false;
+  let currentThumb = null;
+
   function onDragStart(e, isMin) {
     e.preventDefault();
+    isDragging = true;
+    currentThumb = isMin ? minThumb : maxThumb;
     window.isPriceDragging = true;
     window._sliderJustDragged = false;
+
     // Clear any active band selection
     if (activePriceFilter.type === 'band') {
       clearPriceFilter();
     }
+
     const rect = track.getBoundingClientRect();
-    const stats = window.currentBandStats || getFullPricingStats();
+    const stats = window.originalBandStats;
+
     function onDragMove(evt) {
+      if (!isDragging) return;
       evt.preventDefault();
+
       const clientX = evt.type.startsWith("touch") ? evt.touches[0].clientX : evt.clientX;
       const x = Math.min(Math.max(clientX - rect.left, 0), rect.width);
       const frac = x / rect.width;
-      const value = Math.round(piecewisePercentileToValue(frac, stats.min, stats.p33, stats.p66, stats.max));
-      const percent = valueToPercent(value, stats.min, stats.p33, stats.p66, stats.max);
-      if (isMin) {
-        const maxPct = parseFloat(maxThumb.style.left);
-        if (percent <= maxPct) {
-          minThumb.style.left = `${percent}%`;
-          filters.priceMin = value;
+      
+      try {
+        const value = Math.round(piecewisePercentileToValue(frac, stats.min, stats.p33, stats.p66, stats.max));
+        const percent = valueToPercent(value, stats.min, stats.p33, stats.p66, stats.max);
+
+        if (isMin) {
+          const maxPct = parseFloat(maxThumb.style.left);
+          if (percent <= maxPct) {
+            minThumb.style.left = `${percent}%`;
+            filters.priceMin = value;
+          }
+        } else {
+          const minPct = parseFloat(minThumb.style.left);
+          if (percent >= minPct) {
+            maxThumb.style.left = `${percent}%`;
+            filters.priceMax = value;
+          }
         }
-      } else {
-        const minPct = parseFloat(minThumb.style.left);
-        if (percent >= minPct) {
-          maxThumb.style.left = `${percent}%`;
-          filters.priceMax = value;
-        }
+
+        // Update price filter
+        setPriceFilter('range', null, null, {
+          min: filters.priceMin,
+          max: filters.priceMax
+        });
+        updateSelectedFilters();
+      } catch (error) {
+        console.warn('Error during drag:', error);
       }
-      // Update price filter
-      setPriceFilter('range', null, null, {
-        min: filters.priceMin,
-        max: filters.priceMax
-      });
-      updateSelectedFilters();
     }
+
     function onDragEnd() {
+      if (!isDragging) return;
+      isDragging = false;
+      currentThumb = null;
       window.isPriceDragging = false;
       window._sliderJustDragged = true;
-      document.removeEventListener("mousemove", onDragMove);
-      document.removeEventListener("mouseup", onDragEnd);
-      document.removeEventListener("touchmove", onDragMove);
-      document.removeEventListener("touchend", onDragEnd);
+      
+      // Apply filters with the new price range
       applyFilters(true);
-      setTimeout(() => {
-        window._sliderJustDragged = false;
-      }, 100);
+
+      // Remove listeners
+      document.removeEventListener('mousemove', onDragMove);
+      document.removeEventListener('touchmove', onDragMove);
+      document.removeEventListener('mouseup', onDragEnd);
+      document.removeEventListener('touchend', onDragEnd);
     }
-    document.addEventListener("mousemove", onDragMove);
-    document.addEventListener("mouseup", onDragEnd);
-    document.addEventListener("touchmove", onDragMove);
-    document.addEventListener("touchend", onDragEnd);
+
+    // Add listeners
+    document.addEventListener('mousemove', onDragMove);
+    document.addEventListener('touchmove', onDragMove);
+    document.addEventListener('mouseup', onDragEnd);
+    document.addEventListener('touchend', onDragEnd);
   }
-  minThumb.addEventListener("mousedown", e => onDragStart(e, true));
-  maxThumb.addEventListener("mousedown", e => onDragStart(e, false));
-  minThumb.addEventListener("touchstart", e => onDragStart(e, true));
-  maxThumb.addEventListener("touchstart", e => onDragStart(e, false));
+
+  // Setup event listeners
+  minThumb.addEventListener('mousedown', e => onDragStart(e, true));
+  minThumb.addEventListener('touchstart', e => onDragStart(e, true));
+  maxThumb.addEventListener('mousedown', e => onDragStart(e, false));
+  maxThumb.addEventListener('touchstart', e => onDragStart(e, false));
 }
