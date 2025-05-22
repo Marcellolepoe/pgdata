@@ -23,10 +23,19 @@ let isPriceDragging = false;
 window._sliderJustDragged = false;
 
 // Add this at the top level
-const PRICE_BAND_STATES = {
-  lower: { min: null, max: null },
-  middle: { min: null, max: null },
-  upper: { min: null, max: null }
+const PRICE_BAND_CONFIG = {
+  lower: {
+    position: { min: 0, max: 33.33 },
+    getValues: (stats) => ({ min: stats.min, max: stats.p33 })
+  },
+  middle: {
+    position: { min: 33.33, max: 66.66 },
+    getValues: (stats) => ({ min: stats.p33, max: stats.p66 })
+  },
+  upper: {
+    position: { min: 66.66, max: 100 },
+    getValues: (stats) => ({ min: stats.p66, max: stats.max })
+  }
 };
 
 // Add this at the top level
@@ -1240,33 +1249,30 @@ function handlePriceBandSelection(band) {
 
   // If clicking the same band, clear it
   if (activePriceFilter.type === 'band' && activePriceFilter.value === band) {
+    console.log('[DEBUG] Clearing band selection');
     clearPriceFilter();
     updateSelectedFilters();
     applyFilters(true);
     return;
   }
 
-  // Calculate exact positions for each band
-  const bandPositions = {
-    lower: { min: 0, max: 33.33 },
-    middle: { min: 33.33, max: 66.66 },
-    upper: { min: 66.66, max: 100 }
-  };
-
-  const positions = bandPositions[band];
-  if (!positions) {
+  // Get band configuration
+  const bandConfig = PRICE_BAND_CONFIG[band];
+  if (!bandConfig) {
     console.error('[ERROR] Invalid band selection:', band);
     return;
   }
 
-  // Calculate price values
-  const priceValues = {
-    lower: { min: stats.min, max: stats.p33 },
-    middle: { min: stats.p33, max: stats.p66 },
-    upper: { min: stats.p66, max: stats.max }
-  };
+  // Calculate values
+  const values = bandConfig.getValues(stats);
+  const positions = bandConfig.position;
 
-  const values = priceValues[band];
+  console.log('[DEBUG] Band Selection Values:', {
+    band,
+    positions,
+    values,
+    stats
+  });
 
   // Set the price filter
   setPriceFilter('band', band, positions, values);
@@ -1276,7 +1282,7 @@ function handlePriceBandSelection(band) {
   applyFilters(true);
 }
 
-// Add this function to handle price filter state
+// Modify setPriceFilter
 function setPriceFilter(type, value, positions = null, values = null) {
   console.log('[DEBUG] Setting price filter:', { type, value, positions, values });
   
@@ -1310,30 +1316,13 @@ function setPriceFilter(type, value, positions = null, values = null) {
       break;
   }
 
-  // Update UI
-  updatePriceFilterUI();
+  // Update UI with a slight delay to ensure DOM is ready
+  setTimeout(() => {
+    updatePriceFilterUI();
+  }, 0);
 }
 
-// Add this function to clear price filter state
-function clearPriceFilter() {
-  console.log('[DEBUG] Clearing price filter');
-  
-  // Reset filter state
-  filters.priceBand = [];
-  filters.priceMin = window.globalMinPrice;
-  filters.priceMax = window.globalMaxPrice;
-  activePriceFilter = {
-    type: null,
-    value: null,
-    positions: null,
-    values: null
-  };
-
-  // Reset UI
-  updatePriceFilterUI();
-}
-
-// Add this function to update price filter UI
+// Modify updatePriceFilterUI
 function updatePriceFilterUI() {
   console.log('[DEBUG] Updating price filter UI:', activePriceFilter);
   
@@ -1376,15 +1365,17 @@ function updatePriceFilterUI() {
     values = { min: stats.min, max: stats.max };
   }
 
-  // Update thumb positions
+  console.log('[DEBUG] Updating UI with:', { positions, values });
+
+  // Update thumb positions with forced reflow
   if (elements.minThumb) {
     elements.minThumb.style.left = `${positions.min}%`;
-    elements.minThumb.offsetHeight; // Force reflow
+    void elements.minThumb.offsetHeight; // Force reflow
   }
   
   if (elements.maxThumb) {
     elements.maxThumb.style.left = `${positions.max}%`;
-    elements.maxThumb.offsetHeight; // Force reflow
+    void elements.maxThumb.offsetHeight; // Force reflow
   }
 
   // Update price displays
@@ -1401,6 +1392,10 @@ function updatePriceFilterUI() {
       el.getAttribute('data-band') === activePriceFilter.value
     );
   });
+
+  // Force a final reflow
+  if (elements.minThumb) void elements.minThumb.offsetHeight;
+  if (elements.maxThumb) void elements.maxThumb.offsetHeight;
 }
 
 // Add this helper function to ensure thumb positions are updated
