@@ -1136,9 +1136,13 @@ function applyFilters(skipBandReset = false) {
 
 // 3. Ensure all UI functions use window.currentBandStats for band boundaries and thumb positions
 function handlePriceBandSelection(band) {
-  const stats = window.sliderMapping || getFullPricingStats();
-  if (!stats) return;
+  const stats = window.priceStats?.original || getFullPricingStats();
+  if (!stats) {
+    console.error('No price stats available for band selection');
+    return;
+  }
 
+  // If selecting the same band, clear it
   if (activePriceFilter.type === 'band' && activePriceFilter.value === band) {
     clearPriceFilter();
     updateSelectedFilters();
@@ -1163,28 +1167,33 @@ function handlePriceBandSelection(band) {
   const minPercent = valueToPercent(minValue, stats.min, stats.p33, stats.p66, stats.max);
   const maxPercent = valueToPercent(maxValue, stats.min, stats.p33, stats.p66, stats.max);
 
-  // Update active price filter state
+  // Set the filter with calculated positions and values
   setPriceFilter('band', band, 
     { min: minPercent, max: maxPercent },
     { min: minValue, max: maxValue }
   );
 
-  // Force thumb positions update
-  const minThumb = document.getElementById("price-min");
-  const maxThumb = document.getElementById("price-max");
-  if (minThumb && maxThumb) {
-    forceThumbUpdate(minThumb, maxThumb, minPercent, maxPercent);
-  }
-
   // Update UI and apply filters
   updateSelectedFilters();
   applyFilters(true);
+
+  // Highlight the selected band
+  document.querySelectorAll('[data-band]').forEach(el => {
+    el.classList.toggle('selected', el.getAttribute('data-band') === band);
+  });
 }
 
 function setPriceFilter(type, value, positions = null, values = null) {
-  logUpdate('setPriceFilter', { type, value, positions, values });
-  clearPriceFilter();
-  activePriceFilter = { type, value, positions, values };
+  // Get current stats
+  const stats = window.priceStats?.original || getFullPricingStats();
+  if (!stats) {
+    console.error('No price stats available for filter');
+    return;
+  }
+
+  // Clear existing filter state
+  filters.priceBand = [];
+  
   switch (type) {
     case 'band':
       filters.priceBand = [value];
@@ -1192,16 +1201,43 @@ function setPriceFilter(type, value, positions = null, values = null) {
       filters.priceMax = values.max;
       break;
     case 'range':
-      filters.priceBand = [];
       filters.priceMin = values.min;
       filters.priceMax = values.max;
       break;
     case 'max':
-      filters.priceBand = [];
-      filters.priceMin = window.priceStats.original.min;
-      filters.priceMax = values;
+      filters.priceMin = stats.min;
+      filters.priceMax = value;
       break;
   }
+
+  // Calculate positions if not provided
+  if (!positions) {
+    positions = {
+      min: valueToPercent(filters.priceMin, stats.min, stats.p33, stats.p66, stats.max),
+      max: valueToPercent(filters.priceMax, stats.min, stats.p33, stats.p66, stats.max)
+    };
+  }
+
+  // Update active filter state
+  activePriceFilter = {
+    type,
+    value,
+    positions,
+    values: { min: filters.priceMin, max: filters.priceMax }
+  };
+
+  // Immediately update thumb positions
+  const minThumb = document.getElementById("price-min");
+  const maxThumb = document.getElementById("price-max");
+  if (minThumb && maxThumb) {
+    minThumb.style.left = `${positions.min}%`;
+    maxThumb.style.left = `${positions.max}%`;
+    // Force reflow
+    void minThumb.offsetHeight;
+    void maxThumb.offsetHeight;
+  }
+
+  // Update UI with a slight delay to ensure DOM is ready
   setTimeout(() => {
     updatePriceFilterUI();
   }, 0);
