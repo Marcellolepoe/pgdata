@@ -332,7 +332,7 @@ document.addEventListener("DOMContentLoaded", function () {
       });
 
       // Force UI updates
-      syncPriceFilterUI();
+      updatePriceFilterUI();
       updateSelectedFilters();
       applyFilters(false);
 
@@ -485,21 +485,26 @@ function updateSelectedFilters() {
 
   // Add click handlers for clear buttons
   selectedFiltersDiv.querySelectorAll(".clear-category").forEach(button => {
-    button.addEventListener("click", function() {
+          button.addEventListener("click", function() {
       const category = this.dataset.category;
       if (category === 'priceBand') {
-        filters.priceBand = [];
-        document.querySelectorAll('[data-category="priceBand"] input')
-          .forEach(cb => cb.checked = false);
+        clearPriceFilter();
       } else if (category === 'price') {
-        filters.priceMin = window.globalMinPrice;
-        filters.priceMax = window.globalMaxPrice;
-        resetPriceSlider();
+        clearPriceFilter();
         const manualMaxInput = document.getElementById("price-input-max");
         if (manualMaxInput) manualMaxInput.value = "";
+      } else {
+        // Handle non-price filters
+        if (Array.isArray(filters[category])) {
+          filters[category] = [];
+          document.querySelectorAll(`[data-category="${category}"] input`)
+            .forEach(cb => cb.checked = false);
+        }
       }
+      
+      // Update UI and reapply filters
       updateSelectedFilters();
-      syncPriceFilterUI();
+      updatePriceFilterUI();
       applyFilters(true);
     });
   });
@@ -1460,16 +1465,33 @@ function getStatsFromData(data) {
 function clearPriceFilter() {
   // Reset filter state
   filters.priceBand = [];
-  filters.priceMin = window.globalMinPrice;
-  filters.priceMax = window.globalMaxPrice;
+  filters.priceMin = window.priceStats.original.min;
+  filters.priceMax = window.priceStats.original.max;
   activePriceFilter = {
     type: null,
     value: null,
     positions: null,
     values: null
   };
-  // Reset UI
+
+  // Reset UI elements
+  document.querySelectorAll('[data-band]').forEach(el => {
+    el.classList.remove('selected');
+  });
+
+  // Reset slider positions
+  const minThumb = document.getElementById("price-min");
+  const maxThumb = document.getElementById("price-max");
+  if (minThumb && maxThumb) {
+    minThumb.style.left = "0%";
+    maxThumb.style.left = "100%";
+  }
+
+  // Update UI
   updatePriceFilterUI();
+  
+  // Ensure we're using the correct stats
+  window.sliderMapping = window.priceStats.original;
 }
 window.clearPriceFilter = clearPriceFilter;
 
