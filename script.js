@@ -944,7 +944,12 @@ function positionThumbs(filteredMin, filteredMax, selectedMin, selectedMax) {
   document.getElementById("price-max").style.left = pctMax + "%";
 }
 
-// Define applyFilters at the top-level so it is always available
+// 1. Add a logUpdate helper
+function logUpdate(context, details) {
+  console.log(`[LOG] ${context}:`, details);
+}
+
+// 2. Refactor applyFilters to only call updatePricingBands on non-price filter changes
 function applyFilters(skipBandReset = false) {
   const dayMap = {
     "1": "Available Duration (1 Day)",
@@ -956,7 +961,7 @@ function applyFilters(skipBandReset = false) {
     "7": "Available Duration (7 Days)"
   };
 
-  // Check if any non-price filters are active
+  // Non-price filter keys
   const nonPriceKeys = [
     'location', 'casket', 'tentage', 'catering', 'hearse', 'personnel', 'monks', 'days', 'searchTerm', 'sortBy'
   ];
@@ -977,22 +982,20 @@ function applyFilters(skipBandReset = false) {
   });
   if (!hasActiveFilters) {
     paginateResults(funeralData);
-    // 3. Update currentBandStats to global
     window.currentBandStats = getFullPricingStats();
+    logUpdate('applyFilters (no filters)', { stats: window.currentBandStats });
     updatePricingBands(funeralData, true); // true: skip thumb reset
     return;
   }
 
-  // 2. Only updatePricingBands if a non-price filter is changed
+  // Only updatePricingBands if a non-price filter is changed
   let filteredDataForBands = funeralData;
   if (hasNonPriceFilters) {
     filteredDataForBands = funeralData.filter(item => {
-      // 2a) Parlour name search
       if (filters.searchTerm) {
         const name = (item["Funeral Parlour Name"] || "").toLowerCase();
         if (!name.includes(filters.searchTerm.trim().toLowerCase())) return false;
       }
-      // 2b) other array filters (except priceMin/Max, sortBy, priceBand)
       for (const category of nonPriceKeys) {
         const vals = filters[category];
         if (!Array.isArray(vals) || vals.length === 0) continue;
@@ -1011,12 +1014,12 @@ function applyFilters(skipBandReset = false) {
       }
       return true;
     });
-    // 3. Update currentBandStats to non-price-filtered stats
     window.currentBandStats = getStatsFromData(filteredDataForBands);
+    logUpdate('applyFilters (non-price filter changed)', { stats: window.currentBandStats });
     updatePricingBands(filteredDataForBands, true); // true: skip thumb reset
   }
 
-  // 3. Use window.currentBandStats for all price band and thumb calculations
+  // Use window.currentBandStats for all price band and thumb calculations
   const stats = window.currentBandStats || getFullPricingStats();
   const selectedDays = filters.days.length ? filters.days : Object.keys(dayMap);
   const bandRanges = (filters.priceBand || []).map(b => {
@@ -1025,7 +1028,7 @@ function applyFilters(skipBandReset = false) {
     if (b === "upper") return [stats.p66, stats.max];
   });
 
-  // 4. Final price filtering
+  // Final price filtering
   const filteredDataWithPrice = filteredDataForBands.filter(item => {
     if (!filters.priceBand.length && 
         filters.priceMin === window.globalMinPrice && 
@@ -1049,13 +1052,13 @@ function applyFilters(skipBandReset = false) {
     return true;
   });
 
-  // 5. Update counters
+  // Update counters
   const allEl = document.getElementById("all-results");
   const showEl = document.getElementById("showed-results");
   if (allEl) allEl.textContent = funeralData.length;
   if (showEl) showEl.textContent = filteredDataWithPrice.length;
 
-  // 6. Sorting (unchanged)
+  // Sorting (unchanged)
   if (filters.sortBy) {
     filteredDataWithPrice.sort((a,b) => {
       const lowPrice = item => {
@@ -1080,152 +1083,16 @@ function applyFilters(skipBandReset = false) {
     });
   }
 
-  // 7. Render results
+  // Render results
   paginateResults(filteredDataWithPrice);
 }
 
-// After every call to applyFilters, call setThumbPositions
-// (Call this after data load, after sorting, after slider drag end, etc.)
-// Example: after fetchFuneralData, after sorting, after clear all, after slider drag end
-
-// GLOBAL PAGINATION SETUP
-let currentPage = 1;
-const resultsPerPage = 10;
-function renderPaginationControls(totalPages) {
-  const container = document.getElementById('pagination-container') || document.querySelector('.pagination-container');
-  if (!container) return;
-  container.innerHTML = '';
-  for (let i = 1; i <= totalPages; i++) {
-    const btn = document.createElement('button');
-    btn.textContent = i;
-    if (i === currentPage) {
-      btn.className = 'pagination-button-active';
-    } else {
-      btn.className = 'pagination-button-inactive';
-    }
-    btn.addEventListener('click', () => {
-      if (currentPage !== i) {
-        currentPage = i;
-        applyFilters();
-      }
-    });
-    container.appendChild(btn);
-  }
-}
-
-function paginateResults(filteredData) {
-  const totalPages = Math.ceil(filteredData.length / resultsPerPage);
-  const startIndex = (currentPage - 1) * resultsPerPage;
-  const endIndex = startIndex + resultsPerPage;
-  const paginatedData = filteredData.slice(startIndex, endIndex);
-  // Batch DOM updates for performance
-  requestAnimationFrame(() => {
-    renderResults(paginatedData);
-    renderPaginationControls(totalPages);
-  });
-}
-
-// Price Slider Div Setup
-function setupPriceSliderDiv() {
-  const track = document.getElementById("price-band-bar");
-  const minThumb = document.getElementById("price-min");
-  const maxThumb = document.getElementById("price-max");
-
-  if (!track || !minThumb || !maxThumb) {
-    console.error('[ERROR] Missing slider elements');
-    return;
-  }
-
-  // Initialize positions
-  const stats = window.sliderMapping || getFullPricingStats();
-  if (!stats) {
-    console.error('[ERROR] No price stats available');
-    return;
-  }
-
-  // Set initial positions
-  minThumb.style.left = "0%";
-  maxThumb.style.left = "100%";
-
-  function onDragStart(e, isMin) {
-    e.preventDefault();
-    window.isPriceDragging = true;
-    window._sliderJustDragged = false;
-    
-    // Clear any active band selection
-    if (activePriceFilter.type === 'band') {
-      clearPriceFilter();
-    }
-
-    const rect = track.getBoundingClientRect();
-    const stats = window.sliderMapping || getFullPricingStats();
-
-    function onDragMove(evt) {
-      evt.preventDefault();
-      const clientX = evt.type.startsWith("touch") ? evt.touches[0].clientX : evt.clientX;
-      const x = Math.min(Math.max(clientX - rect.left, 0), rect.width);
-      const frac = x / rect.width;
-
-      const value = Math.round(piecewisePercentileToValue(frac, stats.min, stats.p33, stats.p66, stats.max));
-      const percent = valueToPercent(value, stats.min, stats.p33, stats.p66, stats.max);
-
-      if (isMin) {
-        const maxPct = parseFloat(maxThumb.style.left);
-        if (percent <= maxPct) {
-          minThumb.style.left = `${percent}%`;
-          filters.priceMin = value;
-        }
-      } else {
-        const minPct = parseFloat(minThumb.style.left);
-        if (percent >= minPct) {
-          maxThumb.style.left = `${percent}%`;
-          filters.priceMax = value;
-        }
-      }
-
-      // Update price filter
-      setPriceFilter('range', null, null, {
-        min: filters.priceMin,
-        max: filters.priceMax
-      });
-
-      updateSelectedFilters();
-    }
-
-    function onDragEnd() {
-      window.isPriceDragging = false;
-      window._sliderJustDragged = true;
-      
-      document.removeEventListener("mousemove", onDragMove);
-      document.removeEventListener("mouseup", onDragEnd);
-      document.removeEventListener("touchmove", onDragMove);
-      document.removeEventListener("touchend", onDragEnd);
-
-      applyFilters(true);
-
-      setTimeout(() => {
-        window._sliderJustDragged = false;
-      }, 100);
-    }
-
-    document.addEventListener("mousemove", onDragMove);
-    document.addEventListener("mouseup", onDragEnd);
-    document.addEventListener("touchmove", onDragMove);
-    document.addEventListener("touchend", onDragEnd);
-  }
-
-  minThumb.addEventListener("mousedown", e => onDragStart(e, true));
-  maxThumb.addEventListener("mousedown", e => onDragStart(e, false));
-  minThumb.addEventListener("touchstart", e => onDragStart(e, true));
-  maxThumb.addEventListener("touchstart", e => onDragStart(e, false));
-}
-
-// Modify handlePriceBandSelection
+// 3. Ensure all UI functions use window.currentBandStats for band boundaries and thumb positions
 function handlePriceBandSelection(band) {
-  console.log('[DEBUG] Band Selection Start:', { band, currentState: activePriceFilter });
+  logUpdate('handlePriceBandSelection', { band, currentState: activePriceFilter });
   const stats = window.currentBandStats || getFullPricingStats();
   if (!stats) {
-    console.error('[ERROR] No price stats available');
+    logUpdate('handlePriceBandSelection', { error: 'No price stats available' });
     return;
   }
   if (activePriceFilter.type === 'band' && activePriceFilter.value === band) {
@@ -1236,7 +1103,7 @@ function handlePriceBandSelection(band) {
   }
   const bandConfig = PRICE_BAND_CONFIG[band];
   if (!bandConfig) {
-    console.error('[ERROR] Invalid band selection:', band);
+    logUpdate('handlePriceBandSelection', { error: 'Invalid band selection', band });
     return;
   }
   const values = bandConfig.getValues(stats);
@@ -1246,8 +1113,8 @@ function handlePriceBandSelection(band) {
   applyFilters(true);
 }
 
-// Modify setPriceFilter
 function setPriceFilter(type, value, positions = null, values = null) {
+  logUpdate('setPriceFilter', { type, value, positions, values });
   clearPriceFilter();
   activePriceFilter = { type, value, positions, values };
   switch (type) {
@@ -1272,8 +1139,8 @@ function setPriceFilter(type, value, positions = null, values = null) {
   }, 0);
 }
 
-// Modify updatePriceFilterUI
 function updatePriceFilterUI() {
+  logUpdate('updatePriceFilterUI', activePriceFilter);
   const elements = {
     minThumb: document.getElementById("price-min"),
     maxThumb: document.getElementById("price-max"),
@@ -1306,6 +1173,7 @@ function updatePriceFilterUI() {
     positions = { min: 0, max: 100 };
     values = { min: stats.min, max: stats.max };
   }
+  logUpdate('updatePriceFilterUI (positions/values)', { positions, values });
   if (elements.minThumb) {
     elements.minThumb.style.left = `${positions.min}%`;
     void elements.minThumb.offsetHeight;
