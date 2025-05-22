@@ -476,20 +476,29 @@ function updateSelectedFilters() {
   // Handle price band filters
   if (filters.priceBand.length > 0) {
     const band = filters.priceBand[0];
-    const stats = window.priceStats.original;
-    let range;
-    if (band === 'lower') range = `$${stats.min.toLocaleString()} – $${stats.p33.toLocaleString()}`;
-    else if (band === 'middle') range = `$${stats.p33.toLocaleString()} – $${stats.p66.toLocaleString()}`;
-    else if (band === 'upper') range = `$${stats.p66.toLocaleString()} – $${stats.max.toLocaleString()}`;
-    addFilterTag('Price Band', range, 'priceBand');
+    const stats = window.priceStats?.filtered || window.priceStats?.original;
+    if (stats) {
+      let range;
+      if (band === 'lower') range = `$${stats.min.toLocaleString()} – $${stats.p33.toLocaleString()}`;
+      else if (band === 'middle') range = `$${stats.p33.toLocaleString()} – $${stats.p66.toLocaleString()}`;
+      else if (band === 'upper') range = `$${stats.p66.toLocaleString()} – $${stats.max.toLocaleString()}`;
+      if (range) {
+        addFilterTag('Price Band', range, 'priceBand');
+      }
+    }
   }
   // Handle manual price range
-  else if (filters.priceMin !== window.priceStats.original.min || filters.priceMax !== window.priceStats.original.max) {
-    const isMaxOnly = filters.priceMin === window.priceStats.original.min && filters.priceMax !== window.priceStats.original.max;
-    if (isMaxOnly) {
-      addFilterTag('Price', `$${filters.priceMax.toLocaleString()} Max`, 'price');
-    } else {
-      addFilterTag('Price', `$${filters.priceMin.toLocaleString()} – $${filters.priceMax.toLocaleString()}`, 'price');
+  else if (filters.priceMin !== null || filters.priceMax !== null) {
+    const stats = window.priceStats?.filtered || window.priceStats?.original;
+    if (stats) {
+      const isMaxOnly = filters.priceMin === null && filters.priceMax !== null;
+      if (isMaxOnly) {
+        addFilterTag('Price', `$${filters.priceMax.toLocaleString()} Max`, 'price');
+      } else {
+        const minPrice = filters.priceMin !== null ? filters.priceMin : stats.min;
+        const maxPrice = filters.priceMax !== null ? filters.priceMax : stats.max;
+        addFilterTag('Price', `$${minPrice.toLocaleString()} – $${maxPrice.toLocaleString()}`, 'price');
+      }
     }
   }
 
@@ -509,7 +518,7 @@ function updateSelectedFilters() {
 
   // Add click handlers for clear buttons
   selectedFiltersDiv.querySelectorAll(".clear-category").forEach(button => {
-          button.addEventListener("click", function() {
+    button.addEventListener("click", function() {
       const category = this.dataset.category;
       if (category === 'priceBand') {
         clearPriceFilter();
@@ -1339,7 +1348,10 @@ function updatePriceFilterUI() {
     minRange: document.getElementById("price-range-min"),
     maxRange: document.getElementById("price-range-max")
   };
-  const stats = window.currentBandStats || getFullPricingStats();
+
+  const stats = window.priceStats?.filtered || window.priceStats?.original;
+  if (!stats) return;
+
   let positions, values;
   if (activePriceFilter.type === 'band') {
     positions = activePriceFilter.positions;
@@ -1363,28 +1375,42 @@ function updatePriceFilterUI() {
     positions = { min: 0, max: 100 };
     values = { min: stats.min, max: stats.max };
   }
+
   logUpdate('updatePriceFilterUI (positions/values)', { positions, values });
-  if (elements.minThumb) {
-    elements.minThumb.style.left = `${positions.min}%`;
-    void elements.minThumb.offsetHeight;
+
+  // Only update positions if we have valid values
+  if (positions && positions.min !== null && positions.max !== null) {
+    if (elements.minThumb) {
+      elements.minThumb.style.left = `${positions.min}%`;
+      void elements.minThumb.offsetHeight;
+    }
+    if (elements.maxThumb) {
+      elements.maxThumb.style.left = `${positions.max}%`;
+      void elements.maxThumb.offsetHeight;
+    }
   }
-  if (elements.maxThumb) {
-    elements.maxThumb.style.left = `${positions.max}%`;
-    void elements.maxThumb.offsetHeight;
+
+  // Format price values safely
+  const priceFormat = (val) => {
+    if (val === null || val === undefined) return '$0';
+    return `$${val.toLocaleString()}`;
+  };
+
+  // Update price displays only if we have valid values
+  if (values && values.min !== null && values.max !== null) {
+    if (elements.minValue) elements.minValue.textContent = priceFormat(values.min);
+    if (elements.maxValue) elements.maxValue.textContent = priceFormat(values.max);
+    if (elements.minRange) elements.minRange.textContent = priceFormat(values.min);
+    if (elements.maxRange) elements.maxRange.textContent = priceFormat(values.max);
   }
-  const priceFormat = (val) => `$${val.toLocaleString()}`;
-  if (elements.minValue) elements.minValue.textContent = priceFormat(values.min);
-  if (elements.maxValue) elements.maxValue.textContent = priceFormat(values.max);
-  if (elements.minRange) elements.minRange.textContent = priceFormat(values.min);
-  if (elements.maxRange) elements.maxRange.textContent = priceFormat(values.max);
+
+  // Update band selection UI
   document.querySelectorAll('[data-band]').forEach(el => {
     el.classList.toggle('selected', 
       activePriceFilter.type === 'band' && 
       el.getAttribute('data-band') === activePriceFilter.value
     );
   });
-  if (elements.minThumb) void elements.minThumb.offsetHeight;
-  if (elements.maxThumb) void elements.maxThumb.offsetHeight;
 }
 
 // Add this helper function to ensure thumb positions are updated
