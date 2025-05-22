@@ -1,3 +1,49 @@
+// Logging utility
+const Logger = {
+  ERROR: 'error',
+  WARN: 'warn',
+  INFO: 'info',
+  DEBUG: 'debug',
+  
+  // Set this to false in production
+  isDevelopment: false,
+  
+  log(level, message, data = null) {
+    if (!this.isDevelopment && level === this.DEBUG) return;
+    
+    const timestamp = new Date().toISOString();
+    const prefix = `[${timestamp}] [${level.toUpperCase()}]`;
+    
+    if (level === this.ERROR) {
+      console.error(prefix, message, data || '');
+    } else if (level === this.WARN) {
+      console.warn(prefix, message, data || '');
+    } else if (this.isDevelopment) {
+      if (level === this.DEBUG) {
+        console.debug(prefix, message, data || '');
+      } else {
+        console.log(prefix, message, data || '');
+      }
+    }
+  },
+  
+  error(message, data = null) {
+    this.log(this.ERROR, message, data);
+  },
+  
+  warn(message, data = null) {
+    this.log(this.WARN, message, data);
+  },
+  
+  info(message, data = null) {
+    this.log(this.INFO, message, data);
+  },
+  
+  debug(message, data = null) {
+    this.log(this.DEBUG, message, data);
+  }
+};
+
 window.filters = {
   location: [],
   casket: [],
@@ -129,7 +175,7 @@ function initializePage() {
   
   const missingElements = requiredElements.filter(id => !document.getElementById(id));
   if (missingElements.length > 0) {
-    console.error("❌ Missing required elements:", missingElements);
+    Logger.error("Missing required elements", missingElements);
     return;
   }
 
@@ -197,7 +243,7 @@ async function fetchFuneralData() {
     // Then apply any URL parameters
     getFiltersFromURL();
   } catch (error) {
-    console.error("❌ Error fetching funeral data:", error);
+    Logger.error("Error fetching funeral data", error);
   }
 }
 
@@ -303,7 +349,7 @@ document.addEventListener("DOMContentLoaded", function () {
           applyFilters(true);
         }
       } catch (error) {
-        console.warn('Error handling price max input:', error);
+        Logger.warn('Error handling price max input', error);
       }
     });
   }
@@ -337,7 +383,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const clearAllButton = document.getElementById("clear-all");
   if (clearAllButton) {
     clearAllButton.addEventListener("click", function () {
-      console.log('[DEBUG] Clear All clicked');
+      Logger.debug('Clear All clicked');
       
       // Reset filters
       filters.priceMin = window.priceStats.original.min;
@@ -362,7 +408,7 @@ document.addEventListener("DOMContentLoaded", function () {
       window.isPriceDragging = false;
       window._sliderJustDragged = false;
       
-      console.debug('[CLEAR] Resetting to initial state:', {
+      Logger.debug('Resetting to initial state', {
         globalMinPrice: window.priceStats.original.min,
         globalMaxPrice: window.priceStats.original.max,
         filters
@@ -383,7 +429,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
   } else {
-    console.error("🚨 Clear All button not found! Check Webflow class name and ID.");
+    Logger.error("Clear All button not found - Check Webflow class name and ID");
   }
 });
 
@@ -659,7 +705,7 @@ function adjustCarouselHeight(wrapper) {
 // CREATE FUNERAL CARD (Webflow population version)
 function populateFuneralCard(cardWrapper, funeral) {
   if (!cardWrapper || !funeral) {
-    console.error("❌ populateFuneralCard called with missing arguments");
+    Logger.error("populateFuneralCard called with missing arguments");
     return;
   }
 
@@ -905,7 +951,7 @@ function updateBandWidths(minPrice, lowerBand, upperBand, maxPrice) {
   const middle = document.getElementById("band-middle");
   const upper = document.getElementById("band-upper");
   if (!lower || !middle || !upper) {
-    console.warn("💥 Missing band elements in DOM.");
+    Logger.warn("Missing band elements in DOM");
     return;
   }
   const lowerWidth = percent(lowerBand);
@@ -921,7 +967,7 @@ function updateBandWidths(minPrice, lowerBand, upperBand, maxPrice) {
 // UPDATE PRICING BANDS
 function updatePricingBands(filteredData, skipFilterReset = false) {
   if (!filteredData?.length) {
-    console.warn('[PRICE BAND] No filtered data provided');
+    Logger.warn('No filtered data provided for price band');
     return;
   }
 
@@ -992,7 +1038,7 @@ function positionThumbs(filteredMin, filteredMax, selectedMin, selectedMax) {
 
 // 1. Add a logUpdate helper
 function logUpdate(context, details) {
-  console.log(`[LOG] ${context}:`, details);
+  Logger.info(context, details);
 }
 
 // 2. Refactor applyFilters to only call updatePricingBands on non-price filter changes
@@ -1201,7 +1247,7 @@ function setPriceFilter(type, value, positions = null, values = null) {
   // Get current filtered stats
   const stats = window.priceStats?.filtered;
   if (!stats) {
-    console.error('No price stats available for filter');
+    Logger.error('No price stats available for filter');
     return;
   }
 
@@ -1431,7 +1477,7 @@ document.addEventListener("DOMContentLoaded", function() {
       mutations.forEach((mutation) => {
         if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
           const newLeft = mutation.target.style.left;
-          console.log('[DEBUG] Thumb position changed:', {
+          Logger.debug('Thumb position changed', {
             element: mutation.target.id,
             oldPosition: lastThumbPositions[mutation.target.id === 'price-min' ? 'min' : 'max'],
             newPosition: newLeft,
@@ -1449,7 +1495,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
 // Add this after setupPriceSliderDiv
 function getFilteredDataExcludingPrice() {
-  console.log('[DEBUG] getFilteredDataExcludingPrice start');
+  Logger.debug('getFilteredDataExcludingPrice start');
   
   // Get all non-price filters, but include priceBand for proper state tracking
   const nonPriceFilters = Object.entries(filters).filter(([key]) => 
@@ -1465,7 +1511,7 @@ function getFilteredDataExcludingPrice() {
   });
 
   if (!hasActiveFilters) {
-    console.log('[DEBUG] No non-price filters active, returning all data');
+    Logger.debug('No non-price filters active, returning all data');
     return funeralData;
   }
 
@@ -1530,7 +1576,7 @@ function getFilteredDataExcludingPrice() {
     return true;
   });
 
-  console.log('[DEBUG] getFilteredDataExcludingPrice results:', {
+  Logger.debug('getFilteredDataExcludingPrice results', {
     totalItems: funeralData.length,
     filteredItems: filtered.length,
     activeFilters: nonPriceFilters.filter(([key, value]) => 
@@ -1657,14 +1703,14 @@ function setupPriceSliderDiv() {
   const maxThumb = document.getElementById("price-max");
 
   if (!track || !minThumb || !maxThumb) {
-    console.error('[ERROR] Missing slider elements');
+    Logger.error('Missing slider elements');
     return;
   }
 
   // Initialize positions
   const initialStats = window.priceStats?.filtered || getFullPricingStats();
   if (!initialStats) {
-    console.error('[ERROR] No price stats available');
+    Logger.error('No price stats available');
     return;
   }
 
@@ -1683,7 +1729,7 @@ function setupPriceSliderDiv() {
     // Check if we have only one price in the filtered data
     const currentStats = window.priceStats?.filtered;
     if (currentStats && currentStats.min === currentStats.max) {
-      console.log('[DEBUG] Preventing drag - single price value:', currentStats.min);
+      Logger.debug('Preventing drag - single price value', currentStats.min);
       return; // Prevent dragging when there's only one price
     }
 
@@ -1741,7 +1787,7 @@ function setupPriceSliderDiv() {
         
         updateSelectedFilters();
       } catch (error) {
-        console.warn('Error during thumb drag:', error);
+        Logger.warn('Error during thumb drag', error);
       }
     }
 
