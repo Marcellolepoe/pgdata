@@ -946,7 +946,6 @@ function positionThumbs(filteredMin, filteredMax, selectedMin, selectedMax) {
 
 // Define applyFilters at the top-level so it is always available
 function applyFilters(skipBandReset = false) {
-  // 1) SETUP
   const dayMap = {
     "1": "Available Duration (1 Day)",
     "2": "Available Duration (2 Day)",
@@ -956,8 +955,18 @@ function applyFilters(skipBandReset = false) {
     "6": "Available Duration (6 Days)",
     "7": "Available Duration (7 Days)"
   };
-  
-  // Check if any filters are active
+
+  // Check if any non-price filters are active
+  const nonPriceKeys = [
+    'location', 'casket', 'tentage', 'catering', 'hearse', 'personnel', 'monks', 'days', 'searchTerm', 'sortBy'
+  ];
+  const hasNonPriceFilters = nonPriceKeys.some(key => {
+    if (Array.isArray(filters[key])) return filters[key].length > 0;
+    if (typeof filters[key] === 'string') return filters[key].trim() !== '';
+    return false;
+  });
+
+  // If no filters are active, show all results
   const hasActiveFilters = Object.keys(filters).some(key => {
     if (Array.isArray(filters[key])) return filters[key].length > 0;
     if (key === 'priceMin') return filters.priceMin !== window.globalMinPrice;
@@ -966,113 +975,87 @@ function applyFilters(skipBandReset = false) {
     if (key === 'sortBy') return filters[key] !== '';
     return false;
   });
-
-  // If no filters are active, show all results
   if (!hasActiveFilters) {
     paginateResults(funeralData);
+    // 3. Update currentBandStats to global
+    window.currentBandStats = getFullPricingStats();
+    updatePricingBands(funeralData, true); // true: skip thumb reset
     return;
   }
 
-  const selectedDays = filters.days.length ? filters.days : Object.keys(dayMap);
-  const term = filters.searchTerm.trim().toLowerCase();
-
-  console.log('[DEBUG] applyFilters start:', {
-    filters: { ...filters },
-    priceBand: filters.priceBand,
-    priceMin: filters.priceMin,
-    priceMax: filters.priceMax
-  });
-
-  // 2) NON‑PRICE FILTERING
-  const filteredDataForBands = funeralData.filter(item => {
-    // 2a) Parlour name search
-    if (term) {
-      const name = (item["Funeral Parlour Name"] || "").toLowerCase();
-      if (!name.includes(term)) return false;
-    }
-    // 2b) other array filters (except priceMin/Max, sortBy, priceBand)
-    for (const category in filters) {
-      const vals = filters[category];
-      if (!Array.isArray(vals) || vals.length === 0) continue;
-      if (["priceMin","priceMax","sortBy","priceBand"].includes(category)) continue;
-      if (category === "days") {
-        // require at least one valid day price
-        const ok = selectedDays.some(d => {
-          const raw = item[dayMap[d]] || "";
-          const p = parseFloat(raw.toString().replace(/[^\d.]/g,""));
-          return !isNaN(p);
-        });
-        if (!ok) return false;
-      } else {
-        const field = filterKeyMap[category];
-        const val = (item[field] || "").toString().toLowerCase();
-        if (!vals.some(v => val.includes(v.toLowerCase()))) return false;
+  // 2. Only updatePricingBands if a non-price filter is changed
+  let filteredDataForBands = funeralData;
+  if (hasNonPriceFilters) {
+    filteredDataForBands = funeralData.filter(item => {
+      // 2a) Parlour name search
+      if (filters.searchTerm) {
+        const name = (item["Funeral Parlour Name"] || "").toLowerCase();
+        if (!name.includes(filters.searchTerm.trim().toLowerCase())) return false;
       }
-    }
-    return true;
-  });
+      // 2b) other array filters (except priceMin/Max, sortBy, priceBand)
+      for (const category of nonPriceKeys) {
+        const vals = filters[category];
+        if (!Array.isArray(vals) || vals.length === 0) continue;
+        if (category === "days") {
+          const ok = vals.some(d => {
+            const raw = item[dayMap[d]] || "";
+            const p = parseFloat(raw.toString().replace(/[^\d.]/g, ""));
+            return !isNaN(p);
+          });
+          if (!ok) return false;
+        } else {
+          const field = filterKeyMap[category];
+          const val = (item[field] || "").toString().toLowerCase();
+          if (!vals.some(v => val.includes(v.toLowerCase()))) return false;
+        }
+      }
+      return true;
+    });
+    // 3. Update currentBandStats to non-price-filtered stats
+    window.currentBandStats = getStatsFromData(filteredDataForBands);
+    updatePricingBands(filteredDataForBands, true); // true: skip thumb reset
+  }
 
-  // 3) PRICE‑BAND vs MANUAL SLIDER
-  const stats = window.sliderMapping || getFullPricingStats();
+  // 3. Use window.currentBandStats for all price band and thumb calculations
+  const stats = window.currentBandStats || getFullPricingStats();
+  const selectedDays = filters.days.length ? filters.days : Object.keys(dayMap);
   const bandRanges = (filters.priceBand || []).map(b => {
     if (b === "lower") return [stats.min, stats.p33];
     if (b === "middle") return [stats.p33, stats.p66];
     if (b === "upper") return [stats.p66, stats.max];
   });
 
-  console.log('[DEBUG] Price filtering:', {
-    priceBand: filters.priceBand,
-    bandRanges,
-    priceMin: filters.priceMin,
-    priceMax: filters.priceMax,
-    stats
-  });
-
-  // 4) FINAL PRICE FILTERING
+  // 4. Final price filtering
   const filteredDataWithPrice = filteredDataForBands.filter(item => {
-    // If no price filters are active, include the item
     if (!filters.priceBand.length && 
         filters.priceMin === window.globalMinPrice && 
         filters.priceMax === window.globalMaxPrice) {
       return true;
     }
-
-    // Get all valid prices for this item
     const prices = selectedDays.map(d => {
       const raw = item[dayMap[d]] || "";
-      return parseFloat(raw.toString().replace(/[^\d.]/g,""));
+      return parseFloat(raw.toString().replace(/[^\d.]/g, ""));
     }).filter(p => !isNaN(p));
-
-    // If price band is active, check if any price falls within the band
     if (filters.priceBand.length > 0) {
       return prices.some(price => 
         bandRanges.some(([min, max]) => price >= min && price <= max)
       );
     }
-    
-    // If manual price range is active, check if any price falls within the range
     if (filters.priceMin !== window.globalMinPrice || filters.priceMax !== window.globalMaxPrice) {
       return prices.some(price => 
         price >= filters.priceMin && price <= filters.priceMax
       );
     }
-
     return true;
   });
 
-  console.log('[DEBUG] Filter results:', {
-    totalItems: funeralData.length,
-    afterNonPrice: filteredDataForBands.length,
-    afterPrice: filteredDataWithPrice.length
-  });
-
-  // 5) UPDATE COUNTERS
+  // 5. Update counters
   const allEl = document.getElementById("all-results");
   const showEl = document.getElementById("showed-results");
   if (allEl) allEl.textContent = funeralData.length;
   if (showEl) showEl.textContent = filteredDataWithPrice.length;
 
-  // 6) SORTING
+  // 6. Sorting (unchanged)
   if (filters.sortBy) {
     filteredDataWithPrice.sort((a,b) => {
       const lowPrice = item => {
@@ -1097,7 +1080,7 @@ function applyFilters(skipBandReset = false) {
     });
   }
 
-  // 7) RENDER RESULTS
+  // 7. Render results
   paginateResults(filteredDataWithPrice);
 }
 
@@ -1240,64 +1223,33 @@ function setupPriceSliderDiv() {
 // Modify handlePriceBandSelection
 function handlePriceBandSelection(band) {
   console.log('[DEBUG] Band Selection Start:', { band, currentState: activePriceFilter });
-  
-  const stats = window.sliderMapping || getFullPricingStats();
+  const stats = window.currentBandStats || getFullPricingStats();
   if (!stats) {
     console.error('[ERROR] No price stats available');
     return;
   }
-
-  // If clicking the same band, clear it
   if (activePriceFilter.type === 'band' && activePriceFilter.value === band) {
-    console.log('[DEBUG] Clearing band selection');
     clearPriceFilter();
     updateSelectedFilters();
     applyFilters(true);
     return;
   }
-
-  // Get band configuration
   const bandConfig = PRICE_BAND_CONFIG[band];
   if (!bandConfig) {
     console.error('[ERROR] Invalid band selection:', band);
     return;
   }
-
-  // Calculate values
   const values = bandConfig.getValues(stats);
   const positions = bandConfig.position;
-
-  console.log('[DEBUG] Band Selection Values:', {
-    band,
-    positions,
-    values,
-    stats
-  });
-
-  // Set the price filter
   setPriceFilter('band', band, positions, values);
-
-  // Apply filters
   updateSelectedFilters();
   applyFilters(true);
 }
 
 // Modify setPriceFilter
 function setPriceFilter(type, value, positions = null, values = null) {
-  console.log('[DEBUG] Setting price filter:', { type, value, positions, values });
-  
-  // Clear any existing price filter
   clearPriceFilter();
-  
-  // Set new price filter
-  activePriceFilter = {
-    type,
-    value,
-    positions,
-    values
-  };
-
-  // Update filter state based on type
+  activePriceFilter = { type, value, positions, values };
   switch (type) {
     case 'band':
       filters.priceBand = [value];
@@ -1315,8 +1267,6 @@ function setPriceFilter(type, value, positions = null, values = null) {
       filters.priceMax = values;
       break;
   }
-
-  // Update UI with a slight delay to ensure DOM is ready
   setTimeout(() => {
     updatePriceFilterUI();
   }, 0);
@@ -1324,8 +1274,6 @@ function setPriceFilter(type, value, positions = null, values = null) {
 
 // Modify updatePriceFilterUI
 function updatePriceFilterUI() {
-  console.log('[DEBUG] Updating price filter UI:', activePriceFilter);
-  
   const elements = {
     minThumb: document.getElementById("price-min"),
     maxThumb: document.getElementById("price-max"),
@@ -1334,13 +1282,8 @@ function updatePriceFilterUI() {
     minRange: document.getElementById("price-range-min"),
     maxRange: document.getElementById("price-range-max")
   };
-
-  // Get current stats
-  const stats = window.sliderMapping || getFullPricingStats();
-  
-  // Determine positions and values
+  const stats = window.currentBandStats || getFullPricingStats();
   let positions, values;
-  
   if (activePriceFilter.type === 'band') {
     positions = activePriceFilter.positions;
     values = activePriceFilter.values;
@@ -1360,40 +1303,28 @@ function updatePriceFilterUI() {
       max: activePriceFilter.value
     };
   } else {
-    // No active price filter
     positions = { min: 0, max: 100 };
     values = { min: stats.min, max: stats.max };
   }
-
-  console.log('[DEBUG] Updating UI with:', { positions, values });
-
-  // Update thumb positions with forced reflow
   if (elements.minThumb) {
     elements.minThumb.style.left = `${positions.min}%`;
-    void elements.minThumb.offsetHeight; // Force reflow
+    void elements.minThumb.offsetHeight;
   }
-  
   if (elements.maxThumb) {
     elements.maxThumb.style.left = `${positions.max}%`;
-    void elements.maxThumb.offsetHeight; // Force reflow
+    void elements.maxThumb.offsetHeight;
   }
-
-  // Update price displays
   const priceFormat = (val) => `$${val.toLocaleString()}`;
   if (elements.minValue) elements.minValue.textContent = priceFormat(values.min);
   if (elements.maxValue) elements.maxValue.textContent = priceFormat(values.max);
   if (elements.minRange) elements.minRange.textContent = priceFormat(values.min);
   if (elements.maxRange) elements.maxRange.textContent = priceFormat(values.max);
-
-  // Update band selection UI
   document.querySelectorAll('[data-band]').forEach(el => {
     el.classList.toggle('selected', 
       activePriceFilter.type === 'band' && 
       el.getAttribute('data-band') === activePriceFilter.value
     );
   });
-
-  // Force a final reflow
   if (elements.minThumb) void elements.minThumb.offsetHeight;
   if (elements.maxThumb) void elements.maxThumb.offsetHeight;
 }
@@ -1609,3 +1540,49 @@ function getFilteredDataExcludingPrice() {
 
   return filtered;
 }
+
+// 3. Helper to get stats from data
+function getStatsFromData(data) {
+  const priceKeys = [
+    "Available Duration (1 Day)",
+    "Available Duration (2 Day)",
+    "Available Duration (3 Days)",
+    "Available Duration (4 Days)",
+    "Available Duration (5 Days)",
+    "Available Duration (6 Days)",
+    "Available Duration (7 Days)"
+  ];
+  const allPrices = data.flatMap(pkg => {
+    return priceKeys.map(key => {
+      return parseFloat((pkg[key] || "").toString().replace(/[^\d.]/g, ""));
+    });
+  }).filter(p => !isNaN(p) && p > 0);
+  const sorted = allPrices.sort((a, b) => a - b);
+  return {
+    min: sorted[0],
+    median: sorted[Math.floor(sorted.length / 2)],
+    p33: sorted[Math.floor(sorted.length * 0.33)],
+    p66: sorted[Math.floor(sorted.length * 0.66)],
+    max: sorted[sorted.length - 1]
+  };
+}
+
+// 1. Define and scope clearPriceFilter globally
+function clearPriceFilter() {
+  // Reset filter state
+  filters.priceBand = [];
+  filters.priceMin = window.globalMinPrice;
+  filters.priceMax = window.globalMaxPrice;
+  activePriceFilter = {
+    type: null,
+    value: null,
+    positions: null,
+    values: null
+  };
+  // Reset UI
+  updatePriceFilterUI();
+}
+window.clearPriceFilter = clearPriceFilter;
+
+// 3. Store the last non-price-filtered stats in window.currentBandStats
+window.currentBandStats = null;
