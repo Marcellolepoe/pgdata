@@ -1239,8 +1239,8 @@ function handlePriceBandSelection(band) {
 }
 
 function setPriceFilter(type, value, positions = null, values = null) {
-  // Get current stats
-  const stats = window.priceStats?.original || getFullPricingStats();
+  // Get current filtered stats
+  const stats = window.priceStats?.filtered;
   if (!stats) {
     console.error('No price stats available for filter');
     return;
@@ -1256,21 +1256,36 @@ function setPriceFilter(type, value, positions = null, values = null) {
       filters.priceMax = values.max;
       break;
     case 'range':
-      filters.priceMin = values.min;
-      filters.priceMax = values.max;
+      // If there's only one price in the filtered data, lock to that value
+      if (stats.min === stats.max) {
+        filters.priceMin = stats.min;
+        filters.priceMax = stats.max;
+      } else {
+        filters.priceMin = Math.max(values.min, stats.min);
+        filters.priceMax = Math.min(values.max, stats.max);
+      }
       break;
     case 'max':
       filters.priceMin = stats.min;
-      filters.priceMax = value;
+      filters.priceMax = Math.min(value, stats.max);
       break;
   }
 
   // Calculate positions if not provided
   if (!positions) {
-    positions = {
-      min: valueToPercent(filters.priceMin, stats.min, stats.p33, stats.p66, stats.max),
-      max: valueToPercent(filters.priceMax, stats.min, stats.p33, stats.p66, stats.max)
-    };
+    if (stats.min === stats.max) {
+      // If single value, set both positions to the same point
+      const position = valueToPercent(stats.min, stats.min, stats.p33, stats.p66, stats.max);
+      positions = {
+        min: position,
+        max: position
+      };
+    } else {
+      positions = {
+        min: valueToPercent(filters.priceMin, stats.min, stats.p33, stats.p66, stats.max),
+        max: valueToPercent(filters.priceMax, stats.min, stats.p33, stats.p66, stats.max)
+      };
+    }
   }
 
   // Update active filter state
@@ -1596,10 +1611,11 @@ function getStatsFromData(data) {
 
 // 1. Define and scope clearPriceFilter globally
 function clearPriceFilter() {
+  // Get the current filtered stats
   const stats = window.priceStats?.filtered;
   if (!stats) return;
 
-  // Reset filter state
+  // Reset filter state to the current filtered range
   filters.priceBand = [];
   filters.priceMin = stats.min;
   filters.priceMax = stats.max;
@@ -1611,14 +1627,26 @@ function clearPriceFilter() {
     values: { min: stats.min, max: stats.max }
   };
 
-  // Reset slider positions
+  // Reset slider positions to the filtered range bounds
   const minThumb = document.getElementById("price-min");
   const maxThumb = document.getElementById("price-max");
-  if (minThumb && maxThumb) {
-    requestAnimationFrame(() => {
-      minThumb.style.left = "0%";
-      maxThumb.style.left = "100%";
-    });
+  
+  // If there's only one price value, lock both thumbs at that position
+  if (stats.min === stats.max) {
+    const position = valueToPercent(stats.min, stats.min, stats.p33, stats.p66, stats.max);
+    if (minThumb && maxThumb) {
+      requestAnimationFrame(() => {
+        minThumb.style.left = `${position}%`;
+        maxThumb.style.left = `${position}%`;
+      });
+    }
+  } else {
+    if (minThumb && maxThumb) {
+      requestAnimationFrame(() => {
+        minThumb.style.left = "0%";
+        maxThumb.style.left = "100%";
+      });
+    }
   }
 
   // Update UI
@@ -1680,8 +1708,8 @@ function setupPriceSliderDiv() {
   }
 
   // Initialize positions
-  const stats = window.originalBandStats || getFullPricingStats();
-  if (!stats) {
+  const initialStats = window.priceStats?.filtered || getFullPricingStats();
+  if (!initialStats) {
     console.error('[ERROR] No price stats available');
     return;
   }
@@ -1697,6 +1725,14 @@ function setupPriceSliderDiv() {
 
   function onDragStart(e, isMin) {
     e.preventDefault();
+    
+    // Check if we have only one price in the filtered data
+    const currentStats = window.priceStats?.filtered;
+    if (currentStats && currentStats.min === currentStats.max) {
+      console.log('[DEBUG] Preventing drag - single price value:', currentStats.min);
+      return; // Prevent dragging when there's only one price
+    }
+
     isDragging = true;
     currentThumb = isMin ? minThumb : maxThumb;
     window.isPriceDragging = true;
@@ -1712,7 +1748,7 @@ function setupPriceSliderDiv() {
     }
 
     const rect = track.getBoundingClientRect();
-    const stats = window.priceStats?.original || getFullPricingStats();
+    const dragStats = window.priceStats?.filtered || getFullPricingStats();
 
     function onDragMove(evt) {
       if (!isDragging) return;
@@ -1723,8 +1759,8 @@ function setupPriceSliderDiv() {
         const x = Math.min(Math.max(clientX - rect.left, 0), rect.width);
         const frac = x / rect.width;
         
-        const value = Math.round(piecewisePercentileToValue(frac, stats.min, stats.p33, stats.p66, stats.max));
-        const percent = valueToPercent(value, stats.min, stats.p33, stats.p66, stats.max);
+        const value = Math.round(piecewisePercentileToValue(frac, dragStats.min, dragStats.p33, dragStats.p66, dragStats.max));
+        const percent = valueToPercent(value, dragStats.min, dragStats.p33, dragStats.p66, dragStats.max);
 
         if (isMin) {
           const maxPct = parseFloat(maxThumb.style.left);
@@ -1740,7 +1776,7 @@ function setupPriceSliderDiv() {
           }
         }
 
-        // Update price filter
+        // Update price filter using filtered stats
         setPriceFilter('range', null, null, {
           min: filters.priceMin,
           max: filters.priceMax
