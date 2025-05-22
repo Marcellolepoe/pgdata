@@ -268,6 +268,13 @@ document.addEventListener("DOMContentLoaded", function () {
           const stats = window.priceStats?.original;
           if (!stats) return;
           
+          // Clear any active price band checkboxes
+          document.querySelectorAll('[data-band]').forEach(el => {
+            if (el.type === 'checkbox') {
+              el.checked = false;
+            }
+          });
+          
           const maxAllowed = stats.max;
           const validValue = Math.min(val, maxAllowed);
           
@@ -390,6 +397,16 @@ function setupFilters() {
         }
       } else {
         filters[category] = filters[category].filter(v => v !== value);
+        
+        // If this was the last non-price filter being removed, reset price filters too
+        const hasOtherFilters = Object.entries(filters).some(([key, val]) => {
+          if (key === 'priceMin' || key === 'priceMax' || key === 'priceBand' || key === category) return false;
+          return Array.isArray(val) ? val.length > 0 : val.trim() !== '';
+        });
+        
+        if (!hasOtherFilters) {
+          clearPriceFilter();
+        }
       }
       updateSelectedFilters();
       applyFilters();
@@ -1155,6 +1172,17 @@ function handlePriceBandSelection(band) {
     return;
   }
 
+  // Clear any existing price filters first
+  document.querySelectorAll('[data-band]').forEach(el => {
+    if (el.type === 'checkbox' && el.getAttribute('data-band') !== band) {
+      el.checked = false;
+    }
+  });
+  const manualMaxInput = document.getElementById("price-input-max");
+  if (manualMaxInput) {
+    manualMaxInput.value = "";
+  }
+
   // If selecting the same band, clear it
   if (activePriceFilter.type === 'band' && activePriceFilter.value === band) {
     clearPriceFilter();
@@ -1585,6 +1613,17 @@ function clearPriceFilter() {
     positions: null,
     values: null
   };
+
+  // Reset UI elements - both checkboxes and manual input
+  document.querySelectorAll('[data-band]').forEach(el => {
+    if (el.type === 'checkbox') {
+      el.checked = false;
+    }
+  });
+  const manualMaxInput = document.getElementById("price-input-max");
+  if (manualMaxInput) {
+    manualMaxInput.value = "";
+  }
 
   // Reset slider positions
   const minThumb = document.getElementById("price-min");
