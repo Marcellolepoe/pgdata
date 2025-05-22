@@ -73,8 +73,8 @@ const FILTER_TYPES = {
 
 // Add at the top level
 window.priceStats = {
-  original: null,  // Never changes after initial load
-  filtered: null   // Changes only with non-price filters
+  original: null,
+  filtered: null
 };
 
 let activePriceFilter = {
@@ -393,51 +393,10 @@ function setupFilters() {
       }
       updateSelectedFilters();
       applyFilters();
+      const nonPriceFiltered = getFilteredDataExcludingPrice();
+      updatePricingBands(nonPriceFiltered, false);
     });
   });
-}
-
-// Add this helper to handle band selection
-function handlePriceBandSelection(band) {
-  const stats = window.priceStats.original;
-  if (!stats) return;
-
-  // If clicking the same band, clear it
-  if (filters.priceBand[0] === band) {
-    clearPriceFilter();
-    return;
-  }
-
-  // Set the band filter
-  filters.priceBand = [band];
-  
-  // Update thumbs based on band
-  const minThumb = document.getElementById("price-min");
-  const maxThumb = document.getElementById("price-max");
-  if (minThumb && maxThumb) {
-    let minPos, maxPos;
-    switch(band) {
-      case 'lower':
-        minPos = 0;
-        maxPos = 33.33;
-        break;
-      case 'middle':
-        minPos = 33.33;
-        maxPos = 66.66;
-        break;
-      case 'upper':
-        minPos = 66.66;
-        maxPos = 100;
-        break;
-    }
-    requestAnimationFrame(() => {
-      minThumb.style.left = `${minPos}%`;
-      maxThumb.style.left = `${maxPos}%`;
-    });
-  }
-
-  updateSelectedFilters();
-  applyFilters(true);
 }
 
 // GET FILTERS FROM URL
@@ -517,29 +476,20 @@ function updateSelectedFilters() {
   // Handle price band filters
   if (filters.priceBand.length > 0) {
     const band = filters.priceBand[0];
-    const stats = window.priceStats?.filtered || window.priceStats?.original;
-    if (stats) {
-      let range;
-      if (band === 'lower') range = `$${stats.min.toLocaleString()} – $${stats.p33.toLocaleString()}`;
-      else if (band === 'middle') range = `$${stats.p33.toLocaleString()} – $${stats.p66.toLocaleString()}`;
-      else if (band === 'upper') range = `$${stats.p66.toLocaleString()} – $${stats.max.toLocaleString()}`;
-      if (range) {
-        addFilterTag('Price Band', range, 'priceBand');
-      }
-    }
+    const stats = window.priceStats.original;
+    let range;
+    if (band === 'lower') range = `$${stats.min.toLocaleString()} – $${stats.p33.toLocaleString()}`;
+    else if (band === 'middle') range = `$${stats.p33.toLocaleString()} – $${stats.p66.toLocaleString()}`;
+    else if (band === 'upper') range = `$${stats.p66.toLocaleString()} – $${stats.max.toLocaleString()}`;
+    addFilterTag('Price Band', range, 'priceBand');
   }
   // Handle manual price range
-  else if (filters.priceMin !== null || filters.priceMax !== null) {
-    const stats = window.priceStats?.filtered || window.priceStats?.original;
-    if (stats) {
-      const isMaxOnly = filters.priceMin === null && filters.priceMax !== null;
-      if (isMaxOnly) {
-        addFilterTag('Price', `$${filters.priceMax.toLocaleString()} Max`, 'price');
-      } else {
-        const minPrice = filters.priceMin !== null ? filters.priceMin : stats.min;
-        const maxPrice = filters.priceMax !== null ? filters.priceMax : stats.max;
-        addFilterTag('Price', `$${minPrice.toLocaleString()} – $${maxPrice.toLocaleString()}`, 'price');
-      }
+  else if (filters.priceMin !== window.priceStats.original.min || filters.priceMax !== window.priceStats.original.max) {
+    const isMaxOnly = filters.priceMin === window.priceStats.original.min && filters.priceMax !== window.priceStats.original.max;
+    if (isMaxOnly) {
+      addFilterTag('Price', `$${filters.priceMax.toLocaleString()} Max`, 'price');
+    } else {
+      addFilterTag('Price', `$${filters.priceMin.toLocaleString()} – $${filters.priceMax.toLocaleString()}`, 'price');
     }
   }
 
@@ -559,7 +509,7 @@ function updateSelectedFilters() {
 
   // Add click handlers for clear buttons
   selectedFiltersDiv.querySelectorAll(".clear-category").forEach(button => {
-    button.addEventListener("click", function() {
+          button.addEventListener("click", function() {
       const category = this.dataset.category;
       if (category === 'priceBand') {
         clearPriceFilter();
@@ -960,137 +910,13 @@ function updateBandWidths(minPrice, lowerBand, upperBand, maxPrice) {
   upper.style.width = `${upperWidth}%`;
 }
 
-// Update price display and bands
-function updatePriceDisplay(stats) {
-  if (!stats) return;
-  
-  // Update text displays
-  updateTextForAll(".lowest-price-display", stats.min);
-  updateTextForAll(".lower-band-range", stats.p33);
-  updateTextForAll(".median-price-display", stats.median);
-  updateTextForAll(".upper-band-range", stats.p66);
-  updateTextForAll(".highest-price-display", stats.max);
-
-  // Update visual bands (always equal width)
-  updatePriceBandsVisual(stats.min, stats.p33, stats.p66, stats.max);
-}
-
-// Main filter application function
-function applyFilters(skipBandReset = false) {
-  // 1. Apply non-price filters first
-  let filteredData = funeralData;
-  
-  // Apply each non-price filter
-  if (filters.searchTerm) {
-    filteredData = filteredData.filter(item => 
-      (item["Funeral Parlour Name"] || "").toLowerCase().includes(filters.searchTerm.toLowerCase())
-    );
+// UPDATE PRICING BANDS
+function updatePricingBands(filteredData, skipFilterReset = false) {
+  if (!filteredData || filteredData.length === 0) {
+    console.warn('No data provided to updatePricingBands');
+    return;
   }
 
-  ['location', 'casket', 'tentage', 'catering', 'hearse', 'personnel', 'monks', 'days'].forEach(category => {
-    if (filters[category] && filters[category].length > 0) {
-      filteredData = filteredData.filter(item => {
-        if (category === 'days') {
-          return filters[category].some(day => {
-            const price = parseFloat((item[`Available Duration (${day} Day${day === '1' ? '' : 's'})`] || "")
-              .toString().replace(/[^\d.]/g, ""));
-            return !isNaN(price) && price > 0;
-          });
-        } else {
-          const field = filterKeyMap[category];
-          if (!field) return true;
-          const itemValue = (item[field] || "").toString().toLowerCase();
-          return filters[category].some(val => itemValue.includes(val.toLowerCase()));
-        }
-      });
-    }
-  });
-
-  // 2. Calculate price stats for filtered data
-  const hasNonPriceFilters = ['location', 'casket', 'tentage', 'catering', 'hearse', 'personnel', 'monks', 'days']
-    .some(category => filters[category]?.length > 0) || filters.searchTerm;
-  
-  const hasPriceFilters = filters.priceBand.length > 0 || filters.priceMin !== null || filters.priceMax !== null;
-
-  // Update filtered stats only if we have non-price filters and no price filters
-  if (hasNonPriceFilters && !hasPriceFilters) {
-    window.priceStats.filtered = calculatePriceStats(filteredData);
-    // Reset price thumbs to edges
-    const minThumb = document.getElementById("price-min");
-    const maxThumb = document.getElementById("price-max");
-    if (minThumb && maxThumb) {
-      minThumb.style.left = "0%";
-      maxThumb.style.left = "100%";
-    }
-  }
-
-  // 3. Apply price filters if any
-  if (hasPriceFilters) {
-    const stats = window.priceStats.original; // Always use original stats for price filtering
-    filteredData = filteredData.filter(item => {
-      const prices = Object.keys(item)
-        .filter(key => key.startsWith("Available Duration"))
-        .map(key => parseFloat((item[key] || "").toString().replace(/[^\d.]/g, "")))
-        .filter(p => !isNaN(p) && p > 0);
-
-      if (prices.length === 0) return false;
-
-      if (filters.priceBand.length > 0) {
-        const band = filters.priceBand[0];
-        const [min, max] = band === 'lower' ? [stats.min, stats.p33] :
-                          band === 'middle' ? [stats.p33, stats.p66] :
-                          [stats.p66, stats.max];
-        return prices.some(price => price >= min && price <= max);
-      }
-
-      return prices.some(price => 
-        (filters.priceMin === null || price >= filters.priceMin) &&
-        (filters.priceMax === null || price <= filters.priceMax)
-      );
-    });
-  }
-
-  // 4. Update display
-  const statsToDisplay = hasPriceFilters ? window.priceStats.original : 
-                        (window.priceStats.filtered || window.priceStats.original);
-  updatePriceDisplay(statsToDisplay);
-
-  // 5. Update results count and render
-  const allEl = document.getElementById("all-results");
-  const showEl = document.getElementById("showed-results");
-  if (allEl) allEl.textContent = funeralData.length;
-  if (showEl) showEl.textContent = filteredData.length;
-
-  // 6. Render results
-  currentPage = 1;
-  paginateResults(filteredData);
-}
-
-// Clear price filter
-function clearPriceFilter() {
-  filters.priceBand = [];
-  filters.priceMin = null;
-  filters.priceMax = null;
-
-  const stats = window.priceStats.filtered || window.priceStats.original;
-  
-  // Reset thumbs to edges
-  const minThumb = document.getElementById("price-min");
-  const maxThumb = document.getElementById("price-max");
-  if (minThumb && maxThumb) {
-    requestAnimationFrame(() => {
-      minThumb.style.left = "0%";
-      maxThumb.style.left = "100%";
-    });
-  }
-
-  updatePriceDisplay(stats);
-  updateSelectedFilters();
-  applyFilters(true);
-}
-
-// Get stats from a dataset
-function calculatePriceStats(data) {
   const dayMap = {
     "1": "Available Duration (1 Day)",
     "2": "Available Duration (2 Day)",
@@ -1101,22 +927,541 @@ function calculatePriceStats(data) {
     "7": "Available Duration (7 Days)"
   };
 
-  const prices = data.flatMap(item =>
-    Object.values(dayMap).map(key => {
-      const raw = item[key] || "";
-      return parseFloat(raw.toString().replace(/[^\d.]/g, ""));
-    })
-  ).filter(p => !isNaN(p) && p > 0);
+  // Get price keys based on day filter
+  let priceKeys;
+  if (Array.isArray(filters.days) && filters.days.length === 1) {
+    priceKeys = [dayMap[filters.days[0]]];
+  } else {
+    priceKeys = Object.values(dayMap);
+  }
+
+  // Calculate stats from filtered data
+  const prices = filteredData
+    .flatMap(item =>
+      priceKeys.map(k => {
+        const raw = item[k] || "";
+        return parseFloat(raw.toString().replace(/[^\d.]/g, ""));
+      })
+    )
+    .filter(p => !isNaN(p) && p > 0);
+
+  if (prices.length === 0) {
+    console.warn('No valid prices found in filtered data');
+    return;
+  }
 
   const sorted = prices.sort((a, b) => a - b);
-  return {
+  const currentStats = {
     min: sorted[0],
     max: sorted[sorted.length - 1],
     median: sorted[Math.floor(sorted.length / 2)],
     p33: sorted[Math.floor(sorted.length * 0.33)],
     p66: sorted[Math.floor(sorted.length * 0.66)]
   };
+
+  // Check if we have active price filters
+  const hasPriceFilters = filters.priceBand.length > 0 || 
+    (filters.priceMin !== null && filters.priceMin !== window.priceStats?.original?.min) || 
+    (filters.priceMax !== null && filters.priceMax !== window.priceStats?.original?.max);
+
+  // Only update filtered stats if we don't have price filters
+  if (!hasPriceFilters) {
+    window.priceStats.filtered = currentStats;
+  }
+
+  // Always update display with current stats
+  updateTextForAll(".lowest-price-display", currentStats.min);
+  updateTextForAll(".lower-band-range", currentStats.p33);
+  updateTextForAll(".median-price-display", currentStats.median);
+  updateTextForAll(".upper-band-range", currentStats.p66);
+  updateTextForAll(".highest-price-display", currentStats.max);
+
+  // Update visual bands using current stats
+  updatePriceBandsVisual(currentStats.min, currentStats.p33, currentStats.p66, currentStats.max);
+
+  // Store current stats for slider operations if no price filters
+  if (!hasPriceFilters) {
+    window.sliderMapping = currentStats;
+  }
+
+  // Handle thumb positions based on current filter state
+  if (!skipFilterReset && !window.isPriceDragging && !window._sliderJustDragged) {
+    // If we have price filters, maintain them
+    if (hasPriceFilters) {
+      return;
+    }
+
+    // Reset to full range of filtered data
+    filters.priceMin = currentStats.min;
+    filters.priceMax = currentStats.max;
+    filters.priceBand = []; // Clear any band selection
+    
+    // Update active price filter state
+    activePriceFilter = {
+      type: null,
+      value: null,
+      positions: { min: 0, max: 100 },
+      values: { min: currentStats.min, max: currentStats.max }
+    };
+    
+    // Set thumbs to edges
+    const minThumb = document.getElementById("price-min");
+    const maxThumb = document.getElementById("price-max");
+    if (minThumb && maxThumb) {
+      requestAnimationFrame(() => {
+        minThumb.style.left = "0%";
+        maxThumb.style.left = "100%";
+      });
+    }
+  }
 }
+
+// POSITION THUMBS
+function positionThumbs(filteredMin, filteredMax, selectedMin, selectedMax) {
+  // if sliderMapping is undefined, grab the full stats
+  const stats = window.sliderMapping || getFullPricingStats();
+  const { min, p33, p66, max } = stats;
+
+  // now clamp your selectedMin/selectedMax
+  selectedMin = Math.max(filteredMin, Math.min(selectedMin, filteredMax));
+  selectedMax = Math.max(filteredMin, Math.min(selectedMax, filteredMax));
+
+  // inverse‐map value → percent
+  const pctMin = valueToPercent(selectedMin, min, p33, p66, max);
+  const pctMax = valueToPercent(selectedMax, min, p33, p66, max);
+
+  document.getElementById("price-min").style.left = pctMin + "%";
+  document.getElementById("price-max").style.left = pctMax + "%";
+}
+
+// 1. Add a logUpdate helper
+function logUpdate(context, details) {
+  console.log(`[LOG] ${context}:`, details);
+}
+
+// 2. Refactor applyFilters to only call updatePricingBands on non-price filter changes
+function applyFilters(skipBandReset = false) {
+  const dayMap = {
+    "1": "Available Duration (1 Day)",
+    "2": "Available Duration (2 Day)",
+    "3": "Available Duration (3 Days)",
+    "4": "Available Duration (4 Days)",
+    "5": "Available Duration (5 Days)",
+    "6": "Available Duration (6 Days)",
+    "7": "Available Duration (7 Days)"
+  };
+
+  // Store original stats if they don't exist
+  if (!window.originalBandStats) {
+    window.originalBandStats = getFullPricingStats();
+  }
+
+  // Non-price filter keys
+  const nonPriceKeys = [
+    'location', 'casket', 'tentage', 'catering', 'hearse', 'personnel', 'monks', 'days', 'searchTerm', 'sortBy'
+  ];
+  
+  // Check for active non-price filters
+  const hasNonPriceFilters = nonPriceKeys.some(key => {
+    if (Array.isArray(filters[key])) return filters[key].length > 0;
+    if (typeof filters[key] === 'string') return filters[key].trim() !== '';
+    return false;
+  });
+
+  // Check for active price filters
+  const hasPriceFilters = filters.priceBand.length > 0 || 
+    (filters.priceMin !== null && filters.priceMin !== window.priceStats?.original?.min) || 
+    (filters.priceMax !== null && filters.priceMax !== window.priceStats?.original?.max);
+
+  // Get elements for result count updates
+  const allEl = document.getElementById("all-results");
+  const showEl = document.getElementById("showed-results");
+  
+  // If no filters active, show all results and reset price filters
+  if (!hasNonPriceFilters && !hasPriceFilters) {
+    if (allEl) allEl.textContent = funeralData.length;
+    if (showEl) showEl.textContent = funeralData.length;
+    
+    // Reset price filters to null when no filters are active
+    filters.priceMin = null;
+    filters.priceMax = null;
+    filters.priceBand = [];
+    
+    // Reset price stats to original
+    window.priceStats.filtered = window.priceStats.original;
+    
+    currentPage = 1;
+    paginateResults(funeralData);
+    
+    // Update UI with original stats
+    updatePricingBands(funeralData, true);
+    return;
+  }
+
+  // Apply non-price filters first
+  let filteredDataForDisplay = funeralData;
+  if (hasNonPriceFilters) {
+    filteredDataForDisplay = funeralData.filter(item => {
+      if (filters.searchTerm) {
+        const name = (item["Funeral Parlour Name"] || "").toLowerCase();
+        if (!name.includes(filters.searchTerm.trim().toLowerCase())) {
+          return false;
+        }
+      }
+
+      for (const category of nonPriceKeys) {
+        const vals = filters[category];
+        if (!Array.isArray(vals) || vals.length === 0) continue;
+        
+        if (category === "days") {
+          const ok = vals.some(d => {
+            const raw = item[dayMap[d]] || "";
+            const p = parseFloat(raw.toString().replace(/[^\d.]/g, ""));
+            return !isNaN(p);
+          });
+          if (!ok) return false;
+        } else {
+          const field = filterKeyMap[category];
+          if (!field) continue;
+          const val = (item[field] || "").toString().toLowerCase();
+          if (!vals.some(v => val.includes(v.toLowerCase()))) {
+            return false;
+          }
+        }
+      }
+      return true;
+    });
+  }
+
+  // Apply price filters if they exist
+  let filteredDataWithPrice = filteredDataForDisplay;
+  if (hasPriceFilters) {
+    const stats = window.priceStats?.original || getFullPricingStats();
+    const selectedDays = filters.days.length ? filters.days : Object.keys(dayMap);
+    
+    const bandRanges = (filters.priceBand || []).map(b => {
+      if (b === "lower") return [stats.min, stats.p33];
+      if (b === "middle") return [stats.p33, stats.p66];
+      if (b === "upper") return [stats.p66, stats.max];
+      return null;
+    }).filter(Boolean);
+
+    filteredDataWithPrice = filteredDataForDisplay.filter(item => {
+      const prices = selectedDays.map(d => {
+        const raw = item[dayMap[d]] || "";
+        return parseFloat(raw.toString().replace(/[^\d.]/g, ""));
+      }).filter(p => !isNaN(p));
+
+      if (prices.length === 0) return false;
+
+      if (bandRanges.length > 0) {
+        return prices.some(price => 
+          bandRanges.some(([min, max]) => price >= min && price <= max)
+        );
+      }
+
+      if (filters.priceMin !== null || filters.priceMax !== null) {
+        return prices.some(price => 
+          (filters.priceMin === null || price >= filters.priceMin) &&
+          (filters.priceMax === null || price <= filters.priceMax)
+        );
+      }
+
+      return true;
+    });
+  }
+
+  // Always update both counters
+  if (allEl) allEl.textContent = funeralData.length;
+  if (showEl) showEl.textContent = filteredDataWithPrice.length;
+
+  // Reset to first page when filters change
+  currentPage = 1;
+  
+  // Paginate the results
+  paginateResults(filteredDataWithPrice);
+
+  // Only update price bands if there are non-price filters and no price filters
+  if (!skipBandReset && hasNonPriceFilters && !hasPriceFilters) {
+    updatePricingBands(filteredDataWithPrice, true);
+  }
+}
+
+// 3. Ensure all UI functions use window.currentBandStats for band boundaries and thumb positions
+function handlePriceBandSelection(band) {
+  // Use filtered stats for band selection
+  const stats = window.priceStats?.filtered;
+  if (!stats) {
+    console.error('Price stats not available');
+    return;
+  }
+
+  // If selecting the same band, clear it
+  if (activePriceFilter.type === 'band' && activePriceFilter.value === band) {
+    clearPriceFilter();
+    updateSelectedFilters();
+    applyFilters(true);
+    return;
+  }
+
+  // Get the min and max values for this band
+  let minValue, maxValue;
+  if (band === 'lower') {
+    minValue = stats.min;
+    maxValue = stats.p33;
+  } else if (band === 'middle') {
+    minValue = stats.p33;
+    maxValue = stats.p66;
+  } else {
+    minValue = stats.p66;
+    maxValue = stats.max;
+  }
+
+  // Calculate positions for thumbs
+  const minPercent = valueToPercent(minValue, stats.min, stats.p33, stats.p66, stats.max);
+  const maxPercent = valueToPercent(maxValue, stats.min, stats.p33, stats.p66, stats.max);
+
+  // Update filter state first
+  filters.priceBand = [band];
+  filters.priceMin = minValue;
+  filters.priceMax = maxValue;
+
+  // Update active price filter state
+  activePriceFilter = {
+    type: 'band',
+    value: band,
+    positions: { min: minPercent, max: maxPercent },
+    values: { min: minValue, max: maxValue }
+  };
+
+  // Update thumb positions with RAF
+  const minThumb = document.getElementById("price-min");
+  const maxThumb = document.getElementById("price-max");
+  
+  if (minThumb && maxThumb) {
+    requestAnimationFrame(() => {
+      minThumb.style.left = `${minPercent}%`;
+      maxThumb.style.left = `${maxPercent}%`;
+      
+      // Force reflow
+      void minThumb.offsetHeight;
+      void maxThumb.offsetHeight;
+    });
+  }
+
+  // Update UI and apply filters
+  updateSelectedFilters();
+  applyFilters(true);
+}
+
+function setPriceFilter(type, value, positions = null, values = null) {
+  // Get current filtered stats
+  const stats = window.priceStats?.filtered;
+  if (!stats) {
+    console.error('No price stats available for filter');
+    return;
+  }
+
+  // Clear existing filter state
+  filters.priceBand = [];
+  
+  switch (type) {
+    case 'band':
+      filters.priceBand = [value];
+      filters.priceMin = values.min;
+      filters.priceMax = values.max;
+      break;
+    case 'range':
+      // If there's only one price in the filtered data, lock to that value
+      if (stats.min === stats.max) {
+        filters.priceMin = stats.min;
+        filters.priceMax = stats.max;
+      } else {
+        filters.priceMin = Math.max(values.min, stats.min);
+        filters.priceMax = Math.min(values.max, stats.max);
+      }
+      break;
+    case 'max':
+      filters.priceMin = stats.min;
+      filters.priceMax = Math.min(value, stats.max);
+      break;
+  }
+
+  // Calculate positions if not provided
+  if (!positions) {
+    if (stats.min === stats.max) {
+      // If single value, set both positions to the same point
+      const position = valueToPercent(stats.min, stats.min, stats.p33, stats.p66, stats.max);
+      positions = {
+        min: position,
+        max: position
+      };
+    } else {
+      positions = {
+        min: valueToPercent(filters.priceMin, stats.min, stats.p33, stats.p66, stats.max),
+        max: valueToPercent(filters.priceMax, stats.min, stats.p33, stats.p66, stats.max)
+      };
+    }
+  }
+
+  // Update active filter state
+  activePriceFilter = {
+    type,
+    value,
+    positions,
+    values: { min: filters.priceMin, max: filters.priceMax }
+  };
+
+  // Immediately update thumb positions
+  const minThumb = document.getElementById("price-min");
+  const maxThumb = document.getElementById("price-max");
+  if (minThumb && maxThumb) {
+    minThumb.style.left = `${positions.min}%`;
+    maxThumb.style.left = `${positions.max}%`;
+    // Force reflow
+    void minThumb.offsetHeight;
+    void maxThumb.offsetHeight;
+  }
+
+  // Update UI with a slight delay to ensure DOM is ready
+  setTimeout(() => {
+    updatePriceFilterUI();
+  }, 0);
+}
+
+function updatePriceFilterUI() {
+  logUpdate('updatePriceFilterUI', activePriceFilter);
+  const elements = {
+    minThumb: document.getElementById("price-min"),
+    maxThumb: document.getElementById("price-max"),
+    minValue: document.getElementById("price-min-value"),
+    maxValue: document.getElementById("price-max-value"),
+    minRange: document.getElementById("price-range-min"),
+    maxRange: document.getElementById("price-range-max")
+  };
+  const stats = window.currentBandStats || getFullPricingStats();
+  let positions, values;
+  if (activePriceFilter.type === 'band') {
+    positions = activePriceFilter.positions;
+    values = activePriceFilter.values;
+  } else if (activePriceFilter.type === 'range') {
+    positions = {
+      min: valueToPercent(activePriceFilter.values.min, stats.min, stats.p33, stats.p66, stats.max),
+      max: valueToPercent(activePriceFilter.values.max, stats.min, stats.p33, stats.p66, stats.max)
+    };
+    values = activePriceFilter.values;
+  } else if (activePriceFilter.type === 'max') {
+    positions = {
+      min: 0,
+      max: valueToPercent(activePriceFilter.value, stats.min, stats.p33, stats.p66, stats.max)
+    };
+    values = {
+      min: stats.min,
+      max: activePriceFilter.value
+    };
+  } else {
+    positions = { min: 0, max: 100 };
+    values = { min: stats.min, max: stats.max };
+  }
+  logUpdate('updatePriceFilterUI (positions/values)', { positions, values });
+  if (elements.minThumb) {
+    elements.minThumb.style.left = `${positions.min}%`;
+    void elements.minThumb.offsetHeight;
+  }
+  if (elements.maxThumb) {
+    elements.maxThumb.style.left = `${positions.max}%`;
+    void elements.maxThumb.offsetHeight;
+  }
+  const priceFormat = (val) => `$${val.toLocaleString()}`;
+  if (elements.minValue) elements.minValue.textContent = priceFormat(values.min);
+  if (elements.maxValue) elements.maxValue.textContent = priceFormat(values.max);
+  if (elements.minRange) elements.minRange.textContent = priceFormat(values.min);
+  if (elements.maxRange) elements.maxRange.textContent = priceFormat(values.max);
+  document.querySelectorAll('[data-band]').forEach(el => {
+    el.classList.toggle('selected', 
+      activePriceFilter.type === 'band' && 
+      el.getAttribute('data-band') === activePriceFilter.value
+    );
+  });
+  if (elements.minThumb) void elements.minThumb.offsetHeight;
+  if (elements.maxThumb) void elements.maxThumb.offsetHeight;
+}
+
+// Add this helper function to ensure thumb positions are updated
+function forceThumbUpdate(minThumb, maxThumb, minPos, maxPos) {
+  if (minThumb) {
+    minThumb.style.left = `${minPos}%`;
+    minThumb.offsetHeight; // Force reflow
+  }
+  if (maxThumb) {
+    maxThumb.style.left = `${maxPos}%`;
+    maxThumb.offsetHeight; // Force reflow
+  }
+}
+
+// Add this CSS via JS for slider thumbs and All Filters panel
+const style = document.createElement('style');
+style.innerHTML = `
+#price-min, #price-max {
+  position: absolute;
+  top: 0;
+  z-index: 2;
+  width: 21px;
+  height: 21px;
+  border-radius: 50%;
+  background: #4caf50;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+}
+#price-max {
+  transform: translateX(-80%);
+}
+#price-min {
+  transform: translateX(-50%);
+}
+#price-min:active, #price-max:active {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+.filter-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow-y: auto;
+  z-index: 1000;
+  background: rgba(255,255,255,0.98);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+.all-filters-panel {
+  max-height: 90vh;
+  overflow-y: auto;
+  margin-top: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100vw;
+  background: #fff;
+  z-index: 1001;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  border-bottom: 1px solid #eee;
+}
+.all-filters-close {
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 1002;
+  padding: 12px 16px;
+  border-bottom: 1px solid #eee;
+  text-align: right;
+}
+`;
+document.head.appendChild(style);
 
 // Example overlay open/close stub (add if not present):
 window.openFilterOverlay = function() {
