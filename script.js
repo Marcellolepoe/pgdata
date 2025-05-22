@@ -1136,6 +1136,8 @@ function applyFilters(skipBandReset = false) {
 
 // 3. Ensure all UI functions use window.currentBandStats for band boundaries and thumb positions
 function handlePriceBandSelection(band) {
+  console.log('[DEBUG] Price band selected:', band);
+  
   const stats = window.priceStats?.original || getFullPricingStats();
   if (!stats) {
     console.error('No price stats available for band selection');
@@ -1163,24 +1165,53 @@ function handlePriceBandSelection(band) {
     maxValue = stats.max;
   }
 
-  // Calculate positions for thumbs
+  // First, update the visual state of the bands
+  document.querySelectorAll('[data-band]').forEach(el => {
+    el.classList.remove('selected');
+  });
+  const selectedBand = document.querySelector(`[data-band="${band}"]`);
+  if (selectedBand) {
+    selectedBand.classList.add('selected');
+  }
+
+  // Calculate positions for thumbs (as percentages)
   const minPercent = valueToPercent(minValue, stats.min, stats.p33, stats.p66, stats.max);
   const maxPercent = valueToPercent(maxValue, stats.min, stats.p33, stats.p66, stats.max);
 
-  // Set the filter with calculated positions and values
-  setPriceFilter('band', band, 
-    { min: minPercent, max: maxPercent },
-    { min: minValue, max: maxValue }
-  );
+  // Directly update thumb positions first
+  const minThumb = document.getElementById("price-min");
+  const maxThumb = document.getElementById("price-max");
+  if (minThumb && maxThumb) {
+    minThumb.style.left = `${minPercent}%`;
+    maxThumb.style.left = `${maxPercent}%`;
+    // Force reflow
+    void minThumb.offsetHeight;
+    void maxThumb.offsetHeight;
+  }
 
-  // Update UI and apply filters
-  updateSelectedFilters();
-  applyFilters(true);
+  // Then update the filter state
+  filters.priceBand = [band];
+  filters.priceMin = minValue;
+  filters.priceMax = maxValue;
 
-  // Highlight the selected band
-  document.querySelectorAll('[data-band]').forEach(el => {
-    el.classList.toggle('selected', el.getAttribute('data-band') === band);
+  // Update the active price filter state
+  activePriceFilter = {
+    type: 'band',
+    value: band,
+    positions: { min: minPercent, max: maxPercent },
+    values: { min: minValue, max: maxValue }
+  };
+
+  console.log('[DEBUG] Price band state updated:', {
+    band,
+    positions: { min: minPercent, max: maxPercent },
+    values: { min: minValue, max: maxValue }
   });
+
+  // Finally update UI and apply filters
+  updateSelectedFilters();
+  updatePriceFilterUI();
+  applyFilters(true);
 }
 
 function setPriceFilter(type, value, positions = null, values = null) {
