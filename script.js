@@ -883,26 +883,80 @@ function updateBandWidths(minPrice, lowerBand, upperBand, maxPrice) {
 
 // UPDATE PRICING BANDS
 function updatePricingBands(filteredData, skipFilterReset = false) {
-  // Always use original stats for band boundaries
-  const stats = window.priceStats.original;
-  
-  // Update display with original stats (these should never change)
-  updateTextForAll(".lowest-price-display", stats.min);
-  updateTextForAll(".lower-band-range", stats.p33);
-  updateTextForAll(".median-price-display", stats.median);
-  updateTextForAll(".upper-band-range", stats.p66);
-  updateTextForAll(".highest-price-display", stats.max);
-  
-  // Update visual bands (always equal thirds)
-  updatePriceBandsVisual(stats.min, stats.p33, stats.p66, stats.max);
-  
-  // Only reset thumbs if needed
-  if (!skipFilterReset && !window.isPriceDragging && !window._sliderJustDragged) {
-    filters.priceMin = stats.min;
-    filters.priceMax = stats.max;
-    positionThumbs(stats.min, stats.max, stats.min, stats.max);
+  if (!filteredData || filteredData.length === 0) {
+    console.warn('No data provided to updatePricingBands');
+    return;
+  }
+
+  const dayMap = {
+    "1": "Available Duration (1 Day)",
+    "2": "Available Duration (2 Day)",
+    "3": "Available Duration (3 Days)",
+    "4": "Available Duration (4 Days)",
+    "5": "Available Duration (5 Days)",
+    "6": "Available Duration (6 Days)",
+    "7": "Available Duration (7 Days)"
+  };
+
+  // Get price keys based on day filter
+  let priceKeys;
+  if (Array.isArray(filters.days) && filters.days.length === 1) {
+    priceKeys = [dayMap[filters.days[0]]];
   } else {
-    positionThumbs(stats.min, stats.max, filters.priceMin, filters.priceMax);
+    priceKeys = Object.values(dayMap);
+  }
+
+  // Calculate stats from filtered data
+  const prices = filteredData
+    .flatMap(item =>
+      priceKeys.map(k => {
+        const raw = item[k] || "";
+        return parseFloat(raw.toString().replace(/[^\d.]/g, ""));
+      })
+    )
+    .filter(p => !isNaN(p) && p > 0);
+
+  if (prices.length === 0) {
+    console.warn('No valid prices found in filtered data');
+    return;
+  }
+
+  const sorted = prices.sort((a, b) => a - b);
+  const currentStats = {
+    min: sorted[0],
+    max: sorted[sorted.length - 1],
+    median: sorted[Math.floor(sorted.length / 2)],
+    p33: sorted[Math.floor(sorted.length * 0.33)],
+    p66: sorted[Math.floor(sorted.length * 0.66)]
+  };
+
+  // If we have price filters active, use original stats for boundaries
+  const statsToUse = (filters.priceBand.length > 0 || 
+    (filters.priceMin !== window.priceStats.original.min || 
+     filters.priceMax !== window.priceStats.original.max))
+    ? window.priceStats.original 
+    : currentStats;
+
+  // Update the display
+  updateTextForAll(".lowest-price-display", statsToUse.min);
+  updateTextForAll(".lower-band-range", statsToUse.p33);
+  updateTextForAll(".median-price-display", statsToUse.median);
+  updateTextForAll(".upper-band-range", statsToUse.p66);
+  updateTextForAll(".highest-price-display", statsToUse.max);
+
+  // Update visual bands
+  updatePriceBandsVisual(statsToUse.min, statsToUse.p33, statsToUse.p66, statsToUse.max);
+
+  // Store current stats for slider operations
+  window.sliderMapping = statsToUse;
+
+  // Handle thumb positions
+  if (!skipFilterReset && !window.isPriceDragging && !window._sliderJustDragged) {
+    filters.priceMin = statsToUse.min;
+    filters.priceMax = statsToUse.max;
+    positionThumbs(statsToUse.min, statsToUse.max, statsToUse.min, statsToUse.max);
+  } else {
+    positionThumbs(statsToUse.min, statsToUse.max, filters.priceMin, filters.priceMax);
   }
 }
 
@@ -1047,26 +1101,35 @@ function applyFilters(skipBandReset = false) {
 
 // 3. Ensure all UI functions use window.currentBandStats for band boundaries and thumb positions
 function handlePriceBandSelection(band) {
-  logUpdate('handlePriceBandSelection', { band, currentState: activePriceFilter });
-  const stats = window.currentBandStats || getFullPricingStats();
+  // Always use the current slider mapping for band selection
+  const stats = window.sliderMapping || window.priceStats.original;
   if (!stats) {
-    logUpdate('handlePriceBandSelection', { error: 'No price stats available' });
+    console.error('No stats available for price band selection');
     return;
   }
+
+  // If selecting the same band, clear it
   if (activePriceFilter.type === 'band' && activePriceFilter.value === band) {
     clearPriceFilter();
     updateSelectedFilters();
     applyFilters(true);
     return;
   }
+
   const bandConfig = PRICE_BAND_CONFIG[band];
   if (!bandConfig) {
-    logUpdate('handlePriceBandSelection', { error: 'Invalid band selection', band });
+    console.error('Invalid band selection:', band);
     return;
   }
-  const values = bandConfig.getValues(stats);
-  const positions = bandConfig.position;
-  setPriceFilter('band', band, positions, values);
+
+  // Get values based on current stats
+  const values = {
+    min: band === 'lower' ? stats.min : band === 'middle' ? stats.p33 : stats.p66,
+    max: band === 'lower' ? stats.p33 : band === 'middle' ? stats.p66 : stats.max
+  };
+
+  // Set the filter with the new values
+  setPriceFilter('band', band, bandConfig.position, values);
   updateSelectedFilters();
   applyFilters(true);
 }
