@@ -204,7 +204,7 @@ function valueToPercent(v, minVal, p33, p66, maxVal) {
   }
 }
 
-function getFullPricingStats() {
+function getFullPricingStats(data = funeralData) {
   const priceKeys = [
     "Available Duration (1 Day)",
     "Available Duration (2 Day)",
@@ -214,11 +214,17 @@ function getFullPricingStats() {
     "Available Duration (6 Days)",
     "Available Duration (7 Days)"
   ];
-  const allPrices = funeralData.flatMap(pkg => {
+
+  // Get all valid prices
+  const allPrices = data.flatMap(pkg => {
     return priceKeys.map(key => {
-      return parseFloat((pkg[key] || "").toString().replace(/[^\d.]/g, ""));
+      const raw = pkg[key] || "";
+      return parseFloat(raw.toString().replace(/[^\d.]/g, ""));
     });
   }).filter(p => !isNaN(p) && p > 0);
+
+  if (allPrices.length === 0) return null;
+
   const sorted = allPrices.sort((a, b) => a - b);
   return {
     min: sorted[0],
@@ -265,11 +271,15 @@ document.addEventListener("DOMContentLoaded", function () {
       try {
         const val = parseInt(manualMaxInput.value.replace(/[^\d]/g, ""), 10);
         if (!isNaN(val) && val > 0) {
-          const stats = window.priceStats?.original;
+          const stats = window.priceStats?.filtered || window.priceStats?.original;
           if (!stats) return;
 
-          // Clear all existing price filters first
-          resetAllPriceFilters();
+          // Clear all price band checkboxes first
+          document.querySelectorAll('[data-category="priceBand"]').forEach(el => {
+            if (el.type === 'checkbox') {
+              el.checked = false;
+            }
+          });
           
           const maxAllowed = stats.max;
           const validValue = Math.min(val, maxAllowed);
@@ -286,7 +296,17 @@ document.addEventListener("DOMContentLoaded", function () {
           }
           
           // Update filter state
+          filters.priceBand = [];
           filters.priceMax = validValue;
+          filters.priceMin = stats.min;
+          
+          // Update active price filter state
+          activePriceFilter = {
+            type: 'max',
+            value: validValue,
+            positions: { min: 0, max: maxPercent },
+            values: { min: stats.min, max: validValue }
+          };
           
           updateSelectedFilters();
           applyFilters(true);
@@ -406,6 +426,13 @@ function setupFilters() {
         }
       }
 
+      // Get filtered data excluding price filters
+      const filteredData = getFilteredDataExcludingPrice();
+      
+      // Update price bands with filtered data
+      updatePricingBands(filteredData, true);
+      
+      // Then apply all filters
       updateSelectedFilters();
       applyFilters(true);
     });
@@ -942,63 +969,39 @@ function updatePricingBands(filteredData, skipFilterReset = false) {
 
   // Get price keys based on day filter
   let priceKeys;
-  if (Array.isArray(filters.days) && filters.days.length === 1) {
-    priceKeys = [dayMap[filters.days[0]]];
+  if (Array.isArray(filters.days) && filters.days.length > 0) {
+    priceKeys = filters.days.map(d => dayMap[d]);
   } else {
     priceKeys = Object.values(dayMap);
   }
 
   // Calculate stats from filtered data
-  const prices = filteredData
-    .flatMap(item =>
-      priceKeys.map(k => {
-        const raw = item[k] || "";
-        return parseFloat(raw.toString().replace(/[^\d.]/g, ""));
-      })
-    )
-    .filter(p => !isNaN(p) && p > 0);
+  const currentStats = getFullPricingStats(filteredData);
+  if (!currentStats) return;
 
-  if (prices.length === 0) {
-    console.warn('No valid prices found in filtered data');
-    return;
-  }
-
-  const sorted = prices.sort((a, b) => a - b);
-  const currentStats = {
-    min: sorted[0],
-    max: sorted[sorted.length - 1],
-    median: sorted[Math.floor(sorted.length / 2)],
-    p33: sorted[Math.floor(sorted.length * 0.33)],
-    p66: sorted[Math.floor(sorted.length * 0.66)]
-  };
-
-  // If we have price filters active, use original stats for boundaries
-  const statsToUse = (filters.priceBand.length > 0 || 
-    (filters.priceMin !== window.priceStats.original.min || 
-     filters.priceMax !== window.priceStats.original.max))
-    ? window.priceStats.original 
-    : currentStats;
+  // Always use filtered stats for display
+  window.priceStats.filtered = currentStats;
 
   // Update the display
-  updateTextForAll(".lowest-price-display", statsToUse.min);
-  updateTextForAll(".lower-band-range", statsToUse.p33);
-  updateTextForAll(".median-price-display", statsToUse.median);
-  updateTextForAll(".upper-band-range", statsToUse.p66);
-  updateTextForAll(".highest-price-display", statsToUse.max);
+  updateTextForAll(".lowest-price-display", currentStats.min);
+  updateTextForAll(".lower-band-range", currentStats.p33);
+  updateTextForAll(".median-price-display", currentStats.median);
+  updateTextForAll(".upper-band-range", currentStats.p66);
+  updateTextForAll(".highest-price-display", currentStats.max);
 
   // Update visual bands
-  updatePriceBandsVisual(statsToUse.min, statsToUse.p33, statsToUse.p66, statsToUse.max);
+  updatePriceBandsVisual(currentStats.min, currentStats.p33, currentStats.p66, currentStats.max);
 
   // Store current stats for slider operations
-  window.sliderMapping = statsToUse;
+  window.sliderMapping = currentStats;
 
   // Handle thumb positions
   if (!skipFilterReset && !window.isPriceDragging && !window._sliderJustDragged) {
-    filters.priceMin = statsToUse.min;
-    filters.priceMax = statsToUse.max;
-    positionThumbs(statsToUse.min, statsToUse.max, statsToUse.min, statsToUse.max);
+    filters.priceMin = currentStats.min;
+    filters.priceMax = currentStats.max;
+    positionThumbs(currentStats.min, currentStats.max, currentStats.min, currentStats.max);
   } else {
-    positionThumbs(statsToUse.min, statsToUse.max, filters.priceMin, filters.priceMax);
+    positionThumbs(currentStats.min, currentStats.max, filters.priceMin, filters.priceMax);
   }
 }
 
@@ -1163,7 +1166,7 @@ function applyFilters(skipBandReset = false) {
 // Add this helper function at the top level
 function resetAllPriceFilters() {
   // Reset all filter state
-  const stats = window.priceStats?.original;
+  const stats = window.priceStats?.filtered || window.priceStats?.original;
   if (!stats) return;
 
   filters.priceBand = [];
@@ -1203,10 +1206,23 @@ function resetAllPriceFilters() {
 }
 
 function handlePriceBandSelection(band) {
-  const stats = window.priceStats?.original;
+  const stats = window.priceStats?.filtered || window.priceStats?.original;
   if (!stats) {
     console.error('Price stats not available');
     return;
+  }
+
+  // Clear any existing price filters first
+  document.querySelectorAll('[data-category="priceBand"]').forEach(el => {
+    if (el.type === 'checkbox') {
+      el.checked = el.getAttribute('data-band') === band;
+    }
+  });
+
+  // Clear price max input
+  const manualMaxInput = document.getElementById("price-input-max");
+  if (manualMaxInput) {
+    manualMaxInput.value = "";
   }
 
   // If selecting the same band, clear everything
@@ -1216,9 +1232,6 @@ function handlePriceBandSelection(band) {
     applyFilters(true);
     return;
   }
-
-  // Clear any existing price filters first
-  resetAllPriceFilters();
 
   // Get the min and max values for this band
   let minValue, maxValue;
@@ -1232,13 +1245,6 @@ function handlePriceBandSelection(band) {
     minValue = stats.p66;
     maxValue = stats.max;
   }
-
-  // Set the checkbox for this band only
-  document.querySelectorAll('[data-category="priceBand"]').forEach(el => {
-    if (el.type === 'checkbox') {
-      el.checked = el.getAttribute('data-band') === band;
-    }
-  });
 
   // Calculate positions for thumbs
   const minPercent = valueToPercent(minValue, stats.min, stats.p33, stats.p66, stats.max);
