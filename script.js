@@ -959,33 +959,57 @@ function updatePricingBands(filteredData, skipFilterReset = false) {
     p66: sorted[Math.floor(sorted.length * 0.66)]
   };
 
-  // If we have price filters active, use original stats for boundaries
-  const statsToUse = (filters.priceBand.length > 0 || 
-    (filters.priceMin !== window.priceStats.original.min || 
-     filters.priceMax !== window.priceStats.original.max))
-    ? window.priceStats.original 
-    : currentStats;
+  // Store both original and filtered stats
+  window.priceStats = {
+    original: window.priceStats?.original || currentStats,
+    filtered: currentStats
+  };
 
-  // Update the display
-  updateTextForAll(".lowest-price-display", statsToUse.min);
-  updateTextForAll(".lower-band-range", statsToUse.p33);
-  updateTextForAll(".median-price-display", statsToUse.median);
-  updateTextForAll(".upper-band-range", statsToUse.p66);
-  updateTextForAll(".highest-price-display", statsToUse.max);
+  // Always use filtered stats for display
+  updateTextForAll(".lowest-price-display", currentStats.min);
+  updateTextForAll(".lower-band-range", currentStats.p33);
+  updateTextForAll(".median-price-display", currentStats.median);
+  updateTextForAll(".upper-band-range", currentStats.p66);
+  updateTextForAll(".highest-price-display", currentStats.max);
 
-  // Update visual bands
-  updatePriceBandsVisual(statsToUse.min, statsToUse.p33, statsToUse.p66, statsToUse.max);
+  // Update visual bands using filtered stats
+  updatePriceBandsVisual(currentStats.min, currentStats.p33, currentStats.p66, currentStats.max);
 
   // Store current stats for slider operations
-  window.sliderMapping = statsToUse;
+  window.sliderMapping = currentStats;
 
-  // Handle thumb positions
+  // Handle thumb positions based on current filter state
   if (!skipFilterReset && !window.isPriceDragging && !window._sliderJustDragged) {
-    filters.priceMin = statsToUse.min;
-    filters.priceMax = statsToUse.max;
-    positionThumbs(statsToUse.min, statsToUse.max, statsToUse.min, statsToUse.max);
+    // Reset to full range of filtered data
+    filters.priceMin = currentStats.min;
+    filters.priceMax = currentStats.max;
+    filters.priceBand = []; // Clear any band selection
+    
+    // Update active price filter state
+    activePriceFilter = {
+      type: null,
+      value: null,
+      positions: { min: 0, max: 100 },
+      values: { min: currentStats.min, max: currentStats.max }
+    };
+    
+    positionThumbs(currentStats.min, currentStats.max, currentStats.min, currentStats.max);
   } else {
-    positionThumbs(statsToUse.min, statsToUse.max, filters.priceMin, filters.priceMax);
+    // Maintain current price filter but adjust to valid range
+    filters.priceMin = Math.max(filters.priceMin, currentStats.min);
+    filters.priceMax = Math.min(filters.priceMax, currentStats.max);
+    
+    // Update positions based on current filter values
+    const minPercent = valueToPercent(filters.priceMin, currentStats.min, currentStats.p33, currentStats.p66, currentStats.max);
+    const maxPercent = valueToPercent(filters.priceMax, currentStats.min, currentStats.p33, currentStats.p66, currentStats.max);
+    
+    positionThumbs(currentStats.min, currentStats.max, filters.priceMin, filters.priceMax);
+    
+    // Update active price filter state
+    if (activePriceFilter.type === 'range') {
+      activePriceFilter.positions = { min: minPercent, max: maxPercent };
+      activePriceFilter.values = { min: filters.priceMin, max: filters.priceMax };
+    }
   }
 }
 
@@ -1149,7 +1173,8 @@ function applyFilters(skipBandReset = false) {
 
 // 3. Ensure all UI functions use window.currentBandStats for band boundaries and thumb positions
 function handlePriceBandSelection(band) {
-  const stats = window.priceStats?.original;
+  // Use filtered stats for band selection
+  const stats = window.priceStats?.filtered;
   if (!stats) {
     console.error('Price stats not available');
     return;
@@ -1571,7 +1596,7 @@ function getStatsFromData(data) {
 
 // 1. Define and scope clearPriceFilter globally
 function clearPriceFilter() {
-  const stats = window.priceStats?.original;
+  const stats = window.priceStats?.filtered;
   if (!stats) return;
 
   // Reset filter state
@@ -1582,8 +1607,8 @@ function clearPriceFilter() {
   activePriceFilter = {
     type: null,
     value: null,
-    positions: null,
-    values: null
+    positions: { min: 0, max: 100 },
+    values: { min: stats.min, max: stats.max }
   };
 
   // Reset slider positions
