@@ -264,9 +264,18 @@ document.addEventListener("DOMContentLoaded", function () {
   const manualMaxInput = document.getElementById("price-input-max");
   if (manualMaxInput) {
     manualMaxInput.addEventListener("input", () => {
-      const val = parseInt(manualMaxInput.value.replace(/[^\d]/g, ""), 10);
-      if (!isNaN(val) && val > 0) {
-        setPriceFilter({ maxInput: true, max: val });
+      try {
+        const val = parseInt(manualMaxInput.value.replace(/[^\d]/g, ""), 10);
+        if (!isNaN(val) && val > 0) {
+          const stats = window.priceStats?.original || getFullPricingStats();
+          const maxAllowed = stats.max;
+          const validValue = Math.min(val, maxAllowed);
+          setPriceFilter('max', null, null, validValue);
+          updateSelectedFilters();
+          applyFilters(true);
+        }
+      } catch (error) {
+        console.warn('Error handling price max input:', error);
       }
     });
   }
@@ -303,8 +312,8 @@ document.addEventListener("DOMContentLoaded", function () {
       console.log('[DEBUG] Clear All clicked');
       
       // Reset filters
-      filters.priceMin = window.globalMinPrice;
-      filters.priceMax = window.globalMaxPrice;
+      filters.priceMin = window.priceStats.original.min;
+      filters.priceMax = window.priceStats.original.max;
       filters.priceBand = [];
       filters.searchTerm = "";
       
@@ -326,8 +335,8 @@ document.addEventListener("DOMContentLoaded", function () {
       window._sliderJustDragged = false;
       
       console.debug('[CLEAR] Resetting to initial state:', {
-        globalMinPrice: window.globalMinPrice,
-        globalMaxPrice: window.globalMaxPrice,
+        globalMinPrice: window.priceStats.original.min,
+        globalMaxPrice: window.priceStats.original.max,
         filters
       });
 
@@ -381,10 +390,10 @@ function getFiltersFromURL() {
   Object.keys(filters).forEach(category => {
     if (category === "priceMin") {
       const val = parseFloat(params.get("priceMin"));
-      filters.priceMin = isNaN(val) ? window.globalMinPrice : val;
+      filters.priceMin = isNaN(val) ? window.priceStats.original.min : val;
     } else if (category === "priceMax") {
       const val = parseFloat(params.get("priceMax"));
-      filters.priceMax = isNaN(val) ? window.globalMaxPrice : val;
+      filters.priceMax = isNaN(val) ? window.priceStats.original.max : val;
     } else if (category === "searchTerm" || category === "sortBy") {
       filters[category] = params.get(category) || "";
     } else {
@@ -452,7 +461,7 @@ function updateSelectedFilters() {
   // Handle price band filters
   if (filters.priceBand.length > 0) {
     const band = filters.priceBand[0];
-    const stats = window.sliderMapping || getFullPricingStats();
+    const stats = window.priceStats.original;
     let range;
     if (band === 'lower') range = `$${stats.min.toLocaleString()} – $${stats.p33.toLocaleString()}`;
     else if (band === 'middle') range = `$${stats.p33.toLocaleString()} – $${stats.p66.toLocaleString()}`;
@@ -460,8 +469,8 @@ function updateSelectedFilters() {
     addFilterTag('Price Band', range, 'priceBand');
   }
   // Handle manual price range
-  else if (filters.priceMin !== window.globalMinPrice || filters.priceMax !== window.globalMaxPrice) {
-    const isMaxOnly = filters.priceMin === window.globalMinPrice && filters.priceMax !== window.globalMaxPrice;
+  else if (filters.priceMin !== window.priceStats.original.min || filters.priceMax !== window.priceStats.original.max) {
+    const isMaxOnly = filters.priceMin === window.priceStats.original.min && filters.priceMax !== window.priceStats.original.max;
     if (isMaxOnly) {
       addFilterTag('Price', `$${filters.priceMax.toLocaleString()} Max`, 'price');
     } else {
@@ -518,8 +527,8 @@ function resetPriceSlider() {
     minThumb.style.left = "0%";
     maxThumb.style.left = "100%";
   }
-  filters.priceMin = window.globalMinPrice;
-  filters.priceMax = window.globalMaxPrice;
+  filters.priceMin = window.priceStats.original.min;
+  filters.priceMax = window.priceStats.original.max;
 }
 
 // HELPER: getDisplayValue
@@ -1009,41 +1018,44 @@ function applyFilters(skipBandReset = false) {
   const nonPriceKeys = [
     'location', 'casket', 'tentage', 'catering', 'hearse', 'personnel', 'monks', 'days', 'searchTerm', 'sortBy'
   ];
+  
+  // Check for active non-price filters
   const hasNonPriceFilters = nonPriceKeys.some(key => {
     if (Array.isArray(filters[key])) return filters[key].length > 0;
     if (typeof filters[key] === 'string') return filters[key].trim() !== '';
     return false;
   });
 
+  // Check for active price filters
+  const hasPriceFilters = filters.priceBand.length > 0 || 
+    (filters.priceMin !== window.priceStats?.original?.min) || 
+    (filters.priceMax !== window.priceStats?.original?.max);
+
   // If no filters are active, show all results
-  const hasActiveFilters = Object.keys(filters).some(key => {
-    if (Array.isArray(filters[key])) return filters[key].length > 0;
-    if (key === 'priceMin') return filters.priceMin !== window.globalMinPrice;
-    if (key === 'priceMax') return filters.priceMax !== window.globalMaxPrice;
-    if (key === 'searchTerm') return filters[key].trim() !== '';
-    if (key === 'sortBy') return filters[key] !== '';
-    return false;
-  });
-
-  // Always use original stats for price bands display
-  window.currentBandStats = window.originalBandStats;
-
-  if (!hasActiveFilters) {
+  if (!hasNonPriceFilters && !hasPriceFilters) {
+    currentPage = 1; // Reset to first page
     paginateResults(funeralData);
     updatePricingBands(funeralData, true);
     return;
   }
 
+  // Apply non-price filters first
   let filteredDataForDisplay = funeralData;
   if (hasNonPriceFilters) {
     filteredDataForDisplay = funeralData.filter(item => {
+      // Search term filter
       if (filters.searchTerm) {
         const name = (item["Funeral Parlour Name"] || "").toLowerCase();
-        if (!name.includes(filters.searchTerm.trim().toLowerCase())) return false;
+        if (!name.includes(filters.searchTerm.trim().toLowerCase())) {
+          return false;
+        }
       }
+
+      // Other non-price filters
       for (const category of nonPriceKeys) {
         const vals = filters[category];
         if (!Array.isArray(vals) || vals.length === 0) continue;
+        
         if (category === "days") {
           const ok = vals.some(d => {
             const raw = item[dayMap[d]] || "";
@@ -1053,46 +1065,56 @@ function applyFilters(skipBandReset = false) {
           if (!ok) return false;
         } else {
           const field = filterKeyMap[category];
+          if (!field) continue;
           const val = (item[field] || "").toString().toLowerCase();
-          if (!vals.some(v => val.includes(v.toLowerCase()))) return false;
+          if (!vals.some(v => val.includes(v.toLowerCase()))) {
+            return false;
+          }
         }
       }
       return true;
     });
   }
 
-  // Use original stats for all price band calculations
-  const stats = window.originalBandStats;
-  const selectedDays = filters.days.length ? filters.days : Object.keys(dayMap);
-  const bandRanges = (filters.priceBand || []).map(b => {
-    if (b === "lower") return [stats.min, stats.p33];
-    if (b === "middle") return [stats.p33, stats.p66];
-    if (b === "upper") return [stats.p66, stats.max];
-  });
+  // Apply price filters
+  let filteredDataWithPrice = filteredDataForDisplay;
+  if (hasPriceFilters) {
+    const stats = window.priceStats?.original || getFullPricingStats();
+    const selectedDays = filters.days.length ? filters.days : Object.keys(dayMap);
+    
+    // Get price ranges for band filtering
+    const bandRanges = (filters.priceBand || []).map(b => {
+      if (b === "lower") return [stats.min, stats.p33];
+      if (b === "middle") return [stats.p33, stats.p66];
+      if (b === "upper") return [stats.p66, stats.max];
+      return null;
+    }).filter(Boolean);
 
-  // Final price filtering
-  const filteredDataWithPrice = filteredDataForDisplay.filter(item => {
-    if (!filters.priceBand.length && 
-        filters.priceMin === window.globalMinPrice && 
-        filters.priceMax === window.globalMaxPrice) {
+    filteredDataWithPrice = filteredDataForDisplay.filter(item => {
+      const prices = selectedDays.map(d => {
+        const raw = item[dayMap[d]] || "";
+        return parseFloat(raw.toString().replace(/[^\d.]/g, ""));
+      }).filter(p => !isNaN(p));
+
+      if (prices.length === 0) return false;
+
+      // Price band filtering
+      if (bandRanges.length > 0) {
+        return prices.some(price => 
+          bandRanges.some(([min, max]) => price >= min && price <= max)
+        );
+      }
+
+      // Manual price range filtering
+      if (filters.priceMin !== stats.min || filters.priceMax !== stats.max) {
+        return prices.some(price => 
+          price >= filters.priceMin && price <= filters.priceMax
+        );
+      }
+
       return true;
-    }
-    const prices = selectedDays.map(d => {
-      const raw = item[dayMap[d]] || "";
-      return parseFloat(raw.toString().replace(/[^\d.]/g, ""));
-    }).filter(p => !isNaN(p));
-    if (filters.priceBand.length > 0) {
-      return prices.some(price => 
-        bandRanges.some(([min, max]) => price >= min && price <= max)
-      );
-    }
-    if (filters.priceMin !== window.globalMinPrice || filters.priceMax !== window.globalMaxPrice) {
-      return prices.some(price => 
-        price >= filters.priceMin && price <= filters.priceMax
-      );
-    }
-    return true;
-  });
+    });
+  }
 
   // Update counters
   const allEl = document.getElementById("all-results");
@@ -1100,20 +1122,23 @@ function applyFilters(skipBandReset = false) {
   if (allEl) allEl.textContent = funeralData.length;
   if (showEl) showEl.textContent = filteredDataWithPrice.length;
 
+  // Reset to first page when filters change
+  currentPage = 1;
+  
   // Paginate the results
   paginateResults(filteredDataWithPrice);
+
+  // Update price bands if needed
+  if (!skipBandReset && hasNonPriceFilters) {
+    updatePricingBands(filteredDataWithPrice, true);
+  }
 }
 
 // 3. Ensure all UI functions use window.currentBandStats for band boundaries and thumb positions
 function handlePriceBandSelection(band) {
-  // Always use the current slider mapping for band selection
-  const stats = window.sliderMapping || window.priceStats.original;
-  if (!stats) {
-    console.error('No stats available for price band selection');
-    return;
-  }
+  const stats = window.sliderMapping || getFullPricingStats();
+  if (!stats) return;
 
-  // If selecting the same band, clear it
   if (activePriceFilter.type === 'band' && activePriceFilter.value === band) {
     clearPriceFilter();
     updateSelectedFilters();
@@ -1121,20 +1146,37 @@ function handlePriceBandSelection(band) {
     return;
   }
 
-  const bandConfig = PRICE_BAND_CONFIG[band];
-  if (!bandConfig) {
-    console.error('Invalid band selection:', band);
-    return;
+  // Get the min and max values for this band
+  let minValue, maxValue;
+  if (band === 'lower') {
+    minValue = stats.min;
+    maxValue = stats.p33;
+  } else if (band === 'middle') {
+    minValue = stats.p33;
+    maxValue = stats.p66;
+  } else {
+    minValue = stats.p66;
+    maxValue = stats.max;
   }
 
-  // Get values based on current stats
-  const values = {
-    min: band === 'lower' ? stats.min : band === 'middle' ? stats.p33 : stats.p66,
-    max: band === 'lower' ? stats.p33 : band === 'middle' ? stats.p66 : stats.max
-  };
+  // Calculate positions for thumbs
+  const minPercent = valueToPercent(minValue, stats.min, stats.p33, stats.p66, stats.max);
+  const maxPercent = valueToPercent(maxValue, stats.min, stats.p33, stats.p66, stats.max);
 
-  // Set the filter with the new values
-  setPriceFilter('band', band, bandConfig.position, values);
+  // Update active price filter state
+  setPriceFilter('band', band, 
+    { min: minPercent, max: maxPercent },
+    { min: minValue, max: maxValue }
+  );
+
+  // Force thumb positions update
+  const minThumb = document.getElementById("price-min");
+  const maxThumb = document.getElementById("price-max");
+  if (minThumb && maxThumb) {
+    forceThumbUpdate(minThumb, maxThumb, minPercent, maxPercent);
+  }
+
+  // Update UI and apply filters
   updateSelectedFilters();
   applyFilters(true);
 }
@@ -1156,7 +1198,7 @@ function setPriceFilter(type, value, positions = null, values = null) {
       break;
     case 'max':
       filters.priceBand = [];
-      filters.priceMin = window.globalMinPrice;
+      filters.priceMin = window.priceStats.original.min;
       filters.priceMax = values;
       break;
   }
@@ -1465,8 +1507,17 @@ function getStatsFromData(data) {
 function clearPriceFilter() {
   // Reset filter state
   filters.priceBand = [];
-  filters.priceMin = window.priceStats.original.min;
-  filters.priceMax = window.priceStats.original.max;
+  
+  // Safely access price stats
+  if (window.priceStats && window.priceStats.original) {
+    filters.priceMin = window.priceStats.original.min;
+    filters.priceMax = window.priceStats.original.max;
+  } else {
+    const stats = getFullPricingStats();
+    filters.priceMin = stats.min;
+    filters.priceMax = stats.max;
+  }
+  
   activePriceFilter = {
     type: null,
     value: null,
@@ -1491,7 +1542,7 @@ function clearPriceFilter() {
   updatePriceFilterUI();
   
   // Ensure we're using the correct stats
-  window.sliderMapping = window.priceStats.original;
+  window.sliderMapping = window.priceStats?.original || getFullPricingStats();
 }
 window.clearPriceFilter = clearPriceFilter;
 
@@ -1558,6 +1609,8 @@ function setupPriceSliderDiv() {
 
   let isDragging = false;
   let currentThumb = null;
+  let startX = 0;
+  let startLeft = 0;
 
   function onDragStart(e, isMin) {
     e.preventDefault();
@@ -1566,35 +1619,39 @@ function setupPriceSliderDiv() {
     window.isPriceDragging = true;
     window._sliderJustDragged = false;
 
+    // Store initial positions
+    startX = e.type.startsWith("touch") ? e.touches[0].clientX : e.clientX;
+    startLeft = parseFloat(currentThumb.style.left) || (isMin ? 0 : 100);
+
     // Clear any active band selection
     if (activePriceFilter.type === 'band') {
       clearPriceFilter();
     }
 
     const rect = track.getBoundingClientRect();
-    const stats = window.originalBandStats;
+    const stats = window.priceStats?.original || getFullPricingStats();
 
     function onDragMove(evt) {
       if (!isDragging) return;
       evt.preventDefault();
 
-      const clientX = evt.type.startsWith("touch") ? evt.touches[0].clientX : evt.clientX;
-      const x = Math.min(Math.max(clientX - rect.left, 0), rect.width);
-      const frac = x / rect.width;
-      
       try {
+        const clientX = evt.type.startsWith("touch") ? evt.touches[0].clientX : evt.clientX;
+        const x = Math.min(Math.max(clientX - rect.left, 0), rect.width);
+        const frac = x / rect.width;
+        
         const value = Math.round(piecewisePercentileToValue(frac, stats.min, stats.p33, stats.p66, stats.max));
         const percent = valueToPercent(value, stats.min, stats.p33, stats.p66, stats.max);
 
         if (isMin) {
           const maxPct = parseFloat(maxThumb.style.left);
-          if (percent <= maxPct) {
+          if (percent <= maxPct - 1) { // Add 1% buffer
             minThumb.style.left = `${percent}%`;
             filters.priceMin = value;
           }
         } else {
           const minPct = parseFloat(minThumb.style.left);
-          if (percent >= minPct) {
+          if (percent >= minPct + 1) { // Add 1% buffer
             maxThumb.style.left = `${percent}%`;
             filters.priceMax = value;
           }
@@ -1605,9 +1662,13 @@ function setupPriceSliderDiv() {
           min: filters.priceMin,
           max: filters.priceMax
         });
+        
+        // Force reflow to ensure smooth movement
+        void currentThumb.offsetHeight;
+        
         updateSelectedFilters();
       } catch (error) {
-        console.warn('Error during drag:', error);
+        console.warn('Error during thumb drag:', error);
       }
     }
 
