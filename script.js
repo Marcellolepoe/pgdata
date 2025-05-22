@@ -219,14 +219,29 @@ async function fetchFuneralData() {
     funeralData = await response.json();
     window.funeralData = funeralData;
     
-    // Calculate and store price stats FIRST
-    window.priceStats.original = getFullPricingStats();
-    window.priceStats.filtered = window.priceStats.original;
-    window.sliderMapping = window.priceStats.original;
+    // Calculate initial price stats
+    const initialStats = getPriceStats(funeralData);
+    if (!initialStats) {
+      Logger.error("Failed to calculate initial price statistics");
+      return;
+    }
+    
+    // Initialize window.priceStats if it doesn't exist
+    if (!window.priceStats) {
+      window.priceStats = {
+        original: null,
+        filtered: null
+      };
+    }
+    
+    // Store both original and filtered stats
+    window.priceStats.original = initialStats;
+    window.priceStats.filtered = initialStats;
+    window.sliderMapping = initialStats;
     
     // Initialize filters with correct initial values
-    filters.priceMin = window.priceStats.original.min;
-    filters.priceMax = window.priceStats.original.max;
+    filters.priceMin = initialStats.min;
+    filters.priceMax = initialStats.max;
     
     // Then set up UI elements
     setupPriceSliderDiv();
@@ -263,7 +278,13 @@ function valueToPercent(v, minVal, p33, p66, maxVal) {
   }
 }
 
-function getFullPricingStats() {
+// Standardized price statistics calculation
+function calculatePriceStats(data) {
+  if (!data || !Array.isArray(data) || data.length === 0) {
+    Logger.warn('No data provided for price statistics calculation');
+    return null;
+  }
+
   const priceKeys = [
     "Available Duration (1 Day)",
     "Available Duration (2 Day)",
@@ -273,11 +294,19 @@ function getFullPricingStats() {
     "Available Duration (6 Days)",
     "Available Duration (7 Days)"
   ];
-  const allPrices = funeralData.flatMap(pkg => {
+
+  const allPrices = data.flatMap(pkg => {
     return priceKeys.map(key => {
-      return parseFloat((pkg[key] || "").toString().replace(/[^\d.]/g, ""));
+      const raw = pkg[key] || "";
+      return parseFloat(raw.toString().replace(/[^\d.]/g, ""));
     });
   }).filter(p => !isNaN(p) && p > 0);
+
+  if (allPrices.length === 0) {
+    Logger.warn('No valid prices found in data');
+    return null;
+  }
+
   const sorted = allPrices.sort((a, b) => a - b);
   return {
     min: sorted[0],
@@ -288,17 +317,20 @@ function getFullPricingStats() {
   };
 }
 
-function piecewisePercentileToValue(fraction, minVal, p33, p66, maxVal) {
-  if (fraction <= 0.33) {
-    const localFrac = fraction / 0.33;
-    return minVal + localFrac * (p33 - minVal);
-  } else if (fraction <= 0.66) {
-    const localFrac = (fraction - 0.33) / 0.33;
-    return p33 + localFrac * (p66 - p33);
-  } else {
-    const localFrac = (fraction - 0.66) / 0.34; // (1 - 0.66 = 0.34)
-    return p66 + localFrac * (maxVal - p66);
+// Helper function to get price stats with proper error handling
+function getPriceStats(data) {
+  const stats = calculatePriceStats(data);
+  if (!stats) {
+    Logger.error('Failed to calculate price statistics');
+    return {
+      min: 0,
+      median: 0,
+      p33: 0,
+      p66: 0,
+      max: 0
+    };
   }
+  return stats;
 }
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -1021,7 +1053,7 @@ function updatePricingBands(filteredData, skipFilterReset = false) {
 // POSITION THUMBS
 function positionThumbs(filteredMin, filteredMax, selectedMin, selectedMax) {
   // if sliderMapping is undefined, grab the full stats
-  const stats = window.sliderMapping || getFullPricingStats();
+  const stats = window.sliderMapping || getPriceStats();
   const { min, p33, p66, max } = stats;
 
   // now clamp your selectedMin/selectedMax
@@ -1055,7 +1087,7 @@ function applyFilters(skipBandReset = false) {
 
   // Store original stats if they don't exist
   if (!window.originalBandStats) {
-    window.originalBandStats = getFullPricingStats();
+    window.originalBandStats = getPriceStats();
   }
 
   // Non-price filter keys
@@ -1138,7 +1170,7 @@ function applyFilters(skipBandReset = false) {
   // Apply price filters if they exist
   let filteredDataWithPrice = filteredDataForDisplay;
   if (hasPriceFilters) {
-    const stats = window.priceStats?.original || getFullPricingStats();
+    const stats = window.priceStats?.original || getPriceStats();
     const selectedDays = filters.days.length ? filters.days : Object.keys(dayMap);
     
     const bandRanges = (filters.priceBand || []).map(b => {
@@ -1328,7 +1360,7 @@ function updatePriceFilterUI() {
     minRange: document.getElementById("price-range-min"),
     maxRange: document.getElementById("price-range-max")
   };
-  const stats = window.currentBandStats || getFullPricingStats();
+  const stats = window.currentBandStats || getPriceStats();
   let positions, values;
   if (activePriceFilter.type === 'band') {
     positions = activePriceFilter.positions;
@@ -1531,7 +1563,7 @@ function getFilteredDataExcludingPrice() {
       
       // Special handling for priceBand
       if (category === 'priceBand') {
-        const stats = window.sliderMapping || getFullPricingStats();
+        const stats = window.sliderMapping || getPriceStats();
         const dayMap = {
           "1": "Available Duration (1 Day)",
           "2": "Available Duration (2 Day)",
@@ -1586,32 +1618,6 @@ function getFilteredDataExcludingPrice() {
   });
 
   return filtered;
-}
-
-// 3. Helper to get stats from data
-function getStatsFromData(data) {
-  const priceKeys = [
-    "Available Duration (1 Day)",
-    "Available Duration (2 Day)",
-    "Available Duration (3 Days)",
-    "Available Duration (4 Days)",
-    "Available Duration (5 Days)",
-    "Available Duration (6 Days)",
-    "Available Duration (7 Days)"
-  ];
-  const allPrices = data.flatMap(pkg => {
-    return priceKeys.map(key => {
-      return parseFloat((pkg[key] || "").toString().replace(/[^\d.]/g, ""));
-    });
-  }).filter(p => !isNaN(p) && p > 0);
-  const sorted = allPrices.sort((a, b) => a - b);
-  return {
-    min: sorted[0],
-    median: sorted[Math.floor(sorted.length / 2)],
-    p33: sorted[Math.floor(sorted.length * 0.33)],
-    p66: sorted[Math.floor(sorted.length * 0.66)],
-    max: sorted[sorted.length - 1]
-  };
 }
 
 // 1. Define and scope clearPriceFilter globally
@@ -1708,7 +1714,7 @@ function setupPriceSliderDiv() {
   }
 
   // Initialize positions
-  const initialStats = window.priceStats?.filtered || getFullPricingStats();
+  const initialStats = window.priceStats?.filtered || getPriceStats();
   if (!initialStats) {
     Logger.error('No price stats available');
     return;
@@ -1748,7 +1754,7 @@ function setupPriceSliderDiv() {
     }
 
     const rect = track.getBoundingClientRect();
-    const dragStats = window.priceStats?.filtered || getFullPricingStats();
+    const dragStats = window.priceStats?.filtered || getPriceStats();
 
     function onDragMove(evt) {
       if (!isDragging) return;
