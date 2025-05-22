@@ -1454,3 +1454,121 @@ window.clearPriceFilter = clearPriceFilter;
 
 // 3. Store the last non-price-filtered stats in window.currentBandStats
 window.currentBandStats = null;
+
+// Restore paginateResults and setupPriceSliderDiv
+let currentPage = 1;
+const resultsPerPage = 10;
+function renderPaginationControls(totalPages) {
+  const container = document.getElementById('pagination-container') || document.querySelector('.pagination-container');
+  if (!container) return;
+  container.innerHTML = '';
+  for (let i = 1; i <= totalPages; i++) {
+    const btn = document.createElement('button');
+    btn.textContent = i;
+    if (i === currentPage) {
+      btn.className = 'pagination-button-active';
+    } else {
+      btn.className = 'pagination-button-inactive';
+    }
+    btn.addEventListener('click', () => {
+      if (currentPage !== i) {
+        currentPage = i;
+        applyFilters();
+      }
+    });
+    container.appendChild(btn);
+  }
+}
+
+function paginateResults(filteredData) {
+  const totalPages = Math.ceil(filteredData.length / resultsPerPage);
+  const startIndex = (currentPage - 1) * resultsPerPage;
+  const endIndex = startIndex + resultsPerPage;
+  const paginatedData = filteredData.slice(startIndex, endIndex);
+  // Batch DOM updates for performance
+  requestAnimationFrame(() => {
+    renderResults(paginatedData);
+    renderPaginationControls(totalPages);
+  });
+}
+
+function setupPriceSliderDiv() {
+  const track = document.getElementById("price-band-bar");
+  const minThumb = document.getElementById("price-min");
+  const maxThumb = document.getElementById("price-max");
+
+  if (!track || !minThumb || !maxThumb) {
+    console.error('[ERROR] Missing slider elements');
+    return;
+  }
+
+  // Initialize positions
+  const stats = window.sliderMapping || getFullPricingStats();
+  if (!stats) {
+    console.error('[ERROR] No price stats available');
+    return;
+  }
+
+  // Set initial positions
+  minThumb.style.left = "0%";
+  maxThumb.style.left = "100%";
+
+  function onDragStart(e, isMin) {
+    e.preventDefault();
+    window.isPriceDragging = true;
+    window._sliderJustDragged = false;
+    // Clear any active band selection
+    if (activePriceFilter.type === 'band') {
+      clearPriceFilter();
+    }
+    const rect = track.getBoundingClientRect();
+    const stats = window.currentBandStats || getFullPricingStats();
+    function onDragMove(evt) {
+      evt.preventDefault();
+      const clientX = evt.type.startsWith("touch") ? evt.touches[0].clientX : evt.clientX;
+      const x = Math.min(Math.max(clientX - rect.left, 0), rect.width);
+      const frac = x / rect.width;
+      const value = Math.round(piecewisePercentileToValue(frac, stats.min, stats.p33, stats.p66, stats.max));
+      const percent = valueToPercent(value, stats.min, stats.p33, stats.p66, stats.max);
+      if (isMin) {
+        const maxPct = parseFloat(maxThumb.style.left);
+        if (percent <= maxPct) {
+          minThumb.style.left = `${percent}%`;
+          filters.priceMin = value;
+        }
+      } else {
+        const minPct = parseFloat(minThumb.style.left);
+        if (percent >= minPct) {
+          maxThumb.style.left = `${percent}%`;
+          filters.priceMax = value;
+        }
+      }
+      // Update price filter
+      setPriceFilter('range', null, null, {
+        min: filters.priceMin,
+        max: filters.priceMax
+      });
+      updateSelectedFilters();
+    }
+    function onDragEnd() {
+      window.isPriceDragging = false;
+      window._sliderJustDragged = true;
+      document.removeEventListener("mousemove", onDragMove);
+      document.removeEventListener("mouseup", onDragEnd);
+      document.removeEventListener("touchmove", onDragMove);
+      document.removeEventListener("touchend", onDragEnd);
+      applyFilters(true);
+      setTimeout(() => {
+        window._sliderJustDragged = false;
+      }, 100);
+    }
+    document.addEventListener("mousemove", onDragMove);
+    document.addEventListener("mouseup", onDragEnd);
+    document.addEventListener("touchmove", onDragMove);
+    document.addEventListener("touchend", onDragEnd);
+  }
+  minThumb.addEventListener("mousedown", e => onDragStart(e, true));
+  maxThumb.addEventListener("mousedown", e => onDragStart(e, false));
+  minThumb.addEventListener("touchstart", e => onDragStart(e, true));
+  maxThumb.addEventListener("touchstart", e => onDragStart(e, false));
+}
