@@ -85,20 +85,12 @@ let activePriceFilter = {
 };
 
 function initializePage() {
-  const requiredElements = [
-    "funeral-cards-container",
-    "price-band-bar",
-    "price-min",
-    "price-max"
-  ];
+  // Initialize price filter state first
+  window.priceStats = {
+    original: null,
+    filtered: null
+  };
   
-  const missingElements = requiredElements.filter(id => !document.getElementById(id));
-  if (missingElements.length > 0) {
-    console.error("❌ Missing required elements:", missingElements);
-    return;
-  }
-
-  // Initialize price filter state
   window.filters = {
     location: [],
     casket: [],
@@ -115,7 +107,22 @@ function initializePage() {
     priceBand: [],
   };
 
-  setTimeout(function () {
+  const requiredElements = [
+    "funeral-cards-container",
+    "price-band-bar",
+    "price-min",
+    "price-max"
+  ];
+  
+  const missingElements = requiredElements.filter(id => !document.getElementById(id));
+  if (missingElements.length > 0) {
+    console.error("❌ Missing required elements:", missingElements);
+    return;
+  }
+
+  // Wait for DOM to be fully loaded before fetching data
+  setTimeout(async function () {
+    await fetchFuneralData();
     setupFilters();
     getFiltersFromURL();
     updateSelectedFilters();
@@ -135,12 +142,15 @@ function initializePage() {
         });
       }
     });
-
-    fetchFuneralData();
   }, 1500);
 }
 
-document.addEventListener("DOMContentLoaded", initializePage);
+// Ensure we wait for DOM content to be loaded
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializePage);
+} else {
+  initializePage();
+}
 
 async function fetchFuneralData() {
   const jsonUrl = "https://raw.githubusercontent.com/Marcellolepoe/pgdata/main/cleaned_buddhist_funeral_directory.json";
@@ -183,12 +193,14 @@ window.onload = async function () {
 };
 
 function valueToPercent(v, minVal, p33, p66, maxVal) {
+  if (!minVal || !maxVal) return 0;
+  
   if (v <= p33) {
-    return ((v - minVal) / (p33 - minVal)) * 33;           // 0→33%
+    return ((v - minVal) / (p33 - minVal)) * 33;
   } else if (v <= p66) {
-    return 33 + ((v - p33) / (p66 - p33)) * 33;             // 33→66%
+    return 33 + ((v - p33) / (p66 - p33)) * 33;
   } else {
-    return 66 + ((v - p66) / (maxVal - p66)) * 34;          // 66→100%
+    return 66 + ((v - p66) / (maxVal - p66)) * 34;
   }
 }
 
@@ -253,10 +265,27 @@ document.addEventListener("DOMContentLoaded", function () {
       try {
         const val = parseInt(manualMaxInput.value.replace(/[^\d]/g, ""), 10);
         if (!isNaN(val) && val > 0) {
-          const stats = window.priceStats?.original || getFullPricingStats();
+          const stats = window.priceStats?.original;
+          if (!stats) return;
+          
           const maxAllowed = stats.max;
           const validValue = Math.min(val, maxAllowed);
-          setPriceFilter('max', null, null, validValue);
+          
+          // Calculate the correct position
+          const maxPercent = valueToPercent(validValue, stats.min, stats.p33, stats.p66, stats.max);
+          
+          // Update thumb position
+          const maxThumb = document.getElementById("price-max");
+          if (maxThumb) {
+            requestAnimationFrame(() => {
+              maxThumb.style.left = `${maxPercent}%`;
+            });
+          }
+          
+          // Update filter state
+          filters.priceMax = validValue;
+          filters.priceBand = []; // Clear any active band selection
+          
           updateSelectedFilters();
           applyFilters(true);
         }
@@ -1147,21 +1176,11 @@ function handlePriceBandSelection(band) {
     maxValue = stats.max;
   }
 
-  // Calculate positions for thumbs (as percentages)
+  // Calculate positions for thumbs
   const minPercent = valueToPercent(minValue, stats.min, stats.p33, stats.p66, stats.max);
   const maxPercent = valueToPercent(maxValue, stats.min, stats.p33, stats.p66, stats.max);
 
-  // Update thumb positions
-  const minThumb = document.getElementById("price-min");
-  const maxThumb = document.getElementById("price-max");
-  if (minThumb && maxThumb) {
-    requestAnimationFrame(() => {
-      minThumb.style.left = `${minPercent}%`;
-      maxThumb.style.left = `${maxPercent}%`;
-    });
-  }
-
-  // Update filter state
+  // Update filter state first
   filters.priceBand = [band];
   filters.priceMin = minValue;
   filters.priceMax = maxValue;
@@ -1173,6 +1192,21 @@ function handlePriceBandSelection(band) {
     positions: { min: minPercent, max: maxPercent },
     values: { min: minValue, max: maxValue }
   };
+
+  // Update thumb positions with RAF
+  const minThumb = document.getElementById("price-min");
+  const maxThumb = document.getElementById("price-max");
+  
+  if (minThumb && maxThumb) {
+    requestAnimationFrame(() => {
+      minThumb.style.left = `${minPercent}%`;
+      maxThumb.style.left = `${maxPercent}%`;
+      
+      // Force reflow
+      void minThumb.offsetHeight;
+      void maxThumb.offsetHeight;
+    });
+  }
 
   // Update UI and apply filters
   updateSelectedFilters();
