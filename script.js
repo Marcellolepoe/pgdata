@@ -72,6 +72,11 @@ const FILTER_TYPES = {
 };
 
 // Add at the top level
+window.priceStats = {
+  original: null,  // Never changes after initial calculation
+  filtered: null   // Changes based on non-price filters only
+};
+
 let activePriceFilter = {
   type: null, // 'band', 'range', or null
   value: null, // band name or {min, max} for range
@@ -166,14 +171,13 @@ async function fetchFuneralData() {
       });
     }).filter(p => !isNaN(p) && p > 0);
     
-    window.globalMinPrice = Math.min(...allPrices);
-    window.globalMaxPrice = Math.max(...allPrices);
-    
-    window.sliderMapping = getFullPricingStats();
+    // Calculate and store original stats
+    window.priceStats.original = getFullPricingStats();
+    window.priceStats.filtered = window.priceStats.original;
     
     // Initialize with full range
-    filters.priceMin = window.globalMinPrice;
-    filters.priceMax = window.globalMaxPrice;
+    filters.priceMin = window.priceStats.original.min;
+    filters.priceMax = window.priceStats.original.max;
     filters.sortBy = "";
     
     setupPriceSliderDiv();
@@ -879,50 +883,26 @@ function updateBandWidths(minPrice, lowerBand, upperBand, maxPrice) {
 
 // UPDATE PRICING BANDS
 function updatePricingBands(filteredData, skipFilterReset = false) {
-  const dayMap = {
-    "1": "Available Duration (1 Day)",
-    "2": "Available Duration (2 Day)",
-    "3": "Available Duration (3 Days)",
-    "4": "Available Duration (4 Days)",
-    "5": "Available Duration (5 Days)",
-    "6": "Available Duration (6 Days)",
-    "7": "Available Duration (7 Days)"
-  };
-  let priceKeys;
-  if (Array.isArray(filters.days) && filters.days.length === 1) {
-    priceKeys = [ dayMap[filters.days[0]] ];
-  } else {
-    priceKeys = Object.values(dayMap);
-  }
-  const prices = filteredData
-    .flatMap(item =>
-      priceKeys.map(k =>
-        parseFloat((item[k] || "").toString().replace(/[^\d.]/g, ""))
-      )
-    )
-    .filter(p => !isNaN(p));
-  if (prices.length === 0) return;
-  const sorted      = prices.sort((a, b) => a - b);
-  const filteredMin = sorted[0];
-  const filteredMax = sorted[sorted.length - 1];
-  const median      = sorted[Math.floor(sorted.length / 2)];
-  const lowerBand   = Math.round(sorted[Math.floor(sorted.length * 0.33)]);
-  const upperBand   = Math.round(sorted[Math.floor(sorted.length * 0.66)]);
-  updateTextForAll(".lowest-price-display",  filteredMin);
-  updateTextForAll(".lower-band-range",     lowerBand);
-  updateTextForAll(".median-price-display", median);
-  updateTextForAll(".upper-band-range",     upperBand);
-  updateTextForAll(".highest-price-display",filteredMax);
-  updatePriceBandsVisual(filteredMin, lowerBand, upperBand, filteredMax);
-  window.sliderMapping = { min: filteredMin, p33: lowerBand, p66: upperBand, max: filteredMax };
-  // Only reset thumbs if skipFilterReset is false, NOT currently dragging, and not just dragged
+  // Always use original stats for band boundaries
+  const stats = window.priceStats.original;
+  
+  // Update display with original stats (these should never change)
+  updateTextForAll(".lowest-price-display", stats.min);
+  updateTextForAll(".lower-band-range", stats.p33);
+  updateTextForAll(".median-price-display", stats.median);
+  updateTextForAll(".upper-band-range", stats.p66);
+  updateTextForAll(".highest-price-display", stats.max);
+  
+  // Update visual bands (always equal thirds)
+  updatePriceBandsVisual(stats.min, stats.p33, stats.p66, stats.max);
+  
+  // Only reset thumbs if needed
   if (!skipFilterReset && !window.isPriceDragging && !window._sliderJustDragged) {
-    console.debug('[SLIDER] Thumbs forcibly reset by updatePricingBands', {filteredMin, filteredMax});
-    filters.priceMin = filteredMin;
-    filters.priceMax = filteredMax;
-    positionThumbs(filteredMin, filteredMax, filteredMin, filteredMax);
+    filters.priceMin = stats.min;
+    filters.priceMax = stats.max;
+    positionThumbs(stats.min, stats.max, stats.min, stats.max);
   } else {
-    positionThumbs(filteredMin, filteredMax, filters.priceMin, filters.priceMax);
+    positionThumbs(stats.min, stats.max, filters.priceMin, filters.priceMax);
   }
 }
 
