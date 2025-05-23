@@ -212,11 +212,20 @@ if (document.readyState === 'loading') {
 }
 
 async function fetchFuneralData() {
-  const jsonUrl = "https://raw.githubusercontent.com/Marcellolepoe/pgdata/main/cleaned_buddhist_funeral_directory.json";
+  const jsonUrl = "https://cdn.jsdelivr.net/gh/Marcellolepoe/pgdata@latest/cleaned_buddhist_funeral_directory.json";
+  
   try {
     const response = await fetch(jsonUrl);
-    if (!response.ok) throw new Error("Failed to fetch data.");
-    funeralData = await response.json();
+    if (!response.ok) {
+      throw new Error(`Failed to fetch data: ${response.status} ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    if (!data || !Array.isArray(data)) {
+      throw new Error('Invalid data format received');
+    }
+    
+    funeralData = data;
     window.funeralData = funeralData;
     
     // Calculate initial price stats
@@ -259,6 +268,13 @@ async function fetchFuneralData() {
     getFiltersFromURL();
   } catch (error) {
     Logger.error("Error fetching funeral data", error);
+    // Set safe defaults
+    funeralData = [];
+    window.funeralData = [];
+    window.priceStats = {
+      original: { min: 0, max: 0, median: 0, p33: 0, p66: 0 },
+      filtered: { min: 0, max: 0, median: 0, p33: 0, p66: 0 }
+    };
   }
 }
 
@@ -915,20 +931,31 @@ function adjustCarouselHeight(wrapper) {
 
 // RENDER RESULTS (Webflow population version)
 function renderResults(filteredData) {
+  // Guard against invalid data
+  if (!filteredData || !Array.isArray(filteredData)) {
+    Logger.error("Invalid data provided for rendering");
+    return;
+  }
+
   const container = document.getElementById("funeral-cards-container");
   const template = document.getElementById("funeral-card-wrapper");
   if (!container || !template) {
+    Logger.error("Required DOM elements not found");
     return;
   }
+
   // Remove all previously rendered cards except the template
   Array.from(container.children).forEach(child => {
     if (child !== template) container.removeChild(child);
   });
   template.style.display = "none";
+
   // Use document fragment for batch DOM updates
   const fragment = document.createDocumentFragment();
   for (let i = 0; i < filteredData.length; i++) {
     const data = filteredData[i];
+    if (!data) continue;
+
     const card = template.cloneNode(true);
     card.id = "";
     card.style.display = "";
@@ -1124,6 +1151,12 @@ function logUpdate(context, details) {
 
 // Apply filters with proper separation of price and non-price logic
 function applyFilters(skipBandReset = false) {
+  // Guard against invalid data
+  if (!funeralData || !Array.isArray(funeralData)) {
+    Logger.error("Funeral data is not available");
+    return;
+  }
+
   const dayMap = {
     "1": "Available Duration (1 Day)",
     "2": "Available Duration (2 Day)",
@@ -1137,7 +1170,9 @@ function applyFilters(skipBandReset = false) {
   // Ensure we have original stats
   if (!window.priceStats?.original) {
     window.priceStats = {
-      original: getPriceStats(funeralData),
+      original: getPriceStats(funeralData) || {
+        min: 0, max: 0, median: 0, p33: 0, p66: 0
+      },
       filtered: null
     };
   }
@@ -1167,8 +1202,13 @@ function applyFilters(skipBandReset = false) {
     if (showEl) showEl.textContent = funeralData.length;
     
     // Reset price filters
-    filters.priceMin = window.priceStats.original.min;
-    filters.priceMax = window.priceStats.original.max;
+    if (window.priceStats?.original) {
+      filters.priceMin = window.priceStats.original.min;
+      filters.priceMax = window.priceStats.original.max;
+    } else {
+      filters.priceMin = 0;
+      filters.priceMax = 0;
+    }
     filters.priceBand = [];
     
     // Reset price stats
@@ -1190,6 +1230,8 @@ function applyFilters(skipBandReset = false) {
   let filteredDataForDisplay = funeralData;
   if (hasNonPriceFilters) {
     filteredDataForDisplay = funeralData.filter(item => {
+      if (!item) return false;
+      
       // Search term filter
       if (filters.searchTerm) {
         const name = (item["Funeral Parlour Name"] || "").toLowerCase();
@@ -1237,7 +1279,10 @@ function applyFilters(skipBandReset = false) {
   let finalFilteredData = filteredDataForDisplay;
   if (hasPriceFilters) {
     const stats = window.priceStats?.filtered || window.priceStats?.original;
-    if (!stats) return;
+    if (!stats) {
+      Logger.error("No price stats available for filtering");
+      return;
+    }
 
     const selectedDays = filters.days.length ? filters.days : Object.keys(dayMap);
     
@@ -1249,6 +1294,8 @@ function applyFilters(skipBandReset = false) {
     }).filter(Boolean);
 
     finalFilteredData = filteredDataForDisplay.filter(item => {
+      if (!item) return false;
+      
       const prices = selectedDays.map(d => {
         const raw = item[dayMap[d]] || "";
         return parseFloat(raw.toString().replace(/[^\d.]/g, ""));
