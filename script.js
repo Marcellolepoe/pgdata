@@ -84,6 +84,52 @@ let activePriceFilter = {
   values: null // {min, max} actual values
 };
 
+// Debug logging utilities
+function logFilterState(action) {
+  console.group(`Filter State [${action}]`);
+  console.log('Price Band:', filters.priceBand);
+  console.log('Price Range:', { min: filters.priceMin, max: filters.priceMax });
+  console.log('Price Stats:', window.priceStats);
+  console.log('Active Price Filter:', activePriceFilter);
+  console.groupEnd();
+}
+
+// Price calculation safeguards
+function safeGetPriceStats() {
+  const stats = window.priceStats?.filtered || window.priceStats?.original;
+  if (!stats) {
+    console.warn('No price stats available');
+    return null;
+  }
+  
+  if (!stats.min || !stats.max || !stats.p33 || !stats.p66) {
+    console.warn('Incomplete price stats:', stats);
+    return null;
+  }
+  
+  return stats;
+}
+
+// Helper function for piecewise percentile to value conversion
+function piecewisePercentileToValue(fraction, min, p33, p66, max) {
+  if (!min || !max || !p33 || !p66) {
+    console.warn('Missing required price points for conversion');
+    return min || 0;
+  }
+
+  // Ensure fraction is between 0 and 1
+  fraction = Math.max(0, Math.min(1, fraction));
+  
+  // Piecewise linear interpolation
+  if (fraction <= 0.33) {
+    return min + (fraction / 0.33) * (p33 - min);
+  } else if (fraction <= 0.66) {
+    return p33 + ((fraction - 0.33) / 0.33) * (p66 - p33);
+  } else {
+    return p66 + ((fraction - 0.66) / 0.34) * (max - p66);
+  }
+}
+
 function initializePage() {
   // Initialize price filter state first
   window.priceStats = {
@@ -227,19 +273,6 @@ function getFullPricingStats() {
     p66: sorted[Math.floor(sorted.length * 0.66)],
     max: sorted[sorted.length - 1]
   };
-}
-
-function piecewisePercentileToValue(fraction, minVal, p33, p66, maxVal) {
-  if (fraction <= 0.33) {
-    const localFrac = fraction / 0.33;
-    return minVal + localFrac * (p33 - minVal);
-  } else if (fraction <= 0.66) {
-    const localFrac = (fraction - 0.33) / 0.33;
-    return p33 + localFrac * (p66 - p33);
-  } else {
-    const localFrac = (fraction - 0.66) / 0.34; // (1 - 0.66 = 0.34)
-    return p66 + localFrac * (maxVal - p66);
-  }
 }
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -1038,6 +1071,8 @@ function logUpdate(context, details) {
 
 // 2. Refactor applyFilters to only call updatePricingBands on non-price filter changes
 function applyFilters(skipBandReset = false) {
+  logFilterState('Before Apply Filters');
+  
   const dayMap = {
     "1": "Available Duration (1 Day)",
     "2": "Available Duration (2 Day)",
@@ -1051,6 +1086,13 @@ function applyFilters(skipBandReset = false) {
   // Store original stats if they don't exist
   if (!window.originalBandStats) {
     window.originalBandStats = getFullPricingStats();
+  }
+
+  // Get current price stats and validate
+  const stats = safeGetPriceStats();
+  if (!stats) {
+    console.warn('Skipping price filters due to missing stats');
+    return;
   }
 
   // Non-price filter keys
@@ -1121,7 +1163,6 @@ function applyFilters(skipBandReset = false) {
   // Apply price filters
   let filteredDataWithPrice = filteredDataForDisplay;
   if (hasPriceFilters) {
-    const stats = window.priceStats?.original || getFullPricingStats();
     const selectedDays = filters.days.length ? filters.days : Object.keys(dayMap);
     
     const bandRanges = (filters.priceBand || []).map(b => {
@@ -1169,14 +1210,18 @@ function applyFilters(skipBandReset = false) {
   if (!skipBandReset && hasNonPriceFilters) {
     updatePricingBands(filteredDataWithPrice, true);
   }
+
+  logFilterState('After Apply Filters');
 }
 
 // 3. Ensure all UI functions use window.currentBandStats for band boundaries and thumb positions
 function handlePriceBandSelection(band) {
-  // Use filtered stats for band selection
-  const stats = window.priceStats?.filtered;
+  logFilterState('Before Band Selection');
+  
+  // Use filtered stats for band selection with safeguard
+  const stats = safeGetPriceStats();
   if (!stats) {
-    console.error('Price stats not available');
+    console.warn('Cannot select price band - missing stats');
     return;
   }
 
@@ -1236,6 +1281,8 @@ function handlePriceBandSelection(band) {
   // Update UI and apply filters
   updateSelectedFilters();
   applyFilters(true);
+
+  logFilterState('After Band Selection');
 }
 
 function setPriceFilter(type, value, positions = null, values = null) {
@@ -1611,9 +1658,14 @@ function getStatsFromData(data) {
 
 // 1. Define and scope clearPriceFilter globally
 function clearPriceFilter() {
-  // Get the current filtered stats
-  const stats = window.priceStats?.filtered;
-  if (!stats) return;
+  logFilterState('Before Clear Price Filter');
+  
+  // Get the current filtered stats with safeguard
+  const stats = safeGetPriceStats();
+  if (!stats) {
+    console.warn('Cannot clear price filter - missing stats');
+    return;
+  }
 
   // Reset filter state to the current filtered range
   filters.priceBand = [];
@@ -1654,6 +1706,8 @@ function clearPriceFilter() {
   
   // Ensure we're using the correct stats
   window.sliderMapping = stats;
+
+  logFilterState('After Clear Price Filter');
 }
 window.clearPriceFilter = clearPriceFilter;
 
@@ -1726,29 +1780,22 @@ function setupPriceSliderDiv() {
   function onDragStart(e, isMin) {
     e.preventDefault();
     
-    // Check if we have only one price in the filtered data
-    const currentStats = window.priceStats?.filtered;
-    if (currentStats && currentStats.min === currentStats.max) {
-      console.log('[DEBUG] Preventing drag - single price value:', currentStats.min);
-      return; // Prevent dragging when there's only one price
+    // Get current stats with safeguard
+    const dragStats = safeGetPriceStats();
+    if (!dragStats) {
+      console.warn('Cannot start drag - missing price stats');
+      return;
     }
 
     isDragging = true;
-    currentThumb = isMin ? minThumb : maxThumb;
     window.isPriceDragging = true;
-    window._sliderJustDragged = false;
-
-    // Store initial positions
-    startX = e.type.startsWith("touch") ? e.touches[0].clientX : e.clientX;
-    startLeft = parseFloat(currentThumb.style.left) || (isMin ? 0 : 100);
-
-    // Clear any active band selection
-    if (activePriceFilter.type === 'band') {
-      clearPriceFilter();
-    }
-
+    currentThumb = isMin ? minThumb : maxThumb;
+    
+    // Store initial positions for reference
     const rect = track.getBoundingClientRect();
-    const dragStats = window.priceStats?.filtered || getFullPricingStats();
+    const initialX = e.type.startsWith("touch") ? e.touches[0].clientX : e.clientX;
+    
+    logFilterState('Start Drag');
 
     function onDragMove(evt) {
       if (!isDragging) return;
@@ -1797,6 +1844,8 @@ function setupPriceSliderDiv() {
       currentThumb = null;
       window.isPriceDragging = false;
       window._sliderJustDragged = true;
+      
+      logFilterState('End Drag');
       
       // Apply filters with the new price range
       applyFilters(true);
