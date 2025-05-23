@@ -1154,9 +1154,8 @@ function applyFilters(skipBandReset = false) {
     return false;
   });
 
-  const hasPriceFilters = filters.priceBand.length > 0 || 
-    (filters.priceMin !== null && filters.priceMin !== window.priceStats?.original?.min) || 
-    (filters.priceMax !== null && filters.priceMax !== window.priceStats?.original?.max);
+  // Only consider price filters active if explicitly set by user
+  const hasPriceFilters = userSetPriceFilters.band || userSetPriceFilters.range || userSetPriceFilters.max;
 
   // Get elements for result count updates
   const allEl = document.getElementById("all-results");
