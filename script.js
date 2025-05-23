@@ -1095,27 +1095,23 @@ function applyFilters(skipBandReset = false) {
     return;
   }
 
-  // Non-price filter keys
-  const nonPriceKeys = [
-    'location', 'casket', 'tentage', 'catering', 'hearse', 'personnel', 'monks', 'days', 'searchTerm', 'sortBy'
-  ];
-  
-  // Check for active non-price filters
-  const hasNonPriceFilters = nonPriceKeys.some(key => {
-    if (Array.isArray(filters[key])) return filters[key].length > 0;
-    if (typeof filters[key] === 'string') return filters[key].trim() !== '';
-    return false;
-  });
+  // Check if user has explicitly set price filters
+  const userSetPriceFilters = {
+    band: filters.priceBand.length > 0,
+    range: activePriceFilter.type === 'range',
+    max: activePriceFilter.type === 'max'
+  };
 
-  // Check for active price filters
-  const hasPriceFilters = filters.priceBand.length > 0 || 
-    (filters.priceMin !== window.priceStats?.original?.min) || 
-    (filters.priceMax !== window.priceStats?.original?.max);
+  // Only consider price filters active if user explicitly set them
+  const hasPriceFilters = 
+    userSetPriceFilters.band === true ||
+    userSetPriceFilters.range === true ||
+    userSetPriceFilters.max === true;
 
-  // Get elements for result count updates
-  const allEl = document.getElementById("all-results");
-  const showEl = document.getElementById("showed-results");
-  
+  // Consider non-price filters active if days filter is set
+  const hasNonPriceFilters = 
+    Array.isArray(filters.days) && filters.days.length > 0;
+
   // If no filters active, show all results
   if (!hasNonPriceFilters && !hasPriceFilters) {
     if (allEl) allEl.textContent = funeralData.length;
@@ -1208,7 +1204,7 @@ function applyFilters(skipBandReset = false) {
 
   // Update price bands if needed
   if (!skipBandReset && hasNonPriceFilters) {
-    updatePricingBands(filteredDataWithPrice, true);
+    updatePricingBands(filteredDataForDisplay, true);
   }
 
   logFilterState('After Apply Filters');
