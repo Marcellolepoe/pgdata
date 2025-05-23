@@ -1112,6 +1112,10 @@ function applyFilters(skipBandReset = false) {
   const hasNonPriceFilters = 
     Array.isArray(filters.days) && filters.days.length > 0;
 
+  // Get elements for result count updates
+  const allEl = document.getElementById("all-results");
+  const showEl = document.getElementById("showed-results");
+
   // If no filters active, show all results
   if (!hasNonPriceFilters && !hasPriceFilters) {
     if (allEl) allEl.textContent = funeralData.length;
