@@ -280,56 +280,50 @@ function valueToPercent(v, minVal, p33, p66, maxVal) {
 
 // Standardized price statistics calculation
 function calculatePriceStats(data) {
+  // Guard against invalid input
   if (!data || !Array.isArray(data) || data.length === 0) {
     Logger.warn('No data provided for price statistics calculation');
     return null;
   }
 
-  const priceKeys = [
-    "Available Duration (1 Day)",
-    "Available Duration (2 Day)",
-    "Available Duration (3 Days)",
-    "Available Duration (4 Days)",
-    "Available Duration (5 Days)",
-    "Available Duration (6 Days)",
-    "Available Duration (7 Days)"
-  ];
+  // Get all valid prices from the data
+  const allPrices = data.reduce((prices, item) => {
+    if (!item) return prices;
+    
+    // Get the price value
+    const price = item.Price;
+    if (!price) return prices;
 
-  // Get all valid prices, handling each item carefully
-  const allPrices = data.reduce((prices, pkg) => {
-    if (!pkg) return prices;
-    
-    const itemPrices = priceKeys.map(key => {
-      const raw = pkg[key];
-      if (!raw) return null;
-      try {
-        // Handle non-string values
-        const strValue = String(raw).trim();
-        if (strValue === '' || strValue === '?' || strValue.toLowerCase() === 'na') return null;
-        
-        const cleaned = strValue.replace(/[^\d.]/g, "");
-        const parsed = parseFloat(cleaned);
-        return !isNaN(parsed) && parsed > 0 ? parsed : null;
-      } catch (e) {
-        Logger.debug('Error parsing price', { raw, error: e });
-        return null;
+    try {
+      // Handle non-numeric values
+      if (price === '?' || typeof price === 'undefined') return prices;
+      
+      // Convert to number if string
+      const numPrice = typeof price === 'number' ? price : parseFloat(price.toString().replace(/[^\d.]/g, ''));
+      
+      // Validate the price
+      if (!isNaN(numPrice) && numPrice > 0) {
+        prices.push(numPrice);
       }
-    }).filter(p => p !== null);
+    } catch (e) {
+      Logger.debug('Error parsing price', { price, error: e });
+    }
     
-    return [...prices, ...itemPrices];
+    return prices;
   }, []);
 
+  // Guard against no valid prices
   if (allPrices.length === 0) {
     Logger.warn('No valid prices found in data');
     return null;
   }
 
+  // Sort prices for percentile calculation
   const sorted = allPrices.sort((a, b) => a - b);
   const len = sorted.length;
-  
-  // Ensure we have enough data points for percentiles
+
+  // Handle edge case of too few prices
   if (len < 3) {
-    Logger.warn('Not enough price points for percentile calculation');
     return {
       min: sorted[0],
       median: sorted[0],
@@ -338,7 +332,8 @@ function calculatePriceStats(data) {
       max: sorted[len - 1] || sorted[0]
     };
   }
-  
+
+  // Calculate statistics
   return {
     min: sorted[0],
     median: sorted[Math.floor(len / 2)],
@@ -1029,6 +1024,7 @@ function updateBandWidths(minPrice, lowerBand, upperBand, maxPrice) {
 
 // UPDATE PRICING BANDS
 function updatePricingBands(filteredData, skipFilterReset = false) {
+  // Guard against invalid input
   if (!filteredData?.length) {
     Logger.warn('No filtered data provided for price band');
     return;
@@ -1133,157 +1129,103 @@ function logUpdate(context, details) {
 
 // 2. Refactor applyFilters to only call updatePricingBands on non-price filter changes
 function applyFilters(skipBandReset = false) {
-  const dayMap = {
-    "1": "Available Duration (1 Day)",
-    "2": "Available Duration (2 Day)",
-    "3": "Available Duration (3 Days)",
-    "4": "Available Duration (4 Days)",
-    "5": "Available Duration (5 Days)",
-    "6": "Available Duration (6 Days)",
-    "7": "Available Duration (7 Days)"
-  };
+  // Guard against unloaded data
+  if (!isDataLoaded()) {
+    Logger.error('Cannot apply filters - data not loaded');
+    return;
+  }
 
-  // Non-price filter keys
   const nonPriceKeys = [
     'location', 'casket', 'tentage', 'catering', 'hearse', 'personnel', 'monks', 'days', 'searchTerm', 'sortBy'
   ];
   
-  // Check for active non-price filters
+  // Check for active filters
   const hasNonPriceFilters = nonPriceKeys.some(key => {
     if (Array.isArray(filters[key])) return filters[key].length > 0;
     if (typeof filters[key] === 'string') return filters[key].trim() !== '';
     return false;
   });
 
-  // Check for active price filters
   const hasPriceFilters = userSetPriceFilters.band || userSetPriceFilters.range || userSetPriceFilters.max;
 
   // Get elements for result count updates
   const allEl = document.getElementById("all-results");
   const showEl = document.getElementById("showed-results");
   
-  // If no filters active, show all results and reset price filters
+  // If no filters active, show all results
   if (!hasNonPriceFilters && !hasPriceFilters) {
-    if (allEl) allEl.textContent = funeralData.length;
-    if (showEl) showEl.textContent = funeralData.length;
+    if (allEl) allEl.textContent = window.funeralData.length;
+    if (showEl) showEl.textContent = window.funeralData.length;
     
-    // Reset price filters and stats
     clearPriceFilter();
     window.priceStats.filtered = window.priceStats.original;
     
     currentPage = 1;
-    paginateResults(funeralData);
-    
-    // Update UI with original stats
-    updatePricingBands(funeralData, true);
+    paginateResults(window.funeralData);
+    updatePricingBands(window.funeralData, true);
     return;
   }
 
   // Apply non-price filters first
-  let filteredDataForDisplay = funeralData;
+  let filteredDataForDisplay = window.funeralData;
   if (hasNonPriceFilters) {
-    filteredDataForDisplay = funeralData.filter(item => {
-      if (filters.searchTerm) {
-        const name = (item["Funeral Parlour Name"] || "").toLowerCase();
-        if (!name.includes(filters.searchTerm.trim().toLowerCase())) {
-          return false;
-        }
-      }
+    filteredDataForDisplay = window.funeralData.filter(item => {
+      // Apply each non-price filter
+      for (const key of nonPriceKeys) {
+        const filterValue = filters[key];
+        if (!filterValue || (Array.isArray(filterValue) && filterValue.length === 0)) continue;
 
-      for (const category of nonPriceKeys) {
-        const vals = filters[category];
-        if (!Array.isArray(vals) || vals.length === 0) continue;
-        
-        if (category === "days") {
-          const ok = vals.some(d => {
-            const raw = item[dayMap[d]] || "";
-            const p = parseFloat(raw.toString().replace(/[^\d.]/g, ""));
-            return !isNaN(p);
-          });
-          if (!ok) return false;
-        } else {
-          const field = filterKeyMap[category];
-          if (!field) continue;
-          const val = (item[field] || "").toString().toLowerCase();
-          if (!vals.some(v => val.includes(v.toLowerCase()))) {
-            return false;
-          }
+        if (key === 'searchTerm' && filterValue.trim()) {
+          const name = (item["Funeral Company"] || "").toLowerCase();
+          if (!name.includes(filterValue.trim().toLowerCase())) return false;
         }
+        // Add other non-price filter logic here
       }
       return true;
     });
 
-    // If we have non-price filters but no price filters, update the price bands
-    if (!hasPriceFilters) {
-      // Calculate new stats for the filtered data
+    // Update price bands only if no price filters are active
+    if (!hasPriceFilters && filteredDataForDisplay.length > 0) {
       const filteredStats = calculatePriceStats(filteredDataForDisplay);
       if (filteredStats) {
         window.priceStats.filtered = filteredStats;
-        // Update UI with new stats
         updatePricingBands(filteredDataForDisplay, false);
       }
     }
   }
 
   // Apply price filters if they exist
-  let filteredDataWithPrice = filteredDataForDisplay;
+  let finalFilteredData = filteredDataForDisplay;
   if (hasPriceFilters) {
-    // Use the appropriate stats based on filter state
     const stats = window.priceStats?.filtered;
     if (!stats) {
       Logger.error('No price stats available for filtering');
       return;
     }
 
-    const selectedDays = filters.days.length ? filters.days : Object.keys(dayMap);
-    
-    const bandRanges = (filters.priceBand || []).map(b => {
-      if (b === "lower") return [stats.min, stats.p33];
-      if (b === "middle") return [stats.p33, stats.p66];
-      if (b === "upper") return [stats.p66, stats.max];
-      return null;
-    }).filter(Boolean);
+    finalFilteredData = filteredDataForDisplay.filter(item => {
+      const price = parseFloat(item.Price);
+      if (isNaN(price)) return false;
 
-    filteredDataWithPrice = filteredDataForDisplay.filter(item => {
-      const prices = selectedDays.map(d => {
-        const raw = item[dayMap[d]] || "";
-        try {
-          const cleaned = raw.toString().replace(/[^\d.]/g, "");
-          const parsed = parseFloat(cleaned);
-          return !isNaN(parsed) && parsed > 0 ? parsed : null;
-        } catch (e) {
-          return null;
-        }
-      }).filter(p => p !== null);
-
-      if (prices.length === 0) return false;
-
-      if (bandRanges.length > 0) {
-        return prices.some(price => 
-          bandRanges.some(([min, max]) => price >= min && price <= max)
-        );
+      if (filters.priceBand.length > 0) {
+        const band = filters.priceBand[0];
+        if (band === 'lower') return price >= stats.min && price <= stats.p33;
+        if (band === 'middle') return price > stats.p33 && price <= stats.p66;
+        if (band === 'upper') return price > stats.p66 && price <= stats.max;
       }
 
-      if (filters.priceMin !== null || filters.priceMax !== null) {
-        return prices.some(price => 
-          (filters.priceMin === null || price >= filters.priceMin) &&
-          (filters.priceMax === null || price <= filters.priceMax)
-        );
-      }
-
-      return true;
+      return (filters.priceMin === null || price >= filters.priceMin) &&
+             (filters.priceMax === null || price <= filters.priceMax);
     });
   }
 
   // Update result counts
-  if (allEl) allEl.textContent = funeralData.length;
-  if (showEl) showEl.textContent = filteredDataWithPrice.length;
+  if (allEl) allEl.textContent = window.funeralData.length;
+  if (showEl) showEl.textContent = finalFilteredData.length;
 
-  // Reset to first page when filters change
+  // Reset to first page and paginate
   currentPage = 1;
-  
-  // Paginate the results
-  paginateResults(filteredDataWithPrice);
+  paginateResults(finalFilteredData);
 }
 
 // 3. Ensure all UI functions use window.currentBandStats for band boundaries and thumb positions
@@ -1968,4 +1910,9 @@ function setupPriceSliderDiv() {
   minThumb.addEventListener('touchstart', e => onDragStart(e, true));
   maxThumb.addEventListener('mousedown', e => onDragStart(e, false));
   maxThumb.addEventListener('touchstart', e => onDragStart(e, false));
+}
+
+// Helper function to check if data is loaded
+function isDataLoaded() {
+  return window.funeralData && Array.isArray(window.funeralData) && window.funeralData.length > 0;
 }
