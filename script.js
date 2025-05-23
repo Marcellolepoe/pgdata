@@ -1158,6 +1158,22 @@ function applyFilters(skipBandReset = false) {
     (filters.priceMin !== null && filters.priceMin !== window.priceStats?.original?.min) || 
     (filters.priceMax !== null && filters.priceMax !== window.priceStats?.original?.max);
 
+  console.log('[DEBUG] FILTER STATE:');
+  console.log('userSetPriceFilters:', userSetPriceFilters);
+  console.log('activePriceFilter:', activePriceFilter);
+  console.log('hasPriceFilters:', hasPriceFilters);
+  console.log('hasNonPriceFilters:', hasNonPriceFilters);
+  console.log('filters:', {
+    priceBand: filters.priceBand,
+    priceMin: filters.priceMin,
+    priceMax: filters.priceMax,
+    days: filters.days
+  });
+  console.log('priceStats:', {
+    original: window.priceStats?.original,
+    filtered: window.priceStats?.filtered
+  });
+
   // Get elements for result count updates
   const allEl = document.getElementById("all-results");
   const showEl = document.getElementById("showed-results");
