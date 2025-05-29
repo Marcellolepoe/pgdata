@@ -16,7 +16,8 @@
     "Personnel": "Professional Pallbearers",
     "Monks": "Senior Buddhist Monks",
     "Days": 3,
-    "Total Price": "5800"
+    "Total Price": "5800",
+    "Image": "eternal-rest-funeral-services.jpg"
   },
   {
     "Funeral Company": "Serenity Memorial Services",
@@ -35,7 +36,8 @@
     "Personnel": "Two Attendants",
     "Monks": "Junior Buddhist Monks",
     "Days": 1,
-    "Total Price": "3200"
+    "Total Price": "3200",
+    "Image": "serenity-memorial-services.jpg"
   },
   {
     "Funeral Company": "Tranquil Passage Funerals",
@@ -54,7 +56,8 @@
     "Personnel": "Standard Service Team",
     "Monks": "Highly Experienced Monks",
     "Days": 5,
-    "Total Price": "7200"
+    "Total Price": "7200",
+    "Image": "tranquil-passage-funerals.jpg"
   },
   {
     "Funeral Company": "Heavenly Journey Funeral Home",
@@ -73,6 +76,7 @@
     "Personnel": "Family-Led Ceremony",
     "Monks": "Master Monk Ceremony",
     "Days": 2,
-    "Total Price": "4200"
+    "Total Price": "4200",
+    "Image": "heavenly-journey-funeral-home.jpg"
   }
 ]
