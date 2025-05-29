@@ -696,6 +696,27 @@ function populateFuneralCard(cardWrapper, funeral) {
   const phoneEl = cardWrapper.querySelector('.parlour-phone-number');
   if (phoneEl) phoneEl.textContent = funeral["Contact Number"] || "Not Available";
 
+  // Parlour Image
+  const imageEl = cardWrapper.querySelector('#parlour-image, .parlour-image');
+  const imageContainer = cardWrapper.querySelector('#parlour-image-div, .parlour-image-div');
+  if (imageEl) {
+    if (funeral["Image"] && funeral["Image"].toString().trim() !== "") {
+      // Use GitHub Raw URL for efficiency
+      const imageSrc = `https://raw.githubusercontent.com/Marcellolepoe/pgdata/main/images/${funeral["Image"]}`;
+      imageEl.src = imageSrc;
+      imageEl.alt = `${funeral["Funeral Parlour Name"] || 'Funeral Parlour'} - Photo`;
+      imageEl.loading = "lazy"; // Performance optimization
+      imageEl.style.display = '';
+      
+      // Show parent container
+      if (imageContainer) imageContainer.style.display = '';
+    } else {
+      // Hide image and container when no image available
+      imageEl.style.display = 'none';
+      if (imageContainer) imageContainer.style.display = 'none';
+    }
+  }
+
   // Founded In (Years of Service)
   const foundedInEl = cardWrapper.querySelector('.founded-in');
   if (foundedInEl) {
