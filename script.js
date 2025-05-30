@@ -10,8 +10,7 @@ window.filters = {
   priceMin: null,
   priceMax: null,
   searchTerm: "",
-  sortBy: "",
-  priceBand: [],
+  sortBy: ""
 };
 
 let funeralData = [];
@@ -359,10 +358,30 @@ document.addEventListener("DOMContentLoaded", function () {
     clearAllButton.addEventListener("click", function () {
       console.log('[DEBUG] Clear All clicked');
       
-      // Reset filters
-      filters.priceMin = window.priceStats.original.min;
-      filters.priceMax = window.priceStats.original.max;
-      filters.priceBand = [];
+      // Get initial price range
+      let priceRange = { min: 0, max: 100000 };
+      if (window.funeralData && window.funeralData.length > 0) {
+        const allPrices = [];
+        window.funeralData.forEach(item => {
+          for (let i = 1; i <= 7; i++) {
+            const key = `Available Duration (${i} Day${i > 1 ? (i === 2 ? '' : 's') : ''})`;
+            const price = parseFloat((item[key] || "").toString().replace(/[^\d.]/g, ""));
+            if (!isNaN(price) && price > 0) {
+              allPrices.push(price);
+            }
+          }
+        });
+        
+        if (allPrices.length > 0) {
+          allPrices.sort((a, b) => a - b);
+          priceRange.min = allPrices[0];
+          priceRange.max = allPrices[allPrices.length - 1];
+        }
+      }
+      
+      // Reset all filters
+      filters.priceMin = priceRange.min;
+      filters.priceMax = priceRange.max;
       filters.searchTerm = "";
       
       // Reset all array filters
@@ -372,35 +391,27 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       });
 
-      // Reset checkboxes and band selections
+      // Reset checkboxes
       document.querySelectorAll('.filter-checkbox input[type="checkbox"]')
         .forEach(cb => cb.checked = false);
-      document.querySelectorAll('[data-band]')
-        .forEach(b => b.classList.remove('selected'));
       
-      // Reset slider state flags
-      window.isPriceDragging = false;
-      window._sliderJustDragged = false;
-      
-      console.debug('[CLEAR] Resetting to initial state:', {
-        globalMinPrice: window.priceStats.original.min,
-        globalMaxPrice: window.priceStats.original.max,
-        filters
-      });
-
-      // Force UI updates
-      updatePriceFilterUI();
-      updateSelectedFilters();
-      applyFilters(false);
-
-      // Update results count
-      const showEl = document.getElementById("showed-results");
-      const allEl = document.getElementById("all-results");
-      if (showEl && allEl) {
-        const totalCount = window.funeralData.length;
-        showEl.textContent = totalCount;
-        allEl.textContent = totalCount;
+      // Reset price thumbs
+      const minThumb = document.getElementById("price-min");
+      const maxThumb = document.getElementById("price-max");
+      if (minThumb && maxThumb) {
+        minThumb.style.left = "0%";
+        maxThumb.style.left = "100%";
       }
+      
+      // Clear price max input
+      const manualMaxInput = document.getElementById("price-input-max");
+      if (manualMaxInput) manualMaxInput.value = "";
+      
+      // Update UI and apply filters
+      updateSelectedFilters();
+      applyFilters();
+
+      console.log('✅ All filters cleared');
     });
   } else {
     console.error("🚨 Clear All button not found! Check Webflow class name and ID.");
@@ -506,19 +517,30 @@ function updateSelectedFilters() {
     hasFilters = true;
   };
 
-  // Handle price band filters
-  if (filters.priceBand.length > 0) {
-    const band = filters.priceBand[0];
-    const stats = window.priceStats.original;
-    let range;
-    if (band === 'lower') range = `$${stats.min.toLocaleString()} – $${stats.p33.toLocaleString()}`;
-    else if (band === 'middle') range = `$${stats.p33.toLocaleString()} – $${stats.p66.toLocaleString()}`;
-    else if (band === 'upper') range = `$${stats.p66.toLocaleString()} – $${stats.max.toLocaleString()}`;
-    addFilterTag('Price Band', range, 'priceBand');
+  // Get initial price range for comparison
+  let initialPriceRange = { min: 0, max: 100000 };
+  if (window.funeralData && window.funeralData.length > 0) {
+    const allPrices = [];
+    window.funeralData.forEach(item => {
+      for (let i = 1; i <= 7; i++) {
+        const key = `Available Duration (${i} Day${i > 1 ? (i === 2 ? '' : 's') : ''})`;
+        const price = parseFloat((item[key] || "").toString().replace(/[^\d.]/g, ""));
+        if (!isNaN(price) && price > 0) {
+          allPrices.push(price);
+        }
+      }
+    });
+    
+    if (allPrices.length > 0) {
+      allPrices.sort((a, b) => a - b);
+      initialPriceRange.min = allPrices[0];
+      initialPriceRange.max = allPrices[allPrices.length - 1];
+    }
   }
-  // Handle manual price range
-  else if (filters.priceMin !== window.priceStats.original.min || filters.priceMax !== window.priceStats.original.max) {
-    const isMaxOnly = filters.priceMin === window.priceStats.original.min && filters.priceMax !== window.priceStats.original.max;
+
+  // Handle price range (only show if different from initial range)
+  if (filters.priceMin !== initialPriceRange.min || filters.priceMax !== initialPriceRange.max) {
+    const isMaxOnly = filters.priceMin === initialPriceRange.min && filters.priceMax !== initialPriceRange.max;
     if (isMaxOnly) {
       addFilterTag('Price', `$${filters.priceMax.toLocaleString()} Max`, 'price');
     } else {
@@ -526,9 +548,9 @@ function updateSelectedFilters() {
     }
   }
 
-  // Handle other filters...
+  // Handle other filters
   Object.keys(filters).forEach((category) => {
-    if (category === 'priceBand' || category === 'priceMin' || category === 'priceMax') return;
+    if (category === 'priceMin' || category === 'priceMax' || category === 'searchTerm' || category === 'sortBy') return;
     const val = filters[category];
     if (Array.isArray(val) && val.length > 0) {
       const formattedCategory = category.charAt(0).toUpperCase() + category.slice(1);
@@ -536,22 +558,44 @@ function updateSelectedFilters() {
     }
   });
 
+  // Handle search term
+  if (filters.searchTerm && filters.searchTerm.trim() !== "") {
+    addFilterTag('Search', filters.searchTerm, 'searchTerm');
+  }
+
   if (!hasFilters) {
     selectedFiltersDiv.innerHTML = `<p style="color: gray;">No filters selected.</p>`;
   }
 
   // Add click handlers for clear buttons
   selectedFiltersDiv.querySelectorAll(".clear-category").forEach(button => {
-          button.addEventListener("click", function() {
+    button.addEventListener("click", function() {
       const category = this.dataset.category;
-      if (category === 'priceBand') {
-        clearPriceFilter();
-      } else if (category === 'price') {
-        clearPriceFilter();
+      
+      if (category === 'price') {
+        // Reset price to initial range
+        filters.priceMin = initialPriceRange.min;
+        filters.priceMax = initialPriceRange.max;
+        
+        // Reset thumbs
+        const minThumb = document.getElementById("price-min");
+        const maxThumb = document.getElementById("price-max");
+        if (minThumb && maxThumb) {
+          minThumb.style.left = "0%";
+          maxThumb.style.left = "100%";
+        }
+        
+        // Clear manual input
         const manualMaxInput = document.getElementById("price-input-max");
         if (manualMaxInput) manualMaxInput.value = "";
+        
+      } else if (category === 'searchTerm') {
+        filters.searchTerm = "";
+        const searchInput = document.getElementById("funeral-parlour-search");
+        if (searchInput) searchInput.value = "";
+        
       } else {
-        // Handle non-price filters
+        // Handle array filters
         if (Array.isArray(filters[category])) {
           filters[category] = [];
           document.querySelectorAll(`[data-category="${category}"] input`)
@@ -561,8 +605,7 @@ function updateSelectedFilters() {
       
       // Update UI and reapply filters
       updateSelectedFilters();
-      updatePriceFilterUI();
-      applyFilters(true);
+      applyFilters();
     });
   });
 }
