@@ -39,7 +39,6 @@ const PRICE_BAND_CONFIG = {
 
 // Add this at the top level
 let isInitializing = true;
-let lastThumbPositions = { min: null, max: null };
 
 // Add at the top level
 let currentBandState = {
@@ -70,10 +69,10 @@ const FILTER_TYPES = {
   }
 };
 
-// Add at the top level
+// Add at the top level - tracks price stats for display purposes
 window.priceStats = {
   original: null,
-  filtered: null
+  lastNonPriceFiltered: null  // This will store the last non-price filtered stats
 };
 
 let activePriceFilter = {
@@ -95,7 +94,7 @@ function logFilterState(action) {
 
 // Price calculation safeguards
 function safeGetPriceStats() {
-  const stats = window.priceStats?.filtered || window.priceStats?.original;
+  const stats = window.priceStats?.lastNonPriceFiltered || window.priceStats?.original;
   if (!stats) {
     console.warn('No price stats available');
     return null;
@@ -133,7 +132,7 @@ function initializePage() {
   // Initialize price filter state first
   window.priceStats = {
     original: null,
-    filtered: null
+    lastNonPriceFiltered: null
   };
   
   window.filters = {
@@ -154,9 +153,7 @@ function initializePage() {
 
   const requiredElements = [
     "funeral-cards-container",
-    "price-band-bar",
-    "price-min",
-    "price-max"
+    "price-band-bar"
   ];
   
   const missingElements = requiredElements.filter(id => !document.getElementById(id));
@@ -213,9 +210,6 @@ async function fetchFuneralData() {
     // Initialize filters with correct initial values
     filters.priceMin = window.priceStats.original.min;
     filters.priceMax = window.priceStats.original.max;
-    
-    // Then set up UI elements
-    setupPriceSliderDiv();
     
     // Update display elements
     const allCountEl = document.getElementById("all-results");
@@ -303,17 +297,6 @@ document.addEventListener("DOMContentLoaded", function () {
           const maxAllowed = stats.max;
           const validValue = Math.min(val, maxAllowed);
           
-          // Calculate the correct position
-          const maxPercent = valueToPercent(validValue, stats.min, stats.p33, stats.p66, stats.max);
-          
-          // Update thumb position
-          const maxThumb = document.getElementById("price-max");
-          if (maxThumb) {
-            requestAnimationFrame(() => {
-              maxThumb.style.left = `${maxPercent}%`;
-            });
-          }
-          
           // Update filter state
           filters.priceMax = validValue;
           filters.priceBand = []; // Clear any active band selection
@@ -395,14 +378,6 @@ document.addEventListener("DOMContentLoaded", function () {
       document.querySelectorAll('.filter-checkbox input[type="checkbox"]')
         .forEach(cb => cb.checked = false);
       
-      // Reset price thumbs
-      const minThumb = document.getElementById("price-min");
-      const maxThumb = document.getElementById("price-max");
-      if (minThumb && maxThumb) {
-        minThumb.style.left = "0%";
-        maxThumb.style.left = "100%";
-      }
-      
       // Clear price max input
       const manualMaxInput = document.getElementById("price-input-max");
       if (manualMaxInput) manualMaxInput.value = "";
@@ -410,8 +385,6 @@ document.addEventListener("DOMContentLoaded", function () {
       // Update UI and apply filters
       updateSelectedFilters();
       applyFilters();
-
-      console.log('✅ All filters cleared');
     });
   } else {
     console.error("🚨 Clear All button not found! Check Webflow class name and ID.");
@@ -436,9 +409,13 @@ function setupFilters() {
         filters[category] = filters[category].filter(v => v !== value);
       }
       updateSelectedFilters();
-      applyFilters();
+      
+      // Apply non-price filters first and update price stats
       const nonPriceFiltered = getFilteredDataExcludingPrice();
       updatePricingBands(nonPriceFiltered, false);
+      
+      // Then apply all filters including price
+      applyFilters();
     });
   });
 }
@@ -577,14 +554,6 @@ function updateSelectedFilters() {
         filters.priceMin = initialPriceRange.min;
         filters.priceMax = initialPriceRange.max;
         
-        // Reset thumbs
-        const minThumb = document.getElementById("price-min");
-        const maxThumb = document.getElementById("price-max");
-        if (minThumb && maxThumb) {
-          minThumb.style.left = "0%";
-          maxThumb.style.left = "100%";
-        }
-        
         // Clear manual input
         const manualMaxInput = document.getElementById("price-input-max");
         if (manualMaxInput) manualMaxInput.value = "";
@@ -608,18 +577,6 @@ function updateSelectedFilters() {
       applyFilters();
     });
   });
-}
-
-// Reset Price Slider (Full Range)
-function resetPriceSlider() {
-  const minThumb = document.getElementById("price-min");
-  const maxThumb = document.getElementById("price-max");
-  if (minThumb && maxThumb) {
-    minThumb.style.left = "0%";
-    maxThumb.style.left = "100%";
-  }
-  filters.priceMin = window.priceStats.original.min;
-  filters.priceMax = window.priceStats.original.max;
 }
 
 // HELPER: getDisplayValue
@@ -1056,76 +1013,40 @@ function updatePricingBands(filteredData, skipFilterReset = false) {
     p66: sorted[Math.floor(sorted.length * 0.66)]
   };
 
-  // Store both original and filtered stats
-  window.priceStats = {
-    original: window.priceStats?.original || currentStats,
-    filtered: currentStats
-  };
+  // Initialize original stats on first run
+  if (!window.priceStats.original) {
+    window.priceStats.original = currentStats;
+  }
 
-  // Always use filtered stats for display
+  // Store these stats as the last non-price filtered stats
+  window.priceStats.lastNonPriceFiltered = currentStats;
+
+  // Always use these stats for display (they represent the non-price filtered state)
   updateTextForAll(".lowest-price-display", currentStats.min);
   updateTextForAll(".lower-band-range", currentStats.p33);
   updateTextForAll(".median-price-display", currentStats.median);
   updateTextForAll(".upper-band-range", currentStats.p66);
   updateTextForAll(".highest-price-display", currentStats.max);
 
-  // Update visual bands using filtered stats
+  // Update visual bands using these stats
   updatePriceBandsVisual(currentStats.min, currentStats.p33, currentStats.p66, currentStats.max);
 
   // Store current stats for slider operations
   window.sliderMapping = currentStats;
 
-  // Handle thumb positions based on current filter state
-  if (!skipFilterReset && !window.isPriceDragging && !window._sliderJustDragged) {
-    // Reset to full range of filtered data
+  // Reset price filter range to match the current non-price filtered data range
+  if (!skipFilterReset) {
     filters.priceMin = currentStats.min;
     filters.priceMax = currentStats.max;
     filters.priceBand = []; // Clear any band selection
     
-    // Update active price filter state
     activePriceFilter = {
       type: null,
       value: null,
       positions: { min: 0, max: 100 },
       values: { min: currentStats.min, max: currentStats.max }
     };
-    
-    positionThumbs(currentStats.min, currentStats.max, currentStats.min, currentStats.max);
-  } else {
-    // Maintain current price filter but adjust to valid range
-    filters.priceMin = Math.max(filters.priceMin, currentStats.min);
-    filters.priceMax = Math.min(filters.priceMax, currentStats.max);
-    
-    // Update positions based on current filter values
-    const minPercent = valueToPercent(filters.priceMin, currentStats.min, currentStats.p33, currentStats.p66, currentStats.max);
-    const maxPercent = valueToPercent(filters.priceMax, currentStats.min, currentStats.p33, currentStats.p66, currentStats.max);
-    
-    positionThumbs(currentStats.min, currentStats.max, filters.priceMin, filters.priceMax);
-    
-    // Update active price filter state
-    if (activePriceFilter.type === 'range') {
-      activePriceFilter.positions = { min: minPercent, max: maxPercent };
-      activePriceFilter.values = { min: filters.priceMin, max: filters.priceMax };
-    }
   }
-}
-
-// POSITION THUMBS
-function positionThumbs(filteredMin, filteredMax, selectedMin, selectedMax) {
-  // if sliderMapping is undefined, grab the full stats
-  const stats = window.sliderMapping || getFullPricingStats();
-  const { min, p33, p66, max } = stats;
-
-  // now clamp your selectedMin/selectedMax
-  selectedMin = Math.max(filteredMin, Math.min(selectedMin, filteredMax));
-  selectedMax = Math.max(filteredMin, Math.min(selectedMax, filteredMax));
-
-  // inverse‐map value → percent
-  const pctMin = valueToPercent(selectedMin, min, p33, p66, max);
-  const pctMax = valueToPercent(selectedMax, min, p33, p66, max);
-
-  document.getElementById("price-min").style.left = pctMin + "%";
-  document.getElementById("price-max").style.left = pctMax + "%";
 }
 
 // 1. Add a logUpdate helper
@@ -1274,28 +1195,6 @@ function clearPriceFilter() {
     values: { min: stats.min, max: stats.max }
   };
 
-  // Reset slider positions to the filtered range bounds
-  const minThumb = document.getElementById("price-min");
-  const maxThumb = document.getElementById("price-max");
-  
-  // If there's only one price value, lock both thumbs at that position
-  if (stats.min === stats.max) {
-    const position = valueToPercent(stats.min, stats.min, stats.p33, stats.p66, stats.max);
-    if (minThumb && maxThumb) {
-      requestAnimationFrame(() => {
-        minThumb.style.left = `${position}%`;
-        maxThumb.style.left = `${position}%`;
-      });
-    }
-  } else {
-    if (minThumb && maxThumb) {
-      requestAnimationFrame(() => {
-        minThumb.style.left = "0%";
-        maxThumb.style.left = "100%";
-      });
-    }
-  }
-
   // Update UI
   updatePriceFilterUI();
   
@@ -1346,118 +1245,67 @@ function paginateResults(filteredData) {
   });
 }
 
-function setupPriceSliderDiv() {
-  const track = document.getElementById("price-band-bar");
-  const minThumb = document.getElementById("price-min");
-  const maxThumb = document.getElementById("price-max");
-
-  if (!track || !minThumb || !maxThumb) {
-    console.error('[ERROR] Missing slider elements');
-    return;
+// Helper function to get filtered data excluding price filters
+function getFilteredDataExcludingPrice() {
+  if (!window.funeralData || window.funeralData.length === 0) {
+    return [];
   }
 
-  // Get price stats - use simple approach
-  let priceRange = { min: 0, max: 100000 };
-  if (window.funeralData && window.funeralData.length > 0) {
-    const allPrices = [];
-    window.funeralData.forEach(item => {
-      for (let i = 1; i <= 7; i++) {
-        const key = `Available Duration (${i} Day${i > 1 ? (i === 2 ? '' : 's') : ''})`;
-        const price = parseFloat((item[key] || "").toString().replace(/[^\d.]/g, ""));
-        if (!isNaN(price) && price > 0) {
-          allPrices.push(price);
-        }
-      }
+  const dayMap = {
+    "1": "Available Duration (1 Day)",
+    "2": "Available Duration (2 Day)", 
+    "3": "Available Duration (3 Days)",
+    "4": "Available Duration (4 Days)",
+    "5": "Available Duration (5 Days)",
+    "6": "Available Duration (6 Days)",
+    "7": "Available Duration (7 Days)"
+  };
+
+  // Start with all data
+  let filteredData = window.funeralData;
+
+  // Apply search filter
+  if (filters.searchTerm && filters.searchTerm.trim() !== "") {
+    filteredData = filteredData.filter(item => {
+      const name = (item["Funeral Parlour Name"] || "").toLowerCase();
+      return name.includes(filters.searchTerm.toLowerCase());
     });
-    
-    if (allPrices.length > 0) {
-      allPrices.sort((a, b) => a - b);
-      priceRange.min = allPrices[0];
-      priceRange.max = allPrices[allPrices.length - 1];
-    }
   }
 
-  // Initialize positions
-  minThumb.style.left = "0%";
-  maxThumb.style.left = "100%";
-  
-  // Initialize filter values
-  filters.priceMin = priceRange.min;
-  filters.priceMax = priceRange.max;
-
-  let isDragging = false;
-  let activeThumb = null;
-
-  // Simple linear conversion functions
-  function percentToPrice(percent) {
-    return priceRange.min + (percent / 100) * (priceRange.max - priceRange.min);
+  // Apply day filters
+  if (filters.days && filters.days.length > 0) {
+    filteredData = filteredData.filter(item => {
+      return filters.days.some(day => {
+        const key = dayMap[day];
+        const price = parseFloat((item[key] || "").toString().replace(/[^\d.]/g, ""));
+        return !isNaN(price) && price > 0;
+      });
+    });
   }
 
-  function priceToPercent(price) {
-    return ((price - priceRange.min) / (priceRange.max - priceRange.min)) * 100;
-  }
+  // Apply other category filters (excluding price filters)
+  const categoryFilters = ['location', 'casket', 'tentage', 'catering', 'hearse', 'personnel', 'monks'];
 
-  function startDrag(e, isMinThumb) {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    isDragging = true;
-    activeThumb = isMinThumb ? minThumb : maxThumb;
-    
-    const trackRect = track.getBoundingClientRect();
-    
-    function handleMove(moveEvent) {
-      if (!isDragging) return;
-      
-      const clientX = moveEvent.type.includes('touch') ? moveEvent.touches[0].clientX : moveEvent.clientX;
-      const relativeX = clientX - trackRect.left;
-      const percent = Math.max(0, Math.min(100, (relativeX / trackRect.width) * 100));
-      
-      if (isMinThumb) {
-        const maxPercent = parseFloat(maxThumb.style.left) || 100;
-        if (percent <= maxPercent - 2) { // 2% buffer
-          minThumb.style.left = percent + "%";
-          filters.priceMin = Math.round(percentToPrice(percent));
-        }
-      } else {
-        const minPercent = parseFloat(minThumb.style.left) || 0;
-        if (percent >= minPercent + 2) { // 2% buffer  
-          maxThumb.style.left = percent + "%";
-          filters.priceMax = Math.round(percentToPrice(percent));
-        }
+  categoryFilters.forEach(category => {
+    if (filters[category] && filters[category].length > 0) {
+      const fieldName = filterKeyMap[category];
+      if (fieldName) {
+        filteredData = filteredData.filter(item => {
+          const value = (item[fieldName] || "").toString().toLowerCase();
+          return filters[category].some(filterValue => 
+            value.includes(filterValue.toLowerCase())
+          );
+        });
       }
-      
-      // Update display immediately
-      updateSelectedFilters();
     }
-    
-    function endDrag() {
-      if (!isDragging) return;
-      isDragging = false;
-      activeThumb = null;
-      
-      // Apply filters after drag ends
-      applyFilters();
-      
-      // Remove listeners
-      document.removeEventListener('mousemove', handleMove);
-      document.removeEventListener('mouseup', endDrag);
-      document.removeEventListener('touchmove', handleMove);
-      document.removeEventListener('touchend', endDrag);
-    }
-    
-    // Add listeners
-    document.addEventListener('mousemove', handleMove);
-    document.addEventListener('mouseup', endDrag);
-    document.addEventListener('touchmove', handleMove, { passive: false });
-    document.addEventListener('touchend', endDrag);
-  }
+  });
 
-  // Add event listeners
-  minThumb.addEventListener('mousedown', e => startDrag(e, true));
-  minThumb.addEventListener('touchstart', e => startDrag(e, true), { passive: false });
-  maxThumb.addEventListener('mousedown', e => startDrag(e, false));
-  maxThumb.addEventListener('touchstart', e => startDrag(e, false), { passive: false });
-  
-  console.log('✅ Price slider initialized with range:', priceRange);
+  return filteredData;
+}
+
+// Helper function to update price filter UI elements
+function updatePriceFilterUI() {
+  // Update any price filter UI elements if needed
+  // This function is called when price filters are cleared
+  updateSelectedFilters();
 }
