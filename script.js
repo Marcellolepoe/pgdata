@@ -778,7 +778,7 @@ function setupFilters() {
       
       // Apply non-price filters first and update price stats
       const nonPriceFiltered = getFilteredDataExcludingPrice();
-      updatePricingBands(nonPriceFiltered, false);
+      updatePricingBands(nonPriceFiltered, true); // Skip filter reset to prevent unwanted price-max
       
       // Then apply all filters including price
       applyFilters();
@@ -872,8 +872,6 @@ function updateURLParams() {
   const params = new URLSearchParams();
   Object.keys(filters).forEach(category => {
     const val = filters[category];
-    if (filters.priceBand.length)
- 			 params.set("priceBand", filters.priceBand.join(","));
     if (Array.isArray(val) && val.length > 0) {
       params.set(category, val.join(","));
     } else if (typeof val === "string" && val.trim() !== "") {
@@ -1454,19 +1452,7 @@ function updatePricingBands(filteredData, skipFilterReset = false) {
   // Store current stats for slider operations
   window.sliderMapping = currentStats;
 
-  // Reset price filter range to match the current non-price filtered data range
-  if (!skipFilterReset) {
-    filters.priceMin = currentStats.min;
-    filters.priceMax = currentStats.max;
-    filters.priceBand = []; // Clear any band selection
-    
-    activePriceFilter = {
-      type: null,
-      value: null,
-      positions: { min: 0, max: 100 },
-      values: { min: currentStats.min, max: currentStats.max }
-    };
-  }
+  // Don't automatically reset price filters - this was causing unwanted price-max to appear
 }
 
 // 1. Add a logUpdate helper
@@ -1750,11 +1736,8 @@ function renderPaginationControls(totalPages, filteredData) {
     paginationContainer.appendChild(prevBtn);
   }
   
-  // Page numbers (show current and nearby pages)
-  const startPage = Math.max(1, window.currentPage - 2);
-  const endPage = Math.min(totalPages, window.currentPage + 2);
-  
-  for (let i = startPage; i <= endPage; i++) {
+  // Page numbers (show all pages)
+  for (let i = 1; i <= totalPages; i++) {
     const btn = document.createElement('button');
     btn.textContent = i;
     if (i === window.currentPage) {
