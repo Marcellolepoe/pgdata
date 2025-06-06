@@ -216,21 +216,7 @@ function injectStyles() {
       background-color: rgba(0, 123, 255, 0.1);
     }
 
-    /* Pagination Button Styles */
-    #pagination-container button {
-      transition: all 0.2s ease;
-    }
-
-    #pagination-container button:hover {
-      background-color: #007bff !important;
-      color: white !important;
-      border-color: #007bff !important;
-      transform: translateY(-1px);
-    }
-
-    #pagination-container button:active {
-      transform: translateY(0);
-    }
+    /* Use existing pagination styles */
 
     /* Loading Indicator */
     .loading-overlay {
@@ -260,31 +246,7 @@ function injectStyles() {
       100% { transform: rotate(360deg); }
     }
 
-    /* Filter Tag Improvements */
-    .filter-tag {
-      display: inline-block;
-      margin: 2px;
-      padding: 4px 8px;
-      background-color: #f8f9fa;
-      border: 1px solid #dee2e6;
-      border-radius: 4px;
-      font-size: 14px;
-    }
-
-    .filter-tag .clear-category {
-      margin-left: 6px;
-      background: none;
-      border: none;
-      color: #dc3545;
-      cursor: pointer;
-      font-weight: bold;
-      padding: 0;
-    }
-
-    .filter-tag .clear-category:hover {
-      color: #c82333;
-    }
-
+    /* Simple filter text styling - no boxes */
     .filter-separator {
       color: #6c757d;
       margin: 0 4px;
@@ -725,9 +687,10 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 document.addEventListener("DOMContentLoaded", function () {
-  const clearAllButton = document.getElementById("clear-all");
+  const clearAllButton = document.getElementById("clear-all") || document.querySelector("button[data-action='clear-all']") || document.querySelector(".clear-all");
   if (clearAllButton) {
-    clearAllButton.addEventListener("click", function () {
+    clearAllButton.addEventListener("click", function (e) {
+      e.preventDefault();
       console.log('[DEBUG] Clear All clicked');
       
       // Get initial price range
@@ -770,6 +733,20 @@ document.addEventListener("DOMContentLoaded", function () {
       // Clear price max input
       const manualMaxInput = document.getElementById("price-input-max");
       if (manualMaxInput) manualMaxInput.value = "";
+      
+      // Clear price band visual states
+      const priceBandElements = [
+        { id: 'band-lower', value: 'lower' },
+        { id: 'band-middle', value: 'middle' },
+        { id: 'band-upper', value: 'upper' }
+      ];
+      
+      priceBandElements.forEach(band => {
+        const element = document.getElementById(band.id);
+        if (element) {
+          element.classList.remove('active');
+        }
+      });
       
       // Update UI and apply filters
       updateSelectedFilters();
@@ -916,7 +893,7 @@ function updateSelectedFilters() {
   let hasFilters = false;
   let tagCount = 0;
 
-  // Helper to add a filter tag
+  // Helper to add a filter tag (simple text style)
   const addFilterTag = (label, value, category) => {
     if (tagCount > 0) {
       const separator = document.createElement("span");
@@ -925,9 +902,7 @@ function updateSelectedFilters() {
       selectedFiltersDiv.appendChild(separator);
     }
     const filterTag = document.createElement("span");
-    filterTag.classList.add("filter-tag");
-    filterTag.innerHTML = `<strong>${label}:</strong> ${value}
-      <button class="clear-category" data-category="${category}">✕</button>`;
+    filterTag.innerHTML = `<strong>${label}:</strong> ${value}`;
     selectedFiltersDiv.appendChild(filterTag);
     tagCount++;
     hasFilters = true;
@@ -1004,46 +979,6 @@ function updateSelectedFilters() {
   if (!hasFilters) {
     selectedFiltersDiv.innerHTML = `<p style="color: gray;">No filters selected.</p>`;
   }
-
-  // Add click handlers for clear buttons
-  selectedFiltersDiv.querySelectorAll(".clear-category").forEach(button => {
-    button.addEventListener("click", function() {
-      const category = this.dataset.category;
-      
-      if (category === 'price') {
-        // Reset price to initial range
-        filters.priceMin = initialPriceRange.min;
-        filters.priceMax = initialPriceRange.max;
-        
-        // Clear manual input
-        const manualMaxInput = document.getElementById("price-input-max");
-        if (manualMaxInput) manualMaxInput.value = "";
-        
-      } else if (category === 'searchTerm') {
-        filters.searchTerm = "";
-        const searchInput = document.getElementById("funeral-parlour-search");
-        if (searchInput) searchInput.value = "";
-        
-      } else if (category === 'sortBy') {
-        filters.sortBy = "";
-        // Reset sort button label if exists
-        const sortLabel = document.getElementById("sort-button-label");
-        if (sortLabel) sortLabel.textContent = "Sort By";
-        
-      } else {
-        // Handle array filters
-        if (Array.isArray(filters[category])) {
-          filters[category] = [];
-          document.querySelectorAll(`[data-category="${category}"] input`)
-            .forEach(cb => cb.checked = false);
-        }
-      }
-      
-      // Update UI and reapply filters
-      updateSelectedFilters();
-      applyFilters();
-    });
-  });
 }
 
 // HELPER: getDisplayValue
@@ -1357,7 +1292,7 @@ function renderResults(filteredData) {
   
   // Update result counts
   const showEl = document.getElementById("showed-results");
-  if (showEl) showEl.textContent = Math.min(endIndex, filteredData.length);
+  if (showEl) showEl.textContent = filteredData.length;
   
   // Add pagination controls if needed
   if (filteredData.length > ITEMS_PER_PAGE) {
@@ -1783,7 +1718,6 @@ function renderPaginationControls(totalPages, filteredData) {
     // Create pagination container if it doesn't exist
     const paginationDiv = document.createElement('div');
     paginationDiv.id = 'pagination-container';
-    paginationDiv.style.cssText = 'display: flex; justify-content: center; gap: 10px; margin: 20px 0; flex-wrap: wrap;';
     
     const resultsContainer = document.getElementById("funeral-cards-container");
     if (resultsContainer && resultsContainer.parentNode) {
@@ -1807,7 +1741,7 @@ function renderPaginationControls(totalPages, filteredData) {
   if (window.currentPage > 1) {
     const prevBtn = document.createElement('button');
     prevBtn.textContent = '← Previous';
-    prevBtn.style.cssText = 'padding: 8px 16px; margin: 2px; border: 1px solid #ddd; background: #f9f9f9; cursor: pointer; border-radius: 4px;';
+    prevBtn.className = 'pagination-button-inactive';
     prevBtn.addEventListener('click', (e) => {
       e.preventDefault();
       window.currentPage--;
@@ -1824,9 +1758,9 @@ function renderPaginationControls(totalPages, filteredData) {
     const btn = document.createElement('button');
     btn.textContent = i;
     if (i === window.currentPage) {
-      btn.style.cssText = 'padding: 8px 12px; margin: 2px; border: 1px solid #007bff; background: #007bff; color: white; cursor: pointer; border-radius: 4px;';
+      btn.className = 'pagination-button-active';
     } else {
-      btn.style.cssText = 'padding: 8px 12px; margin: 2px; border: 1px solid #ddd; background: #f9f9f9; cursor: pointer; border-radius: 4px;';
+      btn.className = 'pagination-button-inactive';
     }
     btn.addEventListener('click', (e) => {
       e.preventDefault();
@@ -1842,7 +1776,7 @@ function renderPaginationControls(totalPages, filteredData) {
   if (window.currentPage < totalPages) {
     const nextBtn = document.createElement('button');
     nextBtn.textContent = 'Next →';
-    nextBtn.style.cssText = 'padding: 8px 16px; margin: 2px; border: 1px solid #ddd; background: #f9f9f9; cursor: pointer; border-radius: 4px;';
+    nextBtn.className = 'pagination-button-inactive';
     nextBtn.addEventListener('click', (e) => {
       e.preventDefault();
       window.currentPage++;
