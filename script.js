@@ -128,7 +128,7 @@ function piecewisePercentileToValue(fraction, min, p33, p66, max) {
   }
 }
 
-function initializePage() {
+async function initializePage() {
   // Initialize price filter state first
   window.priceStats = {
     original: null,
@@ -162,8 +162,8 @@ function initializePage() {
     return;
   }
 
-  // Wait for DOM to be fully loaded before fetching data
-  setTimeout(async function () {
+  // Load data immediately without artificial delay
+  try {
     await fetchFuneralData();
     setupFilters();
     getFiltersFromURL();
@@ -184,47 +184,429 @@ function initializePage() {
         });
       }
     });
-  }, 1500);
+  } catch (error) {
+    console.error("❌ Error during page initialization:", error);
+  }
+}
+
+// Inject CSS styles for price bands and pagination
+function injectStyles() {
+  const styles = `
+    /* Price Band Filter Styles */
+    #band-lower,
+    #band-middle,
+    #band-upper {
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 2px solid transparent;
+    }
+
+    #band-lower:hover,
+    #band-middle:hover,
+    #band-upper:hover {
+      opacity: 0.8;
+      transform: translateY(-1px);
+    }
+
+    #band-lower.active,
+    #band-middle.active,
+    #band-upper.active {
+      border-color: #007bff;
+      box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+      background-color: rgba(0, 123, 255, 0.1);
+    }
+
+    /* Pagination Button Styles */
+    #pagination-container button {
+      transition: all 0.2s ease;
+    }
+
+    #pagination-container button:hover {
+      background-color: #007bff !important;
+      color: white !important;
+      border-color: #007bff !important;
+      transform: translateY(-1px);
+    }
+
+    #pagination-container button:active {
+      transform: translateY(0);
+    }
+
+    /* Loading Indicator */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #007bff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Filter Tag Improvements */
+    .filter-tag {
+      display: inline-block;
+      margin: 2px;
+      padding: 4px 8px;
+      background-color: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    .filter-tag .clear-category {
+      margin-left: 6px;
+      background: none;
+      border: none;
+      color: #dc3545;
+      cursor: pointer;
+      font-weight: bold;
+      padding: 0;
+    }
+
+    .filter-tag .clear-category:hover {
+      color: #c82333;
+    }
+
+    .filter-separator {
+      color: #6c757d;
+      margin: 0 4px;
+    }
+  `;
+
+  const styleSheet = document.createElement('style');
+  styleSheet.type = 'text/css';
+  styleSheet.innerText = styles;
+  document.head.appendChild(styleSheet);
+}
+
+// Performance optimization utilities
+function initializePerformanceOptimizations() {
+  // Create loading indicator if it doesn't exist
+  function createLoadingIndicator() {
+    if (document.getElementById('loading-indicator')) return;
+    
+    const loadingDiv = document.createElement('div');
+    loadingDiv.id = 'loading-indicator';
+    loadingDiv.innerHTML = `
+      <div style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255,255,255,0.9);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        flex-direction: column;
+      ">
+        <div style="
+          width: 50px;
+          height: 50px;
+          border: 4px solid #f3f3f3;
+          border-top: 4px solid #3498db;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+        "></div>
+        <p style="margin-top: 15px; font-family: Arial, sans-serif; color: #666;">
+          Loading funeral services...
+        </p>
+      </div>
+    `;
+    document.body.appendChild(loadingDiv);
+  }
+
+  // Performance monitoring
+  let performanceMetrics = {
+    dataFetchTime: 0,
+    renderTime: 0,
+    filterTime: 0
+  };
+
+  function trackPerformance(operation, fn) {
+    const start = performance.now();
+    const result = fn();
+    const end = performance.now();
+    performanceMetrics[operation] = end - start;
+    console.log(`⚡ ${operation}: ${(end - start).toFixed(2)}ms`);
+    return result;
+  }
+
+  // Image optimization
+  function optimizeImages() {
+    const images = document.querySelectorAll('img');
+    images.forEach(img => {
+      if (!img.loading) {
+        img.loading = 'lazy';
+      }
+      
+      // Add error handling for broken images
+      img.onerror = function() {
+        this.style.display = 'none';
+        console.warn('Failed to load image:', this.src);
+      };
+    });
+  }
+
+  // Memory cleanup for large datasets
+  function cleanupMemory() {
+    // Clear any cached DOM elements that are no longer needed
+    const unusedElements = document.querySelectorAll('[data-cleanup="true"]');
+    unusedElements.forEach(el => el.remove());
+    
+    // Force garbage collection hint (if available)
+    if (window.gc) {
+      window.gc();
+    }
+  }
+
+  // Prefetch critical resources
+  function prefetchResources() {
+    const criticalImages = [
+      'https://cdn.prod.website-files.com/66343534ea61f97f0e1a4dd7/66423ee2f290eb7af2024d7f_Untitled%20design%20(4).png'
+    ];
+    
+    criticalImages.forEach(url => {
+      const link = document.createElement('link');
+      link.rel = 'prefetch';
+      link.href = url;
+      document.head.appendChild(link);
+    });
+  }
+
+  // Service Worker registration
+  function registerServiceWorker() {
+    if ('serviceWorker' in navigator) {
+      // Inline service worker code
+      const swCode = `
+        const CACHE_NAME = 'funeral-directory-v1';
+        const CACHE_EXPIRY = 24 * 60 * 60 * 1000; // 24 hours
+
+        const urlsToCache = [
+          'https://raw.githubusercontent.com/Marcellolepoe/pgdata/main/cleaned_buddhist_funeral_directory.json',
+          'https://cdn.prod.website-files.com/66343534ea61f97f0e1a4dd7/66423ee2f290eb7af2024d7f_Untitled%20design%20(4).png'
+        ];
+
+        self.addEventListener('install', event => {
+          event.waitUntil(
+            caches.open(CACHE_NAME).then(cache => {
+              console.log('📦 Caching funeral directory resources');
+              return cache.addAll([]);
+            }).catch(error => {
+              console.log('Cache install failed:', error);
+            })
+          );
+        });
+
+        self.addEventListener('fetch', event => {
+          if (event.request.method !== 'GET') return;
+          
+          if (event.request.url.includes('cleaned_buddhist_funeral_directory.json')) {
+            event.respondWith(
+              caches.open(CACHE_NAME).then(cache => {
+                return cache.match(event.request).then(cachedResponse => {
+                  if (cachedResponse) {
+                    const cachedTimestamp = cachedResponse.headers.get('sw-cached-time');
+                    if (cachedTimestamp && (Date.now() - parseInt(cachedTimestamp)) < CACHE_EXPIRY) {
+                      console.log('📁 Serving JSON from cache');
+                      return cachedResponse;
+                    }
+                  }
+                  
+                  console.log('🌐 Fetching fresh JSON data');
+                  return fetch(event.request).then(response => {
+                    if (response.status === 200) {
+                      const responseToCache = response.clone();
+                      const headers = new Headers(responseToCache.headers);
+                      headers.append('sw-cached-time', Date.now().toString());
+                      
+                      const modifiedResponse = new Response(responseToCache.body, {
+                        status: responseToCache.status,
+                        statusText: responseToCache.statusText,
+                        headers: headers
+                      });
+                      
+                      cache.put(event.request, modifiedResponse);
+                    }
+                    return response;
+                  }).catch(() => {
+                    return cachedResponse || new Response('{"error": "Network unavailable"}', {
+                      status: 503,
+                      headers: { 'Content-Type': 'application/json' }
+                    });
+                  });
+                });
+              })
+            );
+            return;
+          }
+          
+          event.respondWith(
+            caches.match(event.request).then(response => {
+              return response || fetch(event.request);
+            })
+          );
+        });
+
+        self.addEventListener('activate', event => {
+          event.waitUntil(
+            caches.keys().then(cacheNames => {
+              return Promise.all(
+                cacheNames.map(cacheName => {
+                  if (cacheName !== CACHE_NAME) {
+                    console.log('🗑️ Deleting old cache:', cacheName);
+                    return caches.delete(cacheName);
+                  }
+                })
+              );
+            })
+          );
+        });
+      `;
+
+      // Create blob URL for service worker
+      const blob = new Blob([swCode], { type: 'application/javascript' });
+      const swUrl = URL.createObjectURL(blob);
+      
+      navigator.serviceWorker.register(swUrl)
+        .then(registration => {
+          console.log('✅ Service Worker registered:', registration);
+        })
+        .catch(error => {
+          console.log('ℹ️ Service Worker registration failed:', error);
+        });
+    }
+  }
+
+  // Initialize optimizations
+  createLoadingIndicator();
+  prefetchResources();
+  registerServiceWorker();
+  
+  // Optimize images after initial load
+  setTimeout(() => {
+    optimizeImages();
+  }, 1000);
+  
+  // Cleanup memory periodically
+  setInterval(cleanupMemory, 30000); // Every 30 seconds
+
+  // Export functions for use
+  window.performanceUtils = {
+    trackPerformance,
+    cleanupMemory,
+    optimizeImages
+  };
 }
 
 // Ensure we wait for DOM content to be loaded
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initializePage);
+  document.addEventListener('DOMContentLoaded', () => {
+    injectStyles();
+    initializePerformanceOptimizations();
+    initializePage();
+  });
 } else {
+  injectStyles();
+  initializePerformanceOptimizations();
   initializePage();
 }
 
 async function fetchFuneralData() {
   const jsonUrl = "https://raw.githubusercontent.com/Marcellolepoe/pgdata/main/cleaned_buddhist_funeral_directory.json";
-  try {
-    const response = await fetch(jsonUrl);
-    if (!response.ok) throw new Error("Failed to fetch data.");
-    funeralData = await response.json();
-    window.funeralData = funeralData;
-    
-    // Calculate and store price stats FIRST
-    window.priceStats.original = getFullPricingStats();
-    window.priceStats.filtered = window.priceStats.original;
-    window.sliderMapping = window.priceStats.original;
-    
-    // Initialize filters with correct initial values
-    filters.priceMin = window.priceStats.original.min;
-    filters.priceMax = window.priceStats.original.max;
-    
-    // Update display elements
-    const allCountEl = document.getElementById("all-results");
-    const showEl = document.getElementById("showed-results");
-    if (allCountEl) allCountEl.textContent = funeralData.length;
-    if (showEl) showEl.textContent = funeralData.length;
-
-    // Show all results initially
-    renderResults(funeralData);
-    
-    // Then apply any URL parameters
-    getFiltersFromURL();
-  } catch (error) {
-    console.error("❌ Error fetching funeral data:", error);
+  
+  // Check cache first
+  const cacheKey = 'funeral_data_cache';
+  const cachedData = localStorage.getItem(cacheKey);
+  const cacheTimestamp = localStorage.getItem(cacheKey + '_timestamp');
+  const cacheExpiry = 24 * 60 * 60 * 1000; // 24 hours
+  
+  if (cachedData && cacheTimestamp && (Date.now() - parseInt(cacheTimestamp)) < cacheExpiry) {
+    try {
+      funeralData = JSON.parse(cachedData);
+      console.log('✅ Using cached funeral data');
+    } catch (e) {
+      console.warn('Cache parse error, fetching fresh data');
+      localStorage.removeItem(cacheKey);
+      localStorage.removeItem(cacheKey + '_timestamp');
+    }
   }
+  
+  if (!funeralData || funeralData.length === 0) {
+    try {
+      // Show loading indicator
+      const loadingEl = document.getElementById('loading-indicator');
+      if (loadingEl) loadingEl.style.display = 'block';
+      
+      console.log('📡 Fetching funeral data...');
+      const response = await fetch(jsonUrl, {
+        headers: {
+          'Accept-Encoding': 'gzip, deflate, br'
+        }
+      });
+      if (!response.ok) throw new Error("Failed to fetch data.");
+      funeralData = await response.json();
+      
+      // Cache the data
+      try {
+        localStorage.setItem(cacheKey, JSON.stringify(funeralData));
+        localStorage.setItem(cacheKey + '_timestamp', Date.now().toString());
+        console.log('✅ Cached funeral data for future use');
+      } catch (e) {
+        console.warn('Failed to cache data:', e);
+      }
+    } catch (error) {
+      console.error("❌ Error fetching funeral data:", error);
+      throw error;
+    }
+  }
+  
+  window.funeralData = funeralData;
+  
+  // Calculate and store price stats FIRST
+  window.priceStats.original = getFullPricingStats();
+  window.priceStats.filtered = window.priceStats.original;
+  window.sliderMapping = window.priceStats.original;
+  
+  // Initialize filters with correct initial values
+  filters.priceMin = window.priceStats.original.min;
+  filters.priceMax = window.priceStats.original.max;
+  
+  // Update display elements
+  const allCountEl = document.getElementById("all-results");
+  const showEl = document.getElementById("showed-results");
+  if (allCountEl) allCountEl.textContent = funeralData.length;
+  if (showEl) showEl.textContent = funeralData.length;
+
+  // Hide loading indicator
+  const loadingEl = document.getElementById('loading-indicator');
+  if (loadingEl) loadingEl.style.display = 'none';
+  
+  // Show all results initially (including those without prices)
+  window.currentPage = 1; // Reset to first page
+  renderResults(funeralData);
+  
+  // Then apply any URL parameters
+  getFiltersFromURL();
 }
 
 window.onload = async function () {
@@ -271,15 +653,22 @@ function getFullPricingStats() {
 document.addEventListener("DOMContentLoaded", function () {
   const searchInput = document.getElementById("funeral-parlour-search");
   if (searchInput) {
+    let searchTimeout;
+    
     searchInput.addEventListener("keydown", function (e) {
       if (e.key === "Enter") {
         e.preventDefault();
       }
     });
+    
+    // Debounced search for better performance
     searchInput.addEventListener("input", function () {
-      filters.searchTerm = this.value.trim().toLowerCase();
-      updateSelectedFilters();
-      applyFilters();
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        filters.searchTerm = this.value.trim().toLowerCase();
+        updateSelectedFilters();
+        applyFilters();
+      }, 300); // Wait 300ms after user stops typing
     });
   }
 });
@@ -418,6 +807,35 @@ function setupFilters() {
       applyFilters();
     });
   });
+
+  // Setup price band filters
+  const priceBandElements = [
+    { id: 'band-lower', value: 'lower' },
+    { id: 'band-middle', value: 'middle' },
+    { id: 'band-upper', value: 'upper' }
+  ];
+
+  priceBandElements.forEach(band => {
+    const element = document.getElementById(band.id);
+    if (element) {
+      element.addEventListener('click', (e) => {
+        e.preventDefault();
+        const bandValue = band.value;
+        
+        // Toggle the band in the filter array
+        if (!filters.priceBand.includes(bandValue)) {
+          filters.priceBand.push(bandValue);
+          element.classList.add('active');
+        } else {
+          filters.priceBand = filters.priceBand.filter(b => b !== bandValue);
+          element.classList.remove('active');
+        }
+        
+        updateSelectedFilters();
+        applyFilters();
+      });
+    }
+  });
 }
 
 // GET FILTERS FROM URL
@@ -435,9 +853,11 @@ function getFiltersFromURL() {
     } else {
       let urlFilters = params.get(category) ? params.get(category).split(",") : [];
       filters[category] = urlFilters.filter(value => value.trim() !== "");
-      filters.priceBand = params.get("priceBand") ? params.get("priceBand").split(",") : [];
     }
   });
+  
+  // Handle price band filters separately
+  filters.priceBand = params.get("priceBand") ? params.get("priceBand").split(",") : [];
   document.querySelectorAll(".filter-checkbox input[type='checkbox']").forEach(checkbox => {
     let category = checkbox.closest(".filter-checkbox")?.dataset.category;
     let selectedValue = checkbox.dataset.value;
@@ -447,6 +867,25 @@ function getFiltersFromURL() {
       checkbox.checked = false;
     }
   });
+
+  // Update price band visual states
+  const priceBandElements = [
+    { id: 'band-lower', value: 'lower' },
+    { id: 'band-middle', value: 'middle' },
+    { id: 'band-upper', value: 'upper' }
+  ];
+
+  priceBandElements.forEach(band => {
+    const element = document.getElementById(band.id);
+    if (element) {
+      if (filters.priceBand.includes(band.value)) {
+        element.classList.add('active');
+      } else {
+        element.classList.remove('active');
+      }
+    }
+  });
+
   updateSelectedFilters();
   applyFilters();
 }
@@ -530,14 +969,36 @@ function updateSelectedFilters() {
     if (category === 'priceMin' || category === 'priceMax' || category === 'searchTerm' || category === 'sortBy') return;
     const val = filters[category];
     if (Array.isArray(val) && val.length > 0) {
-      const formattedCategory = category.charAt(0).toUpperCase() + category.slice(1);
-      addFilterTag(formattedCategory, val.join(", "), category);
+      let formattedCategory = category.charAt(0).toUpperCase() + category.slice(1);
+      let formattedValues = val;
+      
+      // Special handling for price bands to capitalize properly
+      if (category === 'priceBand') {
+        formattedCategory = 'Price Band';
+        formattedValues = val.map(v => v.charAt(0).toUpperCase() + v.slice(1).toLowerCase());
+      }
+      
+      addFilterTag(formattedCategory, formattedValues.join(", "), category);
     }
   });
 
   // Handle search term
   if (filters.searchTerm && filters.searchTerm.trim() !== "") {
     addFilterTag('Search', filters.searchTerm, 'searchTerm');
+  }
+
+  // Handle sorting
+  if (filters.sortBy && filters.sortBy.trim() !== "") {
+    const sortLabels = {
+      "price-asc": "Price (Low to High)",
+      "price-desc": "Price (High to Low)",
+      "google-rating-desc": "Google Rating (High to Low)",
+      "facebook-rating-desc": "Facebook Rating (High to Low)",
+      "google-reviews-desc": "Google Reviews (Most to Least)",
+      "facebook-reviews-desc": "Facebook Reviews (Most to Least)"
+    };
+    const sortLabel = sortLabels[filters.sortBy] || filters.sortBy;
+    addFilterTag('Sort', sortLabel, 'sortBy');
   }
 
   if (!hasFilters) {
@@ -562,6 +1023,12 @@ function updateSelectedFilters() {
         filters.searchTerm = "";
         const searchInput = document.getElementById("funeral-parlour-search");
         if (searchInput) searchInput.value = "";
+        
+      } else if (category === 'sortBy') {
+        filters.sortBy = "";
+        // Reset sort button label if exists
+        const sortLabel = document.getElementById("sort-button-label");
+        if (sortLabel) sortLabel.textContent = "Sort By";
         
       } else {
         // Handle array filters
@@ -855,22 +1322,31 @@ function adjustCarouselHeight(wrapper) {
   }
 }
 
-// RENDER RESULTS (Webflow population version)
+// RENDER RESULTS (Optimized with pagination)
 function renderResults(filteredData) {
   const container = document.getElementById("funeral-cards-container");
   const template = document.getElementById("funeral-card-wrapper");
   if (!container || !template) {
     return;
   }
+  
+  // Performance optimization: Use pagination for large datasets
+  const ITEMS_PER_PAGE = 20; // Show only 20 items at a time
+  const currentPage = window.currentPage || 1;
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, filteredData.length);
+  const pageData = filteredData.slice(startIndex, endIndex);
+  
   // Remove all previously rendered cards except the template
   Array.from(container.children).forEach(child => {
     if (child !== template) container.removeChild(child);
   });
   template.style.display = "none";
+  
   // Use document fragment for batch DOM updates
   const fragment = document.createDocumentFragment();
-  for (let i = 0; i < filteredData.length; i++) {
-    const data = filteredData[i];
+  for (let i = 0; i < pageData.length; i++) {
+    const data = pageData[i];
     const card = template.cloneNode(true);
     card.id = "";
     card.style.display = "";
@@ -878,6 +1354,15 @@ function renderResults(filteredData) {
     fragment.appendChild(card);
   }
   container.appendChild(fragment);
+  
+  // Update result counts
+  const showEl = document.getElementById("showed-results");
+  if (showEl) showEl.textContent = Math.min(endIndex, filteredData.length);
+  
+  // Add pagination controls if needed
+  if (filteredData.length > ITEMS_PER_PAGE) {
+    renderPaginationControls(Math.ceil(filteredData.length / ITEMS_PER_PAGE), filteredData);
+  }
 }
 
 // HELPER: renderIconRow
@@ -1110,7 +1595,40 @@ function applyFilters(skipBandReset = false) {
     }
   });
 
-  // Apply price filters (simple range check)
+  // Apply price band filters
+  if (filters.priceBand && filters.priceBand.length > 0) {
+    const stats = window.priceStats?.original || getStatsFromData(filteredData);
+    if (stats) {
+      filteredData = filteredData.filter(item => {
+        const selectedDays = filters.days && filters.days.length > 0 ? filters.days : ['1','2','3','4','5','6','7'];
+        
+        const prices = selectedDays.map(day => {
+          const key = dayMap[day];
+          const price = parseFloat((item[key] || "").toString().replace(/[^\d.]/g, ""));
+          return isNaN(price) ? null : price;
+        }).filter(p => p !== null);
+
+        if (prices.length === 0) return false;
+
+        return prices.some(price => {
+          return filters.priceBand.some(band => {
+            switch(band.toLowerCase()) {
+              case 'lower':
+                return price >= stats.min && price <= stats.p33;
+              case 'middle':
+                return price > stats.p33 && price <= stats.p66;
+              case 'upper':
+                return price > stats.p66 && price <= stats.max;
+              default:
+                return false;
+            }
+          });
+        });
+      });
+    }
+  }
+
+  // Apply price range filters (priceMin/priceMax)
   if (filters.priceMin || filters.priceMax) {
     filteredData = filteredData.filter(item => {
       const selectedDays = filters.days && filters.days.length > 0 ? filters.days : ['1','2','3','4','5','6','7'];
@@ -1121,7 +1639,13 @@ function applyFilters(skipBandReset = false) {
         return isNaN(price) ? null : price;
       }).filter(p => p !== null);
 
-      if (prices.length === 0) return false;
+      // If no prices available but not filtering by price, include the item
+      if (prices.length === 0) {
+        // Only exclude if we're actively filtering by price and the item has no prices
+        const hasActivePriceFilter = (filters.priceMin && filters.priceMin > (window.priceStats?.original?.min || 0)) ||
+                                    (filters.priceMax && filters.priceMax < (window.priceStats?.original?.max || 999999));
+        return !hasActivePriceFilter;
+      }
 
       return prices.some(price => {
         const meetsMin = !filters.priceMin || price >= filters.priceMin;
@@ -1131,19 +1655,61 @@ function applyFilters(skipBandReset = false) {
     });
   }
 
+  // Apply sorting
+  if (filters.sortBy && filters.sortBy.trim() !== "") {
+    filteredData = [...filteredData].sort((a, b) => {
+      switch(filters.sortBy) {
+        case 'price-asc':
+          return getLowestPrice(a) - getLowestPrice(b);
+        case 'price-desc':
+          return getLowestPrice(b) - getLowestPrice(a);
+        case 'google-rating-desc':
+          return parseFloat(b["Google Rating"] || 0) - parseFloat(a["Google Rating"] || 0);
+        case 'facebook-rating-desc':
+          return parseFloat(b["Facebook Rating"] || 0) - parseFloat(a["Facebook Rating"] || 0);
+        case 'google-reviews-desc':
+          return parseInt(b["Google Reviews"] || 0) - parseInt(a["Google Reviews"] || 0);
+        case 'facebook-reviews-desc':
+          return parseInt(b["Facebook Reviews"] || 0) - parseInt(a["Facebook Reviews"] || 0);
+        default:
+          return 0;
+      }
+    });
+  }
+
   // Update result counts
   const allEl = document.getElementById("all-results");
   const showEl = document.getElementById("showed-results");
   if (allEl) allEl.textContent = window.funeralData.length;
   if (showEl) showEl.textContent = filteredData.length;
 
-  // Reset to first page
-  currentPage = 1;
+  // Reset to first page when applying new filters
+  window.currentPage = 1;
   
   // Display results
   paginateResults(filteredData);
   
   console.log(`✅ Filters applied: ${filteredData.length} of ${window.funeralData.length} results`);
+}
+
+// Helper function to get lowest price for sorting
+function getLowestPrice(item) {
+  const priceKeys = [
+    "Available Duration (1 Day)",
+    "Available Duration (2 Day)",
+    "Available Duration (3 Days)",
+    "Available Duration (4 Days)",
+    "Available Duration (5 Days)",
+    "Available Duration (6 Days)",
+    "Available Duration (7 Days)"
+  ];
+  
+  const prices = priceKeys.map(key => {
+    const price = parseFloat((item[key] || "").toString().replace(/[^\d.]/g, ""));
+    return isNaN(price) ? null : price;
+  }).filter(p => p !== null);
+  
+  return prices.length > 0 ? Math.min(...prices) : Infinity;
 }
 
 // 3. Helper to get stats from data
@@ -1211,37 +1777,89 @@ window.currentBandStats = null;
 // Restore paginateResults and setupPriceSliderDiv
 let currentPage = 1;
 const resultsPerPage = 10;
-function renderPaginationControls(totalPages) {
+function renderPaginationControls(totalPages, filteredData) {
   const container = document.getElementById('pagination-container') || document.querySelector('.pagination-container');
-  if (!container) return;
-  container.innerHTML = '';
-  for (let i = 1; i <= totalPages; i++) {
+  if (!container) {
+    // Create pagination container if it doesn't exist
+    const paginationDiv = document.createElement('div');
+    paginationDiv.id = 'pagination-container';
+    paginationDiv.style.cssText = 'display: flex; justify-content: center; gap: 10px; margin: 20px 0; flex-wrap: wrap;';
+    
+    const resultsContainer = document.getElementById("funeral-cards-container");
+    if (resultsContainer && resultsContainer.parentNode) {
+      resultsContainer.parentNode.insertBefore(paginationDiv, resultsContainer.nextSibling);
+    }
+  }
+  
+  const paginationContainer = document.getElementById('pagination-container');
+  if (!paginationContainer) return;
+  
+  paginationContainer.innerHTML = '';
+  
+  if (totalPages <= 1) {
+    paginationContainer.style.display = 'none';
+    return;
+  }
+  
+  paginationContainer.style.display = 'flex';
+  
+  // Previous button
+  if (window.currentPage > 1) {
+    const prevBtn = document.createElement('button');
+    prevBtn.textContent = '← Previous';
+    prevBtn.style.cssText = 'padding: 8px 16px; margin: 2px; border: 1px solid #ddd; background: #f9f9f9; cursor: pointer; border-radius: 4px;';
+    prevBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.currentPage--;
+      renderResults(filteredData);
+    });
+    paginationContainer.appendChild(prevBtn);
+  }
+  
+  // Page numbers (show current and nearby pages)
+  const startPage = Math.max(1, window.currentPage - 2);
+  const endPage = Math.min(totalPages, window.currentPage + 2);
+  
+  for (let i = startPage; i <= endPage; i++) {
     const btn = document.createElement('button');
     btn.textContent = i;
-    if (i === currentPage) {
-      btn.className = 'pagination-button-active';
+    if (i === window.currentPage) {
+      btn.style.cssText = 'padding: 8px 12px; margin: 2px; border: 1px solid #007bff; background: #007bff; color: white; cursor: pointer; border-radius: 4px;';
     } else {
-      btn.className = 'pagination-button-inactive';
+      btn.style.cssText = 'padding: 8px 12px; margin: 2px; border: 1px solid #ddd; background: #f9f9f9; cursor: pointer; border-radius: 4px;';
     }
-    btn.addEventListener('click', () => {
-      if (currentPage !== i) {
-        currentPage = i;
-        applyFilters();
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (window.currentPage !== i) {
+        window.currentPage = i;
+        renderResults(filteredData);
       }
     });
-    container.appendChild(btn);
+    paginationContainer.appendChild(btn);
+  }
+  
+  // Next button
+  if (window.currentPage < totalPages) {
+    const nextBtn = document.createElement('button');
+    nextBtn.textContent = 'Next →';
+    nextBtn.style.cssText = 'padding: 8px 16px; margin: 2px; border: 1px solid #ddd; background: #f9f9f9; cursor: pointer; border-radius: 4px;';
+    nextBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.currentPage++;
+      renderResults(filteredData);
+    });
+    paginationContainer.appendChild(nextBtn);
   }
 }
 
 function paginateResults(filteredData) {
-  const totalPages = Math.ceil(filteredData.length / resultsPerPage);
-  const startIndex = (currentPage - 1) * resultsPerPage;
-  const endIndex = startIndex + resultsPerPage;
-  const paginatedData = filteredData.slice(startIndex, endIndex);
+  // Set current page data for renderResults to use
+  window.currentFilteredData = filteredData;
+  window.currentPage = window.currentPage || 1;
+  
   // Batch DOM updates for performance
   requestAnimationFrame(() => {
-    renderResults(paginatedData);
-    renderPaginationControls(totalPages);
+    renderResults(filteredData);
   });
 }
 
