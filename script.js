@@ -176,20 +176,30 @@ async function initializePage() {
       "google-reviews-desc", "facebook-reviews-desc"
     ];
     sortOptions.forEach(sortValue => {
+      console.log(`🔍 Setting up sort: ${sortValue}`);
       // Try multiple selection methods
       let elements = [document.getElementById(sortValue)].filter(el => el !== null);
+      console.log(`📍 Found ${elements.length} by ID`);
       
       if (elements.length === 0) {
         elements = Array.from(document.querySelectorAll(`[data-sort="${sortValue}"]`));
+        console.log(`📍 Found ${elements.length} by data-sort`);
       }
       
       if (elements.length === 0) {
         elements = Array.from(document.querySelectorAll(`.${sortValue}`));
+        console.log(`📍 Found ${elements.length} by class`);
+      }
+      
+      if (elements.length === 0) {
+        console.warn(`⚠️ No sort elements found for: ${sortValue}`);
       }
       
       elements.forEach(el => {
+        console.log(`🔗 Adding sort listener to:`, el);
         el.addEventListener("click", function (e) {
           e.preventDefault();
+          console.log(`🎯 Sort clicked: ${sortValue}`);
           filters.sortBy = sortValue;
           updateSelectedFilters();
           applyFilters();
@@ -306,10 +316,44 @@ function injectStyles() {
 
     /* Selected filters container styling */
     #selected-filters {
-      display: flex;
+      display: flex !important;
       flex-wrap: wrap;
       align-items: center;
       gap: 4px;
+      min-height: 40px;
+    }
+    
+    /* Override any grid display that might be hiding the filters */
+    #selected-filters.selected-filters,
+    .selected-filters {
+      display: flex !important;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    /* Ensure filter tags are visible in any layout */
+    .filter-tag {
+      display: inline-flex !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      position: relative !important;
+      z-index: 1000 !important;
+      background: #f8f9fa !important;
+      border: 1px solid #dee2e6 !important;
+    }
+    
+    /* Force selected filters to be visible regardless of grid settings */
+    #selected-filters * {
+      display: inline-flex !important;
+      visibility: visible !important;
+    }
+    
+    /* Override any webflow grid that might be hiding content */
+    .w-layout-grid #selected-filters,
+    .w-layout-grid .selected-filters {
+      display: flex !important;
+      grid-template-columns: none !important;
     }
   `;
 
@@ -622,6 +666,10 @@ async function fetchFuneralData() {
   // Hide loading indicator
   const loadingEl = document.getElementById('loading-indicator');
   if (loadingEl) loadingEl.style.display = 'none';
+  
+  // Update price displays with initial data
+  console.log('🔄 Updating initial price displays...');
+  updatePricingBands(funeralData, true);
   
   // Show all results initially (including those without prices)
   window.currentPage = 1; // Reset to first page
@@ -1019,7 +1067,9 @@ function updateSelectedFilters() {
   }
   
   console.log('✅ Selected filters div found:', selectedFiltersDiv);
+  console.log('🎨 Selected filters div styles:', window.getComputedStyle(selectedFiltersDiv));
   console.log('📊 Current filters state:', filters);
+  
   selectedFiltersDiv.innerHTML = "";
   let hasFilters = false;
   let tagCount = 0;
