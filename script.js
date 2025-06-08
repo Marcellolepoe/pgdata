@@ -1106,6 +1106,11 @@ function updateSelectedFilters() {
     selectedFiltersDiv.appendChild(filterTag);
     console.log(`✅ Filter tag appended to DOM:`, filterTag);
     console.log(`📊 Selected filters div now contains:`, selectedFiltersDiv.innerHTML);
+    
+    // Force visibility with JavaScript
+    forceElementVisibility(selectedFiltersDiv);
+    forceElementVisibility(filterTag);
+    
     tagCount++;
     hasFilters = true;
   };
@@ -1187,7 +1192,35 @@ function updateSelectedFilters() {
     selectedFiltersDiv.innerHTML = `<p style="color: gray;">No filters selected.</p>`;
   } else {
     console.log('✅ Filters detected, content should be visible');
+    // Final force visibility
+    forceElementVisibility(selectedFiltersDiv);
+    selectedFiltersDiv.querySelectorAll('.filter-tag').forEach(tag => {
+      forceElementVisibility(tag);
+    });
   }
+}
+
+// Force element visibility by directly setting styles
+function forceElementVisibility(element) {
+  if (!element) return;
+  
+  // Force all display and visibility properties
+  element.style.display = 'flex';
+  element.style.visibility = 'visible';
+  element.style.opacity = '1';
+  element.style.position = 'relative';
+  element.style.zIndex = '9999';
+  element.style.background = '#f8f9fa';
+  element.style.border = '1px solid #dee2e6';
+  element.style.padding = '8px';
+  element.style.margin = '4px';
+  element.style.minHeight = '30px';
+  element.style.maxHeight = 'none';
+  element.style.width = 'auto';
+  element.style.height = 'auto';
+  element.style.overflow = 'visible';
+  
+  console.log(`🔧 Forced visibility on element:`, element);
 }
 
 // Function to remove individual filters
@@ -2185,4 +2218,30 @@ window.debugFilterSystem = function() {
   console.log('🧪 Testing manual filter addition...');
   window.filters.priceBand = ['lower'];
   updateSelectedFilters();
+  
+  // Check what's hiding the selected filters
+  console.log('🔍 Diagnosing selected filters visibility...');
+  const selectedDiv = document.getElementById('selected-filters');
+  if (selectedDiv) {
+    const computedStyle = window.getComputedStyle(selectedDiv);
+    console.log('📊 Selected filters computed styles:', {
+      display: computedStyle.display,
+      visibility: computedStyle.visibility,
+      opacity: computedStyle.opacity,
+      position: computedStyle.position,
+      zIndex: computedStyle.zIndex,
+      width: computedStyle.width,
+      height: computedStyle.height,
+      overflow: computedStyle.overflow,
+      gridTemplateColumns: computedStyle.gridTemplateColumns,
+      gridTemplate: computedStyle.gridTemplate
+    });
+    
+    console.log('🎯 Selected filters bounding rect:', selectedDiv.getBoundingClientRect());
+    console.log('🔍 Selected filters children:', selectedDiv.children);
+    
+    Array.from(selectedDiv.children).forEach((child, index) => {
+      console.log(`Child ${index}:`, child, 'Rect:', child.getBoundingClientRect());
+    });
+  }
 };
