@@ -723,24 +723,37 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 document.addEventListener("DOMContentLoaded", () => {
+  console.log('🔧 Setting up sorting functionality...');
   const sortOptions = ["price-asc", "price-desc", "google-rating-desc", "facebook-rating-desc", "google-reviews-desc", "facebook-reviews-desc"];
   
   // Try to find sort elements by ID first, then by data attributes
   sortOptions.forEach(sortValue => {
+    console.log(`🔍 Looking for sort elements: ${sortValue}`);
     // Try ID first
     let elements = [document.getElementById(sortValue)].filter(el => el !== null);
+    console.log(`📍 Found ${elements.length} elements by ID`);
     
     // If no ID found, try data attributes
     if (elements.length === 0) {
       elements = Array.from(document.querySelectorAll(`[data-sort="${sortValue}"]`));
+      console.log(`📍 Found ${elements.length} elements by data-sort attribute`);
     }
     
     // If still no elements, try class-based selection
     if (elements.length === 0) {
       elements = Array.from(document.querySelectorAll(`.${sortValue}`));
+      console.log(`📍 Found ${elements.length} elements by class`);
     }
     
-    console.log(`Found ${elements.length} sort elements for: ${sortValue}`);
+    if (elements.length === 0) {
+      console.warn(`⚠️ No sort elements found for: ${sortValue}`);
+      console.log('Available elements with "sort" in ID or class:');
+      document.querySelectorAll('[id*="sort"], [class*="sort"]').forEach(el => {
+        console.log('Found sort-related element:', el.id, el.className, el);
+      });
+    }
+    
+    console.log(`✅ Found ${elements.length} sort elements for: ${sortValue}`);
     
     elements.forEach(el => {
       el.addEventListener("click", (e) => {
@@ -909,10 +922,8 @@ function setupFilters() {
         console.log('🔄 Calling updateSelectedFilters...');
         updateSelectedFilters();
         
-        console.log('🔄 Updating price displays...');
-        // Update price displays based on filtered data after price band selection
-        const nonPriceFiltered = getFilteredDataExcludingPrice();
-        updatePricingBands(nonPriceFiltered, true);
+        // Note: Price bands should NOT update price displays
+        // Price displays should always show original stats
         
         console.log('🔄 Calling applyFilters...');
         applyFilters();
@@ -1043,6 +1054,8 @@ function updateSelectedFilters() {
     });
     
     selectedFiltersDiv.appendChild(filterTag);
+    console.log(`✅ Filter tag appended to DOM:`, filterTag);
+    console.log(`📊 Selected filters div now contains:`, selectedFiltersDiv.innerHTML);
     tagCount++;
     hasFilters = true;
   };
@@ -1116,8 +1129,14 @@ function updateSelectedFilters() {
     hasFilters = true; // Mark that we have at least one item to display
   }
 
+  console.log(`🏁 Finished processing filters. hasFilters: ${hasFilters}, tagCount: ${tagCount}`);
+  console.log(`📊 Final selectedFiltersDiv content:`, selectedFiltersDiv.innerHTML);
+  
   if (!hasFilters) {
+    console.log('❌ No filters detected, showing default message');
     selectedFiltersDiv.innerHTML = `<p style="color: gray;">No filters selected.</p>`;
+  } else {
+    console.log('✅ Filters detected, content should be visible');
   }
 }
 
@@ -2102,6 +2121,14 @@ window.debugFilterSystem = function() {
   ['.lowest-price-display', '.middle-price-display', '.highest-price-display', '.lower-band-range', '.middle-band-range', '.upper-band-range'].forEach(selector => {
     const elements = document.querySelectorAll(selector);
     console.log(`  ${selector}:`, elements.length > 0 ? `✅ Found ${elements.length}` : '❌ Not found', elements);
+  });
+  
+  console.log('📋 Sort elements found:');
+  ["price-asc", "price-desc", "google-rating-desc", "facebook-rating-desc", "google-reviews-desc", "facebook-reviews-desc"].forEach(sortValue => {
+    const byId = document.getElementById(sortValue);
+    const byData = document.querySelectorAll(`[data-sort="${sortValue}"]`);
+    const byClass = document.querySelectorAll(`.${sortValue}`);
+    console.log(`  ${sortValue}: ID=${byId ? '✅' : '❌'}, Data=${byData.length}, Class=${byClass.length}`);
   });
   
   // Test adding a filter manually
