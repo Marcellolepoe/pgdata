@@ -275,10 +275,10 @@ function injectStyles() {
       background-color: transparent;
       border: none;
       border-radius: 0;
-      padding: 2px 4px;
-      margin: 2px;
+      padding: 1px 4px;
+      margin: 1px 2px;
       font-size: 14px;
-      line-height: 1.2;
+      line-height: 1.1;
     }
 
     .filter-content {
@@ -318,11 +318,14 @@ function injectStyles() {
     #selected-filters {
       display: flex !important;
       flex-wrap: wrap !important;
-      align-items: center;
-      gap: 8px;
+      align-items: flex-start;
+      gap: 4px;
       min-height: 40px;
       width: 100% !important;
       max-width: none !important;
+      height: auto !important;
+      max-height: none !important;
+      overflow: visible !important;
     }
     
     /* Override any grid display that might be hiding the filters */
@@ -356,6 +359,22 @@ function injectStyles() {
     .w-layout-grid .selected-filters {
       display: flex !important;
       grid-template-columns: none !important;
+      grid-template-rows: none !important;
+      height: auto !important;
+      max-height: none !important;
+      overflow: visible !important;
+    }
+    
+    /* Ensure parent containers allow vertical expansion */
+    #selected-filters,
+    .selected-filters {
+      grid-row: auto !important;
+      grid-column: auto !important;
+      height: auto !important;
+      max-height: none !important;
+      overflow: visible !important;
+      flex-direction: row !important;
+      flex-wrap: wrap !important;
     }
   `;
 
