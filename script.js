@@ -1108,7 +1108,7 @@ function updateSelectedFilters() {
     console.log(`📊 Selected filters div now contains:`, selectedFiltersDiv.innerHTML);
     
     // Force visibility with JavaScript
-    forceElementVisibility(selectedFiltersDiv);
+    forceElementAndParentsVisibility(selectedFiltersDiv);
     forceElementVisibility(filterTag);
     
     tagCount++;
@@ -1193,10 +1193,32 @@ function updateSelectedFilters() {
   } else {
     console.log('✅ Filters detected, content should be visible');
     // Final force visibility
-    forceElementVisibility(selectedFiltersDiv);
+    forceElementAndParentsVisibility(selectedFiltersDiv);
     selectedFiltersDiv.querySelectorAll('.filter-tag').forEach(tag => {
       forceElementVisibility(tag);
     });
+    
+    // Check if element still has zero dimensions and apply absolute positioning fallback
+    setTimeout(() => {
+      const rect = selectedFiltersDiv.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) {
+        console.log('🚨 Element still has zero dimensions, applying absolute positioning fallback');
+        selectedFiltersDiv.style.position = 'fixed';
+        selectedFiltersDiv.style.top = '100px';
+        selectedFiltersDiv.style.left = '20px';
+        selectedFiltersDiv.style.right = '20px';
+        selectedFiltersDiv.style.width = 'calc(100% - 40px)';
+        selectedFiltersDiv.style.height = 'auto';
+        selectedFiltersDiv.style.minHeight = '50px';
+        selectedFiltersDiv.style.zIndex = '99999';
+        selectedFiltersDiv.style.backgroundColor = '#fff';
+        selectedFiltersDiv.style.border = '2px solid #007bff';
+        selectedFiltersDiv.style.borderRadius = '8px';
+        selectedFiltersDiv.style.padding = '15px';
+        selectedFiltersDiv.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+        console.log('🔧 Applied absolute positioning fallback');
+      }
+    }, 100);
   }
 }
 
@@ -1221,6 +1243,53 @@ function forceElementVisibility(element) {
   element.style.overflow = 'visible';
   
   console.log(`🔧 Forced visibility on element:`, element);
+}
+
+// Enhanced force visibility that also fixes parent issues
+function forceElementAndParentsVisibility(element) {
+  if (!element) return;
+  
+  console.log('🔧 Forcing visibility on element and parents:', element);
+  
+  // First force the element itself
+  forceElementVisibility(element);
+  
+  // Then check and fix parent elements up to 3 levels
+  let currentElement = element.parentElement;
+  let level = 1;
+  while (currentElement && level <= 3) {
+    const computedStyle = window.getComputedStyle(currentElement);
+    console.log(`🔍 Checking parent ${level}:`, currentElement.tagName, currentElement.className);
+    console.log(`  Current display: ${computedStyle.display}, width: ${computedStyle.width}, height: ${computedStyle.height}`);
+    
+    // If parent has problematic display values, fix them
+    if (computedStyle.display === 'none' || 
+        computedStyle.visibility === 'hidden' || 
+        computedStyle.opacity === '0' ||
+        parseFloat(computedStyle.width) === 0 ||
+        parseFloat(computedStyle.height) === 0) {
+      
+      console.log(`🔧 Fixing parent ${level} visibility issues`);
+      currentElement.style.display = 'block';
+      currentElement.style.visibility = 'visible';
+      currentElement.style.opacity = '1';
+      currentElement.style.minWidth = 'auto';
+      currentElement.style.minHeight = 'auto';
+      currentElement.style.width = 'auto';
+      currentElement.style.height = 'auto';
+      currentElement.style.overflow = 'visible';
+      
+      // If it's a grid container, make sure it doesn't collapse
+      if (computedStyle.display.includes('grid')) {
+        currentElement.style.gridTemplateColumns = 'none';
+        currentElement.style.gridTemplate = 'none';
+        currentElement.style.display = 'block';
+      }
+    }
+    
+    currentElement = currentElement.parentElement;
+    level++;
+  }
 }
 
 // Function to remove individual filters
@@ -2243,5 +2312,115 @@ window.debugFilterSystem = function() {
     Array.from(selectedDiv.children).forEach((child, index) => {
       console.log(`Child ${index}:`, child, 'Rect:', child.getBoundingClientRect());
     });
+    
+    // NEW: Check parent elements and their styles
+    console.log('🔍 Checking parent elements...');
+    let currentElement = selectedDiv.parentElement;
+    let level = 1;
+    while (currentElement && level <= 5) {
+      const parentStyle = window.getComputedStyle(currentElement);
+      console.log(`Parent ${level} (${currentElement.tagName}${currentElement.id ? '#' + currentElement.id : ''}${currentElement.className ? '.' + currentElement.className.replace(/\s+/g, '.') : ''}):`, {
+        display: parentStyle.display,
+        width: parentStyle.width,
+        height: parentStyle.height,
+        overflow: parentStyle.overflow,
+        position: parentStyle.position,
+        gridTemplateColumns: parentStyle.gridTemplateColumns,
+        gridTemplate: parentStyle.gridTemplate
+      });
+      console.log(`  Bounding rect:`, currentElement.getBoundingClientRect());
+      currentElement = currentElement.parentElement;
+      level++;
+    }
   }
 };
+
+// Manual test function to debug selected filters
+window.testSelectedFilters = function() {
+  console.log('🧪 Testing selected filters...');
+  
+  // Add a test filter
+  window.filters.priceBand = ['lower'];
+  console.log('1. Added test filter:', window.filters);
+  
+  // Call updateSelectedFilters
+  updateSelectedFilters();
+  console.log('2. Called updateSelectedFilters');
+  
+  // Check the element
+  const selectedDiv = document.getElementById('selected-filters');
+  if (selectedDiv) {
+    console.log('3. Element found:', selectedDiv);
+    console.log('4. Element HTML:', selectedDiv.innerHTML);
+    console.log('5. Element styles:', {
+      display: selectedDiv.style.display,
+      position: selectedDiv.style.position,
+      width: selectedDiv.style.width,
+      height: selectedDiv.style.height
+    });
+    console.log('6. Bounding rect:', selectedDiv.getBoundingClientRect());
+    
+    // Try manual absolute positioning
+    console.log('7. Applying manual positioning...');
+    selectedDiv.style.position = 'fixed';
+    selectedDiv.style.top = '50px';
+    selectedDiv.style.left = '50px';
+    selectedDiv.style.width = '300px';
+    selectedDiv.style.height = '60px';
+    selectedDiv.style.backgroundColor = 'yellow';
+    selectedDiv.style.border = '3px solid red';
+    selectedDiv.style.zIndex = '999999';
+    selectedDiv.style.padding = '10px';
+    
+    console.log('8. New bounding rect:', selectedDiv.getBoundingClientRect());
+  } else {
+    console.error('❌ Selected filters div not found!');
+  }
+};
+
+// Enhanced force visibility that also fixes parent issues
+function forceElementAndParentsVisibility(element) {
+  if (!element) return;
+  
+  console.log('🔧 Forcing visibility on element and parents:', element);
+  
+  // First force the element itself
+  forceElementVisibility(element);
+  
+  // Then check and fix parent elements up to 3 levels
+  let currentElement = element.parentElement;
+  let level = 1;
+  while (currentElement && level <= 3) {
+    const computedStyle = window.getComputedStyle(currentElement);
+    console.log(`🔍 Checking parent ${level}:`, currentElement.tagName, currentElement.className);
+    console.log(`  Current display: ${computedStyle.display}, width: ${computedStyle.width}, height: ${computedStyle.height}`);
+    
+    // If parent has problematic display values, fix them
+    if (computedStyle.display === 'none' || 
+        computedStyle.visibility === 'hidden' || 
+        computedStyle.opacity === '0' ||
+        parseFloat(computedStyle.width) === 0 ||
+        parseFloat(computedStyle.height) === 0) {
+      
+      console.log(`🔧 Fixing parent ${level} visibility issues`);
+      currentElement.style.display = 'block';
+      currentElement.style.visibility = 'visible';
+      currentElement.style.opacity = '1';
+      currentElement.style.minWidth = 'auto';
+      currentElement.style.minHeight = 'auto';
+      currentElement.style.width = 'auto';
+      currentElement.style.height = 'auto';
+      currentElement.style.overflow = 'visible';
+      
+      // If it's a grid container, make sure it doesn't collapse
+      if (computedStyle.display.includes('grid')) {
+        currentElement.style.gridTemplateColumns = 'none';
+        currentElement.style.gridTemplate = 'none';
+        currentElement.style.display = 'block';
+      }
+    }
+    
+    currentElement = currentElement.parentElement;
+    level++;
+  }
+}
