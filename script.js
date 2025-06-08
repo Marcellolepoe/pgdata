@@ -1056,7 +1056,33 @@ function updateURLParams() {
 // Update Selected Filters Panel
 function updateSelectedFilters() {
   console.log('🔍 updateSelectedFilters called');
-  const selectedFiltersDiv = document.getElementById("selected-filters");
+  let selectedFiltersDiv = document.getElementById("selected-filters");
+  
+  // If element exists but is positioned too far down, try to find a better container
+  if (selectedFiltersDiv) {
+    const rect = selectedFiltersDiv.getBoundingClientRect();
+    console.log(`📊 Found #selected-filters at position y=${rect.top}`);
+    
+    // If the element is way down the page, look for a better positioned alternative
+    if (rect.top > window.innerHeight) {
+      console.log('🔍 Element is too far down, looking for alternative container...');
+      
+      // Try to find an element with class "selected-filters" that's better positioned
+      const alternativeContainers = document.querySelectorAll('.selected-filters');
+      for (let container of alternativeContainers) {
+        const containerRect = container.getBoundingClientRect();
+        console.log(`📍 Checking .selected-filters at y=${containerRect.top}`);
+        if (containerRect.top < window.innerHeight && containerRect.top > 0) {
+          console.log('✅ Found better positioned container with class selected-filters');
+          selectedFiltersDiv = container;
+          // Give it an ID for future reference
+          if (!container.id) container.id = 'selected-filters-active';
+          break;
+        }
+      }
+    }
+  }
+  
   if (!selectedFiltersDiv) {
     console.error('❌ Selected filters div not found with ID "selected-filters"');
     console.log('Available elements with "selected" in ID or class:');
@@ -1198,32 +1224,32 @@ function updateSelectedFilters() {
       forceElementVisibility(tag);
     });
     
-    // Check if element is positioned too far down and fix positioning
+    // Ensure the container is visible and properly styled (but keep it in its natural position)
     setTimeout(() => {
       const rect = selectedFiltersDiv.getBoundingClientRect();
-      const viewportHeight = window.innerHeight;
-      console.log(`📊 Element position: y=${rect.top}, viewport height=${viewportHeight}`);
+      console.log(`📊 Final element position: y=${rect.top}, width=${rect.width}, height=${rect.height}`);
       
-      // If element is below the fold (more than viewport height from top) or has zero dimensions
-      if (rect.top > viewportHeight || rect.width === 0 || rect.height === 0) {
-        console.log('🚨 Element is positioned too far down or has zero dimensions, applying positioning fix');
-        selectedFiltersDiv.style.position = 'fixed';
-        selectedFiltersDiv.style.top = '120px';
-        selectedFiltersDiv.style.left = '20px';
-        selectedFiltersDiv.style.right = '20px';
-        selectedFiltersDiv.style.width = 'calc(100% - 40px)';
-        selectedFiltersDiv.style.height = 'auto';
-        selectedFiltersDiv.style.minHeight = '50px';
-        selectedFiltersDiv.style.zIndex = '99999';
-        selectedFiltersDiv.style.backgroundColor = '#fff';
-        selectedFiltersDiv.style.border = '2px solid #007bff';
-        selectedFiltersDiv.style.borderRadius = '8px';
-        selectedFiltersDiv.style.padding = '15px';
-        selectedFiltersDiv.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
-        console.log('🔧 Applied positioning fix - element now visible at top of page');
-      } else {
-        console.log('✅ Element is positioned correctly and visible');
+      // Reset any previous fixed positioning
+      if (selectedFiltersDiv.style.position === 'fixed') {
+        selectedFiltersDiv.style.position = '';
+        selectedFiltersDiv.style.top = '';
+        selectedFiltersDiv.style.left = '';
+        selectedFiltersDiv.style.right = '';
+        selectedFiltersDiv.style.width = '';
+        selectedFiltersDiv.style.height = '';
+        console.log('🔄 Reset fixed positioning to use natural layout position');
       }
+      
+      // Ensure it has proper styling but stays in its natural position
+      selectedFiltersDiv.style.display = 'flex';
+      selectedFiltersDiv.style.visibility = 'visible';
+      selectedFiltersDiv.style.opacity = '1';
+      selectedFiltersDiv.style.flexWrap = 'wrap';
+      selectedFiltersDiv.style.alignItems = 'center';
+      selectedFiltersDiv.style.gap = '8px';
+      selectedFiltersDiv.style.minHeight = '40px';
+      
+      console.log('✅ Container is now using natural positioning within the layout');
     }, 100);
   }
 }
