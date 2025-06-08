@@ -1024,7 +1024,8 @@ function updateSelectedFilters() {
     console.error('❌ No suitable selected filters container found');
     return;
   }
-}
+
+
 
 // Initialize the selected filters container
 function initializeSelectedFiltersContainer() {
@@ -1089,7 +1090,8 @@ function findBestSelectedFiltersContainer() {
   
   console.error('❌ No selected filters container found at all');
   return null;
-  
+}
+
   console.log('✅ Selected filters div found:', selectedFiltersDiv);
   console.log('📊 Current filters state:', filters);
   
