@@ -1198,13 +1198,17 @@ function updateSelectedFilters() {
       forceElementVisibility(tag);
     });
     
-    // Check if element still has zero dimensions and apply absolute positioning fallback
+    // Check if element is positioned too far down and fix positioning
     setTimeout(() => {
       const rect = selectedFiltersDiv.getBoundingClientRect();
-      if (rect.width === 0 || rect.height === 0) {
-        console.log('🚨 Element still has zero dimensions, applying absolute positioning fallback');
+      const viewportHeight = window.innerHeight;
+      console.log(`📊 Element position: y=${rect.top}, viewport height=${viewportHeight}`);
+      
+      // If element is below the fold (more than viewport height from top) or has zero dimensions
+      if (rect.top > viewportHeight || rect.width === 0 || rect.height === 0) {
+        console.log('🚨 Element is positioned too far down or has zero dimensions, applying positioning fix');
         selectedFiltersDiv.style.position = 'fixed';
-        selectedFiltersDiv.style.top = '100px';
+        selectedFiltersDiv.style.top = '120px';
         selectedFiltersDiv.style.left = '20px';
         selectedFiltersDiv.style.right = '20px';
         selectedFiltersDiv.style.width = 'calc(100% - 40px)';
@@ -1216,7 +1220,9 @@ function updateSelectedFilters() {
         selectedFiltersDiv.style.borderRadius = '8px';
         selectedFiltersDiv.style.padding = '15px';
         selectedFiltersDiv.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
-        console.log('🔧 Applied absolute positioning fallback');
+        console.log('🔧 Applied positioning fix - element now visible at top of page');
+      } else {
+        console.log('✅ Element is positioned correctly and visible');
       }
     }, 100);
   }
