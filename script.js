@@ -10,7 +10,8 @@ window.filters = {
   priceMin: null,
   priceMax: null,
   searchTerm: "",
-  sortBy: ""
+  sortBy: "",
+  priceBand: []
 };
 
 let funeralData = [];
@@ -148,7 +149,7 @@ async function initializePage() {
     priceMax: null,
     searchTerm: "",
     sortBy: "",
-    priceBand: [],
+    priceBand: []
   };
 
   const requiredElements = [
@@ -174,15 +175,26 @@ async function initializePage() {
       "google-rating-desc", "facebook-rating-desc",
       "google-reviews-desc", "facebook-reviews-desc"
     ];
-    sortOptions.forEach(id => {
-      const el = document.getElementById(id);
-      if (el) {
+    sortOptions.forEach(sortValue => {
+      // Try multiple selection methods
+      let elements = [document.getElementById(sortValue)].filter(el => el !== null);
+      
+      if (elements.length === 0) {
+        elements = Array.from(document.querySelectorAll(`[data-sort="${sortValue}"]`));
+      }
+      
+      if (elements.length === 0) {
+        elements = Array.from(document.querySelectorAll(`.${sortValue}`));
+      }
+      
+      elements.forEach(el => {
         el.addEventListener("click", function (e) {
           e.preventDefault();
-          filters.sortBy = id;
+          filters.sortBy = sortValue;
+          updateSelectedFilters();
           applyFilters();
         });
-      }
+      });
     });
   } catch (error) {
     console.error("❌ Error during page initialization:", error);
@@ -246,10 +258,58 @@ function injectStyles() {
       100% { transform: rotate(360deg); }
     }
 
-    /* Simple filter text styling - no boxes */
+    /* Filter tag styling with remove buttons */
+    .filter-tag {
+      display: inline-flex;
+      align-items: center;
+      background-color: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 16px;
+      padding: 4px 8px 4px 12px;
+      margin: 2px;
+      font-size: 14px;
+      line-height: 1.2;
+    }
+
+    .filter-content {
+      margin-right: 6px;
+    }
+
+    .filter-remove-btn {
+      background: none;
+      border: none;
+      color: #6c757d;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      line-height: 1;
+      padding: 0;
+      margin: 0;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .filter-remove-btn:hover {
+      background-color: #dc3545;
+      color: white;
+    }
+
     .filter-separator {
       color: #6c757d;
       margin: 0 4px;
+    }
+
+    /* Selected filters container styling */
+    #selected-filters {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 4px;
     }
   `;
 
@@ -664,25 +724,48 @@ document.addEventListener("DOMContentLoaded", function () {
 
 document.addEventListener("DOMContentLoaded", () => {
   const sortOptions = ["price-asc", "price-desc", "google-rating-desc", "facebook-rating-desc", "google-reviews-desc", "facebook-reviews-desc"];
-  sortOptions.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) {
+  
+  // Try to find sort elements by ID first, then by data attributes
+  sortOptions.forEach(sortValue => {
+    // Try ID first
+    let elements = [document.getElementById(sortValue)].filter(el => el !== null);
+    
+    // If no ID found, try data attributes
+    if (elements.length === 0) {
+      elements = Array.from(document.querySelectorAll(`[data-sort="${sortValue}"]`));
+    }
+    
+    // If still no elements, try class-based selection
+    if (elements.length === 0) {
+      elements = Array.from(document.querySelectorAll(`.${sortValue}`));
+    }
+    
+    console.log(`Found ${elements.length} sort elements for: ${sortValue}`);
+    
+    elements.forEach(el => {
       el.addEventListener("click", (e) => {
         e.preventDefault();
-        filters.sortBy = id;
+        filters.sortBy = sortValue;
+        console.log(`Sort selected: ${sortValue}`);
+        
         const labelMap = {
           "price-asc": "Price ↑",
           "price-desc": "Price ↓",
           "google-rating-desc": "Google Reviews",
           "facebook-rating-desc": "Facebook Reviews",
-          "google-reviews-desc": " #Google Reviews",
-          "facebook-reviews-desc": "# FB Reviews"
+          "google-reviews-desc": "#Google Reviews",
+          "facebook-reviews-desc": "#FB Reviews"
         };
+        
+        // Update sort button label if it exists
         const sortLabel = document.getElementById("sort-button-label");
-        if (sortLabel) sortLabel.textContent = labelMap[id] || "Sort By";
+        if (sortLabel) sortLabel.textContent = labelMap[sortValue] || "Sort By";
+        
+        // Update selected filters
+        updateSelectedFilters();
         applyFilters();
       });
-    }
+    });
   });
 });
 
@@ -718,6 +801,7 @@ document.addEventListener("DOMContentLoaded", function () {
       filters.priceMin = priceRange.min;
       filters.priceMax = priceRange.max;
       filters.searchTerm = "";
+      filters.sortBy = "";
       
       // Reset all array filters
       Object.keys(filters).forEach(key => {
@@ -725,6 +809,10 @@ document.addEventListener("DOMContentLoaded", function () {
           filters[key] = [];
         }
       });
+      
+      // Reset sort button label
+      const sortLabel = document.getElementById("sort-button-label");
+      if (sortLabel) sortLabel.textContent = "Sort By";
 
       // Reset checkboxes
       document.querySelectorAll('.filter-checkbox input[type="checkbox"]')
@@ -809,6 +897,11 @@ function setupFilters() {
         }
         
         updateSelectedFilters();
+        
+        // Update price displays based on filtered data after price band selection
+        const nonPriceFiltered = getFilteredDataExcludingPrice();
+        updatePricingBands(nonPriceFiltered, true);
+        
         applyFilters();
       });
     }
@@ -885,22 +978,45 @@ function updateURLParams() {
 // Update Selected Filters Panel
 function updateSelectedFilters() {
   const selectedFiltersDiv = document.getElementById("selected-filters");
-  if (!selectedFiltersDiv) return;
+  if (!selectedFiltersDiv) {
+    console.warn('Selected filters div not found with ID "selected-filters"');
+    return;
+  }
   
+  console.log('Updating selected filters...', filters);
   selectedFiltersDiv.innerHTML = "";
   let hasFilters = false;
   let tagCount = 0;
 
-  // Helper to add a filter tag (simple text style)
-  const addFilterTag = (label, value, category) => {
+  // Helper to add a filter tag with remove button
+  const addFilterTag = (label, value, category, filterValue = null) => {
+    console.log(`Adding filter tag: ${label} = ${value} (category: ${category})`);
+    
     if (tagCount > 0) {
       const separator = document.createElement("span");
       separator.classList.add("filter-separator");
       separator.innerHTML = " | ";
       selectedFiltersDiv.appendChild(separator);
     }
-    const filterTag = document.createElement("span");
-    filterTag.innerHTML = `<strong>${label}:</strong> ${value}`;
+    
+    const filterTag = document.createElement("div");
+    filterTag.classList.add("filter-tag");
+    filterTag.innerHTML = `
+      <span class="filter-content">
+        <strong>${label}:</strong> ${value}
+      </span>
+      <button class="filter-remove-btn" data-category="${category}" data-value="${filterValue || ''}" aria-label="Remove ${label} filter">
+        ×
+      </button>
+    `;
+    
+    // Add click handler for remove button
+    const removeBtn = filterTag.querySelector('.filter-remove-btn');
+    removeBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      removeFilter(category, filterValue);
+    });
+    
     selectedFiltersDiv.appendChild(filterTag);
     tagCount++;
     hasFilters = true;
@@ -931,9 +1047,9 @@ function updateSelectedFilters() {
   if (filters.priceMin !== initialPriceRange.min || filters.priceMax !== initialPriceRange.max) {
     const isMaxOnly = filters.priceMin === initialPriceRange.min && filters.priceMax !== initialPriceRange.max;
     if (isMaxOnly) {
-      addFilterTag('Price', `$${filters.priceMax.toLocaleString()} Max`, 'price');
+      addFilterTag('Price', `$${filters.priceMax.toLocaleString()} Max`, 'price', 'max');
     } else {
-      addFilterTag('Price', `$${filters.priceMin.toLocaleString()} – $${filters.priceMax.toLocaleString()}`, 'price');
+      addFilterTag('Price', `$${filters.priceMin.toLocaleString()} – $${filters.priceMax.toLocaleString()}`, 'price', 'range');
     }
   }
 
@@ -951,16 +1067,16 @@ function updateSelectedFilters() {
         formattedValues = val.map(v => v.charAt(0).toUpperCase() + v.slice(1).toLowerCase());
       }
       
-      addFilterTag(formattedCategory, formattedValues.join(", "), category);
+      addFilterTag(formattedCategory, formattedValues.join(", "), category, JSON.stringify(val));
     }
   });
 
   // Handle search term
   if (filters.searchTerm && filters.searchTerm.trim() !== "") {
-    addFilterTag('Search', filters.searchTerm, 'searchTerm');
+    addFilterTag('Search', filters.searchTerm, 'searchTerm', filters.searchTerm);
   }
 
-  // Handle sorting
+  // Handle sorting (moved outside hasFilters check so it shows even when no other filters are selected)
   if (filters.sortBy && filters.sortBy.trim() !== "") {
     const sortLabels = {
       "price-asc": "Price (Low to High)",
@@ -971,12 +1087,94 @@ function updateSelectedFilters() {
       "facebook-reviews-desc": "Facebook Reviews (Most to Least)"
     };
     const sortLabel = sortLabels[filters.sortBy] || filters.sortBy;
-    addFilterTag('Sort', sortLabel, 'sortBy');
+    addFilterTag('Sort', sortLabel, 'sortBy', filters.sortBy);
+    hasFilters = true; // Mark that we have at least one item to display
   }
 
   if (!hasFilters) {
     selectedFiltersDiv.innerHTML = `<p style="color: gray;">No filters selected.</p>`;
   }
+}
+
+// Function to remove individual filters
+function removeFilter(category, filterValue) {
+  if (category === 'price') {
+    // Reset price filters to original range
+    if (window.priceStats && window.priceStats.original) {
+      filters.priceMin = window.priceStats.original.min;
+      filters.priceMax = window.priceStats.original.max;
+    }
+    
+    // Clear price max input
+    const manualMaxInput = document.getElementById("price-input-max");
+    if (manualMaxInput) manualMaxInput.value = "";
+    
+  } else if (category === 'searchTerm') {
+    filters.searchTerm = "";
+    
+    // Clear search input
+    const searchInput = document.getElementById("funeral-parlour-search");
+    if (searchInput) searchInput.value = "";
+    
+  } else if (category === 'sortBy') {
+    filters.sortBy = "";
+    
+    // Reset sort button label
+    const sortLabel = document.getElementById("sort-button-label");
+    if (sortLabel) sortLabel.textContent = "Sort By";
+    
+    console.log('Sort filter cleared');
+    
+  } else if (Array.isArray(filters[category])) {
+    // Handle array filters (location, casket, etc.)
+    if (filterValue) {
+      try {
+        const valuesToRemove = JSON.parse(filterValue);
+        filters[category] = [];
+        
+        // Update corresponding checkboxes
+        document.querySelectorAll(`.filter-checkbox input[type="checkbox"][data-category="${category}"]`)
+          .forEach(checkbox => {
+            if (valuesToRemove.includes(checkbox.dataset.value)) {
+              checkbox.checked = false;
+            }
+          });
+        
+        // Handle price band visual states
+        if (category === 'priceBand') {
+          const priceBandElements = [
+            { id: 'band-lower', value: 'lower' },
+            { id: 'band-middle', value: 'middle' },
+            { id: 'band-upper', value: 'upper' }
+          ];
+          
+          priceBandElements.forEach(band => {
+            const element = document.getElementById(band.id);
+            if (element && valuesToRemove.includes(band.value)) {
+              element.classList.remove('active');
+            }
+          });
+        }
+        
+      } catch (e) {
+        // Fallback: clear all values for this category
+        filters[category] = [];
+        document.querySelectorAll(`.filter-checkbox input[type="checkbox"][data-category="${category}"]`)
+          .forEach(checkbox => checkbox.checked = false);
+      }
+    }
+  }
+  
+  // Update UI and apply filters
+  updateSelectedFilters();
+  
+  // Apply non-price filters first and update price stats if needed
+  if (category !== 'price' && category !== 'sortBy') {
+    const nonPriceFiltered = getFilteredDataExcludingPrice();
+    updatePricingBands(nonPriceFiltered, true);
+  }
+  
+  applyFilters();
 }
 
 // HELPER: getDisplayValue
@@ -1343,8 +1541,13 @@ const filterKeyMap = {
 
 // UPDATE TEXT FOR ALL (Price Band Logic)
 function updateTextForAll(selector, value) {
-  document.querySelectorAll(selector).forEach(span => {
-    if (span) span.textContent = value.toLocaleString();
+  const elements = document.querySelectorAll(selector);
+  console.log(`Updating ${elements.length} elements with selector "${selector}" to value: ${value}`);
+  elements.forEach((element, index) => {
+    if (element) {
+      element.textContent = value.toLocaleString();
+      console.log(`Updated element ${index + 1}: ${selector}`);
+    }
   });
 }
 
@@ -1443,8 +1646,12 @@ function updatePricingBands(filteredData, skipFilterReset = false) {
   updateTextForAll(".lowest-price-display", currentStats.min);
   updateTextForAll(".lower-band-range", currentStats.p33);
   updateTextForAll(".median-price-display", currentStats.median);
+  updateTextForAll(".middle-price-display", currentStats.median);
   updateTextForAll(".upper-band-range", currentStats.p66);
+  updateTextForAll(".middle-band-range", currentStats.p66);
   updateTextForAll(".highest-price-display", currentStats.max);
+  
+  console.log('Updated price displays with stats:', currentStats);
 
   // Update visual bands using these stats
   updatePriceBandsVisual(currentStats.min, currentStats.p33, currentStats.p66, currentStats.max);
