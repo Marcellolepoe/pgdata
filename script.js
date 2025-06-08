@@ -168,9 +168,6 @@ async function initializePage() {
     await fetchFuneralData();
     setupFilters();
     getFiltersFromURL();
-    
-    // Initialize selected filters container immediately
-    initializeSelectedFiltersContainer();
     updateSelectedFilters();
     
     const sortOptions = [
@@ -271,50 +268,93 @@ function injectStyles() {
       100% { transform: rotate(360deg); }
     }
 
-    /* Clean filter tag styling - no boxes */
+    /* Filter tag styling with remove buttons */
     .filter-tag {
-      display: inline;
+      display: inline-flex !important;
+      align-items: center;
+      background-color: transparent;
+      border: none;
+      border-radius: 0;
+      padding: 2px 4px;
+      margin: 2px;
       font-size: 14px;
-      line-height: 1.5;
+      line-height: 1.2;
+    }
+
+    .filter-content {
+      margin-right: 6px;
     }
 
     .filter-remove-btn {
       background: none;
       border: none;
-      color: #dc3545;
+      color: #6c757d;
       cursor: pointer;
-      font-size: 14px;
+      font-size: 16px;
       font-weight: bold;
-      padding: 0 0 0 4px;
+      line-height: 1;
+      padding: 0;
       margin: 0;
-      transition: color 0.2s ease;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
     }
 
     .filter-remove-btn:hover {
-      color: #c82333;
+      background-color: #dc3545;
+      color: white;
     }
 
-    /* Selected filters container styling - clean block layout */
-    #selected-filters,
+    .filter-separator {
+      color: #6c757d;
+      margin: 0 4px;
+    }
+
+    /* Selected filters container styling */
+    #selected-filters {
+      display: flex !important;
+      flex-wrap: wrap !important;
+      align-items: center;
+      gap: 8px;
+      min-height: 40px;
+      width: 100% !important;
+      max-width: none !important;
+    }
+    
+    /* Override any grid display that might be hiding the filters */
+    #selected-filters.selected-filters,
     .selected-filters {
-      display: block !important;
-      line-height: 1.5 !important;
-      visibility: visible !important;
-      opacity: 1 !important;
+      display: flex !important;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
     }
     
-    /* Ensure all filter content is visible inline */
-    .filter-tag,
-    .filter-tag * {
-      display: inline !important;
+    /* Ensure filter tags are visible in any layout */
+    .filter-tag {
+      display: inline-flex !important;
       visibility: visible !important;
       opacity: 1 !important;
+      position: relative !important;
+      z-index: 1000 !important;
+      background: transparent !important;
+      border: none !important;
     }
     
-    /* Override any webflow grid that might be affecting display */
+    /* Force selected filters to be visible regardless of grid settings */
+    #selected-filters * {
+      display: inline-flex !important;
+      visibility: visible !important;
+    }
+    
+    /* Override any webflow grid that might be hiding content */
     .w-layout-grid #selected-filters,
     .w-layout-grid .selected-filters {
-      display: block !important;
+      display: flex !important;
       grid-template-columns: none !important;
     }
   `;
@@ -1018,95 +1058,70 @@ function updateURLParams() {
 // Update Selected Filters Panel
 function updateSelectedFilters() {
   console.log('🔍 updateSelectedFilters called');
-  let selectedFiltersDiv = findBestSelectedFiltersContainer();
-  
-  if (!selectedFiltersDiv) {
-    console.error('❌ No suitable selected filters container found');
-    return;
-  }
-
-
-
-// Initialize the selected filters container
-function initializeSelectedFiltersContainer() {
-  console.log('🚀 Initializing selected filters container...');
-  
-  const container = findBestSelectedFiltersContainer();
-  if (container) {
-    // Clear any existing content
-    container.innerHTML = '<span style="color: gray;">No filters selected.</span>';
-    
-    // Apply clean styling immediately
-    container.style.display = 'block';
-    container.style.visibility = 'visible';
-    container.style.opacity = '1';
-    container.style.lineHeight = '1.5';
-    
-    console.log('✅ Selected filters container initialized');
-    return container;
-  } else {
-    console.error('❌ Could not initialize selected filters container');
-    return null;
-  }
-}
-
-// Helper function to find the best container for selected filters
-function findBestSelectedFiltersContainer() {
-  // First try the ID
   let selectedFiltersDiv = document.getElementById("selected-filters");
   
-  // If found, check if it's well positioned
+  // If element exists but is positioned too far down, try to find a better container
   if (selectedFiltersDiv) {
     const rect = selectedFiltersDiv.getBoundingClientRect();
     console.log(`📊 Found #selected-filters at position y=${rect.top}`);
     
-    // If it's reasonably positioned, use it
-    if (rect.top < window.innerHeight * 2) { // Allow it to be below fold but not too far
-      return selectedFiltersDiv;
+    // If the element is way down the page, look for a better positioned alternative
+    if (rect.top > window.innerHeight) {
+      console.log('🔍 Element is too far down, looking for alternative container...');
+      
+      // Try to find an element with class "selected-filters" that's better positioned
+      const alternativeContainers = document.querySelectorAll('.selected-filters');
+      for (let container of alternativeContainers) {
+        const containerRect = container.getBoundingClientRect();
+        console.log(`📍 Checking .selected-filters at y=${containerRect.top}`);
+        if (containerRect.top < window.innerHeight && containerRect.top > 0) {
+          console.log('✅ Found better positioned container with class selected-filters');
+          selectedFiltersDiv = container;
+          // Give it an ID for future reference
+          if (!container.id) container.id = 'selected-filters-active';
+          break;
+        }
+      }
     }
   }
   
-  // Look for class-based alternatives
-  console.log('🔍 Looking for alternative .selected-filters containers...');
-  const alternativeContainers = document.querySelectorAll('.selected-filters');
-  
-  for (let container of alternativeContainers) {
-    const containerRect = container.getBoundingClientRect();
-    console.log(`📍 Checking .selected-filters at y=${containerRect.top}`);
-    // Find one that's visible and reasonably positioned
-    if (containerRect.top >= 0 && containerRect.top < window.innerHeight * 1.5) {
-      console.log('✅ Found good positioned container with class selected-filters');
-      // Give it an ID for future reference
-      if (!container.id) container.id = 'selected-filters-active';
-      return container;
-    }
+  if (!selectedFiltersDiv) {
+    console.error('❌ Selected filters div not found with ID "selected-filters"');
+    console.log('Available elements with "selected" in ID or class:');
+    document.querySelectorAll('[id*="selected"], [class*="selected"]').forEach(el => {
+      console.log('Found element:', el.id, el.className, el);
+    });
+    return;
   }
   
-  // If no good positioned container found, use the original even if poorly positioned
-  if (selectedFiltersDiv) {
-    console.log('⚠️ Using original #selected-filters despite poor positioning');
-    return selectedFiltersDiv;
-  }
-  
-  console.error('❌ No selected filters container found at all');
-  return null;
-}
-
   console.log('✅ Selected filters div found:', selectedFiltersDiv);
+  console.log('🎨 Selected filters div styles:', window.getComputedStyle(selectedFiltersDiv));
   console.log('📊 Current filters state:', filters);
   
   selectedFiltersDiv.innerHTML = "";
   let hasFilters = false;
-  let filterElements = [];
+  let tagCount = 0;
 
-  // Helper to add a filter tag (simplified, no boxes or borders)
+  // Helper to add a filter tag with remove button
   const addFilterTag = (label, value, category, filterValue = null) => {
     console.log(`🏷️ Adding filter tag: ${label} = ${value} (category: ${category})`);
     
-    const filterTag = document.createElement("span");
+    if (tagCount > 0) {
+      const separator = document.createElement("span");
+      separator.classList.add("filter-separator");
+      separator.innerHTML = " | ";
+      selectedFiltersDiv.appendChild(separator);
+    }
+    
+    const filterTag = document.createElement("div");
     filterTag.classList.add("filter-tag");
     filterTag.innerHTML = `
-      <strong>${label}:</strong> ${value} <button class="filter-remove-btn" data-category="${category}" data-value="${filterValue || ''}" aria-label="Remove ${label} filter">×</button>
+      <span class="filter-content">
+        <strong>${label}:</strong> ${value}
+      </span>
+      <button class="filter-remove-btn" data-category="${category}" data-value="${filterValue || ''}" aria-label="Remove ${label} filter">
+        ×
+      </button>
     `;
     
     // Add click handler for remove button
@@ -1116,7 +1131,15 @@ function findBestSelectedFiltersContainer() {
       removeFilter(category, filterValue);
     });
     
-    filterElements.push(filterTag);
+    selectedFiltersDiv.appendChild(filterTag);
+    console.log(`✅ Filter tag appended to DOM:`, filterTag);
+    console.log(`📊 Selected filters div now contains:`, selectedFiltersDiv.innerHTML);
+    
+    // Force visibility with JavaScript
+    forceElementAndParentsVisibility(selectedFiltersDiv);
+    forceElementVisibility(filterTag);
+    
+    tagCount++;
     hasFilters = true;
   };
 
@@ -1189,32 +1212,47 @@ function findBestSelectedFiltersContainer() {
     hasFilters = true; // Mark that we have at least one item to display
   }
 
-    // Add all filter elements to the container
+  console.log(`🏁 Finished processing filters. hasFilters: ${hasFilters}, tagCount: ${tagCount}`);
+  console.log(`📊 Final selectedFiltersDiv content:`, selectedFiltersDiv.innerHTML);
+
   if (!hasFilters) {
     console.log('❌ No filters detected, showing default message');
-    selectedFiltersDiv.innerHTML = `<span style="color: gray;">No filters selected.</span>`;
+    selectedFiltersDiv.innerHTML = `<p style="color: gray;">No filters selected.</p>`;
   } else {
-    console.log('✅ Filters detected, adding all filter elements');
-    
-    // Add all filters with separators
-    filterElements.forEach((filterTag, index) => {
-      if (index > 0) {
-        const separator = document.createElement("span");
-        separator.innerHTML = " | ";
-        separator.style.color = "#666";
-        separator.style.margin = "0 8px";
-        selectedFiltersDiv.appendChild(separator);
-      }
-      selectedFiltersDiv.appendChild(filterTag);
+    console.log('✅ Filters detected, content should be visible');
+    // Final force visibility
+    forceElementAndParentsVisibility(selectedFiltersDiv);
+    selectedFiltersDiv.querySelectorAll('.filter-tag').forEach(tag => {
+      forceElementVisibility(tag);
     });
     
-    // Apply clean styling - no boxes, just text
-    selectedFiltersDiv.style.display = 'block';
-    selectedFiltersDiv.style.visibility = 'visible';
-    selectedFiltersDiv.style.opacity = '1';
-    selectedFiltersDiv.style.lineHeight = '1.5';
-    
-    console.log(`📊 Added ${filterElements.length} filter elements to container`);
+    // Ensure the container is visible and properly styled (but keep it in its natural position)
+    setTimeout(() => {
+      const rect = selectedFiltersDiv.getBoundingClientRect();
+      console.log(`📊 Final element position: y=${rect.top}, width=${rect.width}, height=${rect.height}`);
+      
+      // Reset any previous fixed positioning
+      if (selectedFiltersDiv.style.position === 'fixed') {
+        selectedFiltersDiv.style.position = '';
+        selectedFiltersDiv.style.top = '';
+        selectedFiltersDiv.style.left = '';
+        selectedFiltersDiv.style.right = '';
+        selectedFiltersDiv.style.width = '';
+        selectedFiltersDiv.style.height = '';
+        console.log('🔄 Reset fixed positioning to use natural layout position');
+      }
+      
+      // Ensure it has proper styling but stays in its natural position
+      selectedFiltersDiv.style.display = 'flex';
+      selectedFiltersDiv.style.visibility = 'visible';
+      selectedFiltersDiv.style.opacity = '1';
+      selectedFiltersDiv.style.flexWrap = 'wrap';
+      selectedFiltersDiv.style.alignItems = 'center';
+      selectedFiltersDiv.style.gap = '8px';
+      selectedFiltersDiv.style.minHeight = '40px';
+      
+      console.log('✅ Container is now using natural positioning within the layout');
+    }, 100);
   }
 }
 
@@ -1228,15 +1266,16 @@ function forceElementVisibility(element) {
   element.style.opacity = '1';
   element.style.position = 'relative';
   element.style.zIndex = '9999';
-  element.style.background = '#f8f9fa';
-  element.style.border = '1px solid #dee2e6';
-  element.style.padding = '8px';
-  element.style.margin = '4px';
-  element.style.minHeight = '30px';
+  element.style.background = 'transparent';
+  element.style.border = 'none';
+  element.style.padding = '4px';
+  element.style.margin = '2px';
+  element.style.minHeight = 'auto';
   element.style.maxHeight = 'none';
   element.style.width = 'auto';
   element.style.height = 'auto';
   element.style.overflow = 'visible';
+  element.style.flexWrap = 'wrap';
   
   console.log(`🔧 Forced visibility on element:`, element);
 }
@@ -2361,12 +2400,17 @@ window.testSelectedFilters = function() {
     selectedDiv.style.position = 'fixed';
     selectedDiv.style.top = '50px';
     selectedDiv.style.left = '50px';
-    selectedDiv.style.width = '300px';
-    selectedDiv.style.height = '60px';
-    selectedDiv.style.backgroundColor = 'yellow';
-    selectedDiv.style.border = '3px solid red';
+    selectedDiv.style.right = '50px';
+    selectedDiv.style.width = 'auto';
+    selectedDiv.style.height = 'auto';
+    selectedDiv.style.backgroundColor = 'transparent';
+    selectedDiv.style.border = 'none';
     selectedDiv.style.zIndex = '999999';
     selectedDiv.style.padding = '10px';
+    selectedDiv.style.display = 'flex';
+    selectedDiv.style.flexWrap = 'wrap';
+    selectedDiv.style.gap = '8px';
+    selectedDiv.style.alignItems = 'center';
     
     console.log('8. New bounding rect:', selectedDiv.getBoundingClientRect());
   } else {
