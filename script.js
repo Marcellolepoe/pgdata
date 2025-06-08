@@ -874,6 +874,7 @@ function setupFilters() {
   });
 
   // Setup price band filters
+  console.log('🎯 Setting up price band filters...');
   const priceBandElements = [
     { id: 'band-lower', value: 'lower' },
     { id: 'band-middle', value: 'middle' },
@@ -881,28 +882,46 @@ function setupFilters() {
   ];
 
   priceBandElements.forEach(band => {
+    console.log(`🔍 Looking for price band element with ID: ${band.id}`);
     const element = document.getElementById(band.id);
     if (element) {
+      console.log(`✅ Found price band element: ${band.id}`, element);
       element.addEventListener('click', (e) => {
         e.preventDefault();
         const bandValue = band.value;
         
         // Toggle the band in the filter array
+        console.log(`🎯 Price band clicked: ${bandValue}`);
+        console.log(`📊 Current priceBand filter before toggle:`, filters.priceBand);
+        
         if (!filters.priceBand.includes(bandValue)) {
           filters.priceBand.push(bandValue);
           element.classList.add('active');
+          console.log(`➕ Added ${bandValue} to priceBand filter`);
         } else {
           filters.priceBand = filters.priceBand.filter(b => b !== bandValue);
           element.classList.remove('active');
+          console.log(`➖ Removed ${bandValue} from priceBand filter`);
         }
         
+        console.log(`📊 priceBand filter after toggle:`, filters.priceBand);
+        
+        console.log('🔄 Calling updateSelectedFilters...');
         updateSelectedFilters();
         
+        console.log('🔄 Updating price displays...');
         // Update price displays based on filtered data after price band selection
         const nonPriceFiltered = getFilteredDataExcludingPrice();
         updatePricingBands(nonPriceFiltered, true);
         
+        console.log('🔄 Calling applyFilters...');
         applyFilters();
+      });
+    } else {
+      console.error(`❌ Price band element NOT found: ${band.id}`);
+      console.log('Available elements with "band" in ID or class:');
+      document.querySelectorAll('[id*="band"], [class*="band"]').forEach(el => {
+        console.log('Found band-related element:', el.id, el.className, el);
       });
     }
   });
@@ -977,20 +996,26 @@ function updateURLParams() {
 
 // Update Selected Filters Panel
 function updateSelectedFilters() {
+  console.log('🔍 updateSelectedFilters called');
   const selectedFiltersDiv = document.getElementById("selected-filters");
   if (!selectedFiltersDiv) {
-    console.warn('Selected filters div not found with ID "selected-filters"');
+    console.error('❌ Selected filters div not found with ID "selected-filters"');
+    console.log('Available elements with "selected" in ID or class:');
+    document.querySelectorAll('[id*="selected"], [class*="selected"]').forEach(el => {
+      console.log('Found element:', el.id, el.className, el);
+    });
     return;
   }
   
-  console.log('Updating selected filters...', filters);
+  console.log('✅ Selected filters div found:', selectedFiltersDiv);
+  console.log('📊 Current filters state:', filters);
   selectedFiltersDiv.innerHTML = "";
   let hasFilters = false;
   let tagCount = 0;
 
   // Helper to add a filter tag with remove button
   const addFilterTag = (label, value, category, filterValue = null) => {
-    console.log(`Adding filter tag: ${label} = ${value} (category: ${category})`);
+    console.log(`🏷️ Adding filter tag: ${label} = ${value} (category: ${category})`);
     
     if (tagCount > 0) {
       const separator = document.createElement("span");
@@ -1541,12 +1566,23 @@ const filterKeyMap = {
 
 // UPDATE TEXT FOR ALL (Price Band Logic)
 function updateTextForAll(selector, value) {
+  console.log(`🔄 updateTextForAll called with selector: "${selector}" and value: ${value}`);
   const elements = document.querySelectorAll(selector);
-  console.log(`Updating ${elements.length} elements with selector "${selector}" to value: ${value}`);
+  console.log(`📍 Found ${elements.length} elements with selector "${selector}"`);
+  
+  if (elements.length === 0) {
+    console.warn(`⚠️ No elements found with selector "${selector}"`);
+    console.log('Available elements with similar class names:');
+    const partialMatch = selector.replace('.', '');
+    document.querySelectorAll(`[class*="${partialMatch}"]`).forEach(el => {
+      console.log(`Found similar: .${el.className}`, el);
+    });
+  }
+  
   elements.forEach((element, index) => {
     if (element) {
       element.textContent = value.toLocaleString();
-      console.log(`Updated element ${index + 1}: ${selector}`);
+      console.log(`✅ Updated element ${index + 1}: ${selector} = ${value.toLocaleString()}`);
     }
   });
 }
@@ -2051,3 +2087,25 @@ function updatePriceFilterUI() {
   // This function is called when price filters are cleared
   updateSelectedFilters();
 }
+
+// Debug function - call this in console to test
+window.debugFilterSystem = function() {
+  console.log('🚀 Debug Filter System Called');
+  console.log('📊 Current filters:', window.filters);
+  console.log('🔍 Selected filters div:', document.getElementById('selected-filters'));
+  console.log('🎯 Price band elements found:');
+  ['band-lower', 'band-middle', 'band-upper'].forEach(id => {
+    const el = document.getElementById(id);
+    console.log(`  ${id}:`, el ? '✅ Found' : '❌ Not found', el);
+  });
+  console.log('💰 Price display elements found:');
+  ['.lowest-price-display', '.middle-price-display', '.highest-price-display', '.lower-band-range', '.middle-band-range', '.upper-band-range'].forEach(selector => {
+    const elements = document.querySelectorAll(selector);
+    console.log(`  ${selector}:`, elements.length > 0 ? `✅ Found ${elements.length}` : '❌ Not found', elements);
+  });
+  
+  // Test adding a filter manually
+  console.log('🧪 Testing manual filter addition...');
+  window.filters.priceBand = ['lower'];
+  updateSelectedFilters();
+};
