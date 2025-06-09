@@ -2048,23 +2048,41 @@ function populateFuneralCard(cardWrapper, funeral) {
   
   // If no price information is available for any selected days, show a default message
   if (!hasAnyPriceInfo && selectedDays.length > 0) {
-    // Hide all individual day divs
-    for (let i = 1; i <= 7; i++) {
-      const dayDiv = cardWrapper.querySelector(`#day${i}-price-div`);
-      if (dayDiv) {
-        dayDiv.style.display = 'none';
-      }
-    }
+    // Find and hide the pricing section entirely
+    // Try different approaches to find the pricing container
+    const pricingSection = cardWrapper.querySelector('#day1-price-div')?.parentElement ||
+                          cardWrapper.querySelector('[id*="price"]')?.parentElement?.parentElement;
     
-    // Show message in the first day element without day label structure
-    const firstPriceEl = cardWrapper.querySelector(`#day${selectedDays[0]}-price`);
-    const firstPriceDiv = cardWrapper.querySelector(`#day${selectedDays[0]}-price-div`);
-    if (firstPriceEl && firstPriceDiv) {
-      firstPriceEl.textContent = "No price information available";
-      firstPriceEl.style.fontStyle = "italic";
-      firstPriceEl.style.color = ""; // Use default text color
-      firstPriceEl.style.fontWeight = "normal"; // Ensure not bold
-      firstPriceDiv.style.display = '';
+    if (pricingSection) {
+      // Hide the entire pricing section
+      pricingSection.style.display = 'none';
+      
+      // Create a replacement message
+      const noPriceDiv = document.createElement('div');
+      noPriceDiv.style.fontStyle = 'italic';
+      noPriceDiv.style.fontWeight = 'normal';
+      noPriceDiv.style.padding = '10px 0';
+      noPriceDiv.textContent = 'No price information available';
+      
+      // Insert the message after the hidden pricing section
+      pricingSection.parentElement.insertBefore(noPriceDiv, pricingSection.nextSibling);
+    } else {
+      // Fallback: hide all day divs and use first one for message
+      for (let i = 1; i <= 7; i++) {
+        const dayDiv = cardWrapper.querySelector(`#day${i}-price-div`);
+        if (dayDiv) {
+          dayDiv.style.display = 'none';
+        }
+      }
+      
+      const firstPriceEl = cardWrapper.querySelector(`#day${selectedDays[0]}-price`);
+      const firstPriceDiv = cardWrapper.querySelector(`#day${selectedDays[0]}-price-div`);
+      if (firstPriceEl && firstPriceDiv) {
+        firstPriceEl.textContent = "No price information available";
+        firstPriceEl.style.fontStyle = "italic";
+        firstPriceEl.style.fontWeight = "normal";
+        firstPriceDiv.style.display = '';
+      }
     }
   }
 
@@ -2105,25 +2123,42 @@ function populateFuneralCard(cardWrapper, funeral) {
       }
     });
   } else {
-    // Hide all individual categories and show only one general message
-    inclusions.forEach(({ class: descClass, div }, index) => {
-      const parentDiv = cardWrapper.querySelector(div);
-      if (parentDiv) {
-        if (index === 0) {
-          // Show general message in first category only
-          const descEl = cardWrapper.querySelector(`#${descClass}`);
-          if (descEl) {
-            descEl.textContent = "No information available";
-            descEl.style.fontStyle = "italic";
-            descEl.style.color = ""; // Use default text color
-            parentDiv.style.display = '';
+    // Find and hide the inclusions section entirely
+    const inclusionSection = cardWrapper.querySelector('#casket-div')?.parentElement ||
+                           cardWrapper.querySelector('[id*="casket"]')?.parentElement?.parentElement;
+    
+    if (inclusionSection) {
+      // Hide the entire inclusions section
+      inclusionSection.style.display = 'none';
+      
+      // Create a replacement message
+      const noInclusionDiv = document.createElement('div');
+      noInclusionDiv.style.fontStyle = 'italic';
+      noInclusionDiv.style.fontWeight = 'normal';
+      noInclusionDiv.style.padding = '10px 0';
+      noInclusionDiv.textContent = 'No information available';
+      
+      // Insert the message after the hidden inclusions section
+      inclusionSection.parentElement.insertBefore(noInclusionDiv, inclusionSection.nextSibling);
+    } else {
+      // Fallback: hide all categories and use first one for message
+      inclusions.forEach(({ class: descClass, div }, index) => {
+        const parentDiv = cardWrapper.querySelector(div);
+        if (parentDiv) {
+          if (index === 0) {
+            const descEl = cardWrapper.querySelector(`#${descClass}`);
+            if (descEl) {
+              descEl.textContent = "No information available";
+              descEl.style.fontStyle = "italic";
+              descEl.style.fontWeight = "normal";
+              parentDiv.style.display = '';
+            }
+          } else {
+            parentDiv.style.display = 'none';
           }
-        } else {
-          // Hide all other categories
-          parentDiv.style.display = 'none';
         }
-      }
-    });
+      });
+    }
   }
 
   // Link button to website (Parlour Website Link)
