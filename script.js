@@ -1363,11 +1363,14 @@ function updateSelectedFilters() {
     
     const filterTag = document.createElement("div");
     filterTag.classList.add("filter-tag");
+    // Properly encode the filter value for HTML attribute
+    const encodedFilterValue = filterValue ? filterValue.replace(/"/g, '&quot;') : '';
+    
     filterTag.innerHTML = `
       <span class="filter-content">
         <strong>${label}:</strong> ${value}
       </span>
-      <button class="filter-remove-btn" data-category="${category}" data-value="${filterValue || ''}" aria-label="Remove ${label} filter">
+      <button class="filter-remove-btn" data-category="${category}" data-value="${encodedFilterValue}" aria-label="Remove ${label} filter">
         ×
       </button>
     `;
@@ -1376,9 +1379,10 @@ function updateSelectedFilters() {
     const removeBtn = filterTag.querySelector('.filter-remove-btn');
     removeBtn.addEventListener('click', (e) => {
       e.preventDefault();
-      const filterValue = e.target.getAttribute('data-value');
-      console.log(`🎯 Remove button clicked for category="${category}", filterValue="${filterValue}"`);
-      removeFilter(category, filterValue);
+      const rawFilterValue = e.target.getAttribute('data-value');
+      const decodedFilterValue = rawFilterValue ? rawFilterValue.replace(/&quot;/g, '"') : '';
+      console.log(`🎯 Remove button clicked for category="${category}", rawFilterValue="${rawFilterValue}", decodedFilterValue="${decodedFilterValue}"`);
+      removeFilter(category, decodedFilterValue);
     });
     
     selectedFiltersDiv.appendChild(filterTag);
@@ -1438,7 +1442,9 @@ function updateSelectedFilters() {
         formattedValues = val.map(v => v.charAt(0).toUpperCase() + v.slice(1).toLowerCase());
       }
       
-      addFilterTag(formattedCategory, formattedValues.join(", "), category, JSON.stringify(val));
+      const jsonValue = JSON.stringify(val);
+      console.log(`🏷️ Creating filter tag for ${category}:`, { val, jsonValue });
+      addFilterTag(formattedCategory, formattedValues.join(", "), category, jsonValue);
     }
   });
 
@@ -1653,7 +1659,9 @@ function removeFilter(category, filterValue) {
     // Handle array filters (location, casket, etc.)
     if (filterValue) {
       try {
+        console.log(`🔍 Attempting to parse filterValue as JSON: "${filterValue}"`);
         const valuesToRemove = JSON.parse(filterValue);
+        console.log(`✅ Successfully parsed JSON:`, valuesToRemove);
         filters[category] = [];
         
         // Update corresponding checkboxes using multiple selection methods
@@ -1726,25 +1734,52 @@ function removeFilter(category, filterValue) {
         }
         
       } catch (e) {
-        // Fallback: clear all values for this category
-        filters[category] = [];
+        console.error(`❌ Failed to parse JSON filterValue: "${filterValue}". Error:`, e);
         
-        // Try multiple methods to find and uncheck all checkboxes for this category
-        let allCheckboxes = document.querySelectorAll(`input[type="checkbox"][data-category="${category}"]`);
-        if (allCheckboxes.length === 0) {
-          allCheckboxes = document.querySelectorAll(`.filter-checkbox input[type="checkbox"][data-category="${category}"]`);
+        // If it looks like a simple value (not JSON), try to use it directly
+        if (filterValue && !filterValue.startsWith('[') && !filterValue.startsWith('{')) {
+          console.log(`🔧 Treating as simple value, not JSON array: "${filterValue}"`);
+          const valuesToRemove = [filterValue];
+          
+          // Remove the specific value instead of clearing all
+          if (filters[category] && Array.isArray(filters[category])) {
+            filters[category] = filters[category].filter(v => !valuesToRemove.includes(v));
+            console.log(`✅ Removed specific value "${filterValue}" from ${category}`);
+          }
+          
+          // Find and uncheck the specific checkbox
+          valuesToRemove.forEach(value => {
+            const checkboxes = document.querySelectorAll(`input[type="checkbox"][data-category="${category}"][data-value="${value}"]`);
+            console.log(`🔍 Found ${checkboxes.length} checkboxes for ${category}:${value}`);
+            checkboxes.forEach(checkbox => {
+              checkbox.checked = false;
+              const changeEvent = new Event('change', { bubbles: true });
+              checkbox.dispatchEvent(changeEvent);
+              console.log(`🔧 Unchecked specific checkbox for ${category}:${value}`);
+            });
+          });
+        } else {
+          // Fallback: clear all values for this category
+          console.log(`🔄 Complete fallback: Clearing all filters for category ${category}`);
+          filters[category] = [];
+          
+          // Try multiple methods to find and uncheck all checkboxes for this category
+          let allCheckboxes = document.querySelectorAll(`input[type="checkbox"][data-category="${category}"]`);
+          if (allCheckboxes.length === 0) {
+            allCheckboxes = document.querySelectorAll(`.filter-checkbox input[type="checkbox"][data-category="${category}"]`);
+          }
+          if (allCheckboxes.length === 0 && category === 'priceBand') {
+            allCheckboxes = document.querySelectorAll(`[data-category="priceBand"]`);
+          }
+          
+          allCheckboxes.forEach(checkbox => {
+            checkbox.checked = false;
+            const changeEvent = new Event('change', { bubbles: true });
+            checkbox.dispatchEvent(changeEvent);
+          });
+          
+          console.log(`🔄 Fallback: Unchecked ${allCheckboxes.length} checkboxes for category ${category}`);
         }
-        if (allCheckboxes.length === 0 && category === 'priceBand') {
-          allCheckboxes = document.querySelectorAll(`[data-category="priceBand"]`);
-        }
-        
-        allCheckboxes.forEach(checkbox => {
-          checkbox.checked = false;
-          const changeEvent = new Event('change', { bubbles: true });
-          checkbox.dispatchEvent(changeEvent);
-        });
-        
-        console.log(`🔄 Fallback: Unchecked ${allCheckboxes.length} checkboxes for category ${category}`);
       }
     }
   }
