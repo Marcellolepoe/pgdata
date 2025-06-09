@@ -1367,7 +1367,7 @@ function updateSelectedFilters() {
       <span class="filter-content">
         <strong>${label}:</strong> ${value}
       </span>
-      <button class="filter-remove-btn" data-category="${category}" data-value="${encodeURIComponent(filterValue || '')}" aria-label="Remove ${label} filter">
+      <button class="filter-remove-btn" data-category="${category}" data-value="${filterValue || ''}" aria-label="Remove ${label} filter">
         ×
       </button>
     `;
@@ -1376,9 +1376,9 @@ function updateSelectedFilters() {
     const removeBtn = filterTag.querySelector('.filter-remove-btn');
     removeBtn.addEventListener('click', (e) => {
       e.preventDefault();
-      const encodedValue = e.target.getAttribute('data-value');
-      const decodedValue = decodeURIComponent(encodedValue);
-      removeFilter(category, decodedValue);
+      const filterValue = e.target.getAttribute('data-value');
+      console.log(`🎯 Remove button clicked for category="${category}", filterValue="${filterValue}"`);
+      removeFilter(category, filterValue);
     });
     
     selectedFiltersDiv.appendChild(filterTag);
@@ -1658,28 +1658,46 @@ function removeFilter(category, filterValue) {
         
         // Update corresponding checkboxes using multiple selection methods
         valuesToRemove.forEach(value => {
-          // Method 1: Try data-category and data-value attributes
+          console.log(`🔍 Looking for checkboxes with category="${category}" and value="${value}"`);
+          
+          // Method 1: Direct attribute matching (most reliable)
           let checkboxes = document.querySelectorAll(`input[type="checkbox"][data-category="${category}"][data-value="${value}"]`);
+          console.log(`📍 Method 1 found ${checkboxes.length} checkboxes`);
           
-          // Method 2: Try the filter-checkbox class approach
+          // Method 2: Try escaping quotes in case value contains them
           if (checkboxes.length === 0) {
-            checkboxes = document.querySelectorAll(`.filter-checkbox input[type="checkbox"][data-category="${category}"][data-value="${value}"]`);
+            const escapedValue = value.replace(/"/g, '\\"');
+            checkboxes = document.querySelectorAll(`input[type="checkbox"][data-category="${category}"][data-value="${escapedValue}"]`);
+            console.log(`📍 Method 2 (escaped) found ${checkboxes.length} checkboxes`);
           }
           
-          // Method 3: Try value attribute
+          // Method 3: Manual iteration through all checkboxes (fallback)
           if (checkboxes.length === 0) {
-            checkboxes = document.querySelectorAll(`input[type="checkbox"][value="${value}"]`);
+            const allCheckboxes = document.querySelectorAll(`input[type="checkbox"][data-category="${category}"]`);
+            console.log(`📍 Method 3: Found ${allCheckboxes.length} checkboxes in category ${category}`);
+            
+            checkboxes = Array.from(allCheckboxes).filter(cb => {
+              const cbValue = cb.getAttribute('data-value');
+              console.log(`  Checking checkbox with data-value="${cbValue}" against target "${value}"`);
+              return cbValue === value;
+            });
+            console.log(`📍 Method 3 filtered to ${checkboxes.length} matching checkboxes`);
           }
           
-          // Method 4: For price bands, try data-category="priceBand" and data-value
-          if (category === 'priceBand' && checkboxes.length === 0) {
-            checkboxes = document.querySelectorAll(`[data-category="priceBand"][data-value="${value}"]`);
+          if (checkboxes.length === 0) {
+            console.warn(`⚠️ No checkboxes found for ${category}:${value}`);
+            // Debug: Show all checkboxes in this category
+            const allInCategory = document.querySelectorAll(`input[type="checkbox"][data-category="${category}"]`);
+            console.log(`Available checkboxes in category ${category}:`);
+            allInCategory.forEach((cb, index) => {
+              console.log(`  ${index}: data-value="${cb.getAttribute('data-value')}", checked=${cb.checked}`);
+            });
+          } else {
+            console.log(`✅ Found ${checkboxes.length} checkboxes to uncheck for ${category}:${value}`);
           }
-          
-          console.log(`🔍 Found ${checkboxes.length} checkboxes for ${category}:${value}`);
           
           checkboxes.forEach(checkbox => {
-            console.log(`✅ Unchecking checkbox for ${category}:${value}`, checkbox);
+            console.log(`🔧 Unchecking checkbox:`, checkbox);
             checkbox.checked = false;
             
             // Trigger change event to ensure any listeners are notified
