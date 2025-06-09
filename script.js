@@ -1093,6 +1093,25 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 function setupFilters() {
+  // First, ensure all filter categories used in the DOM are initialized
+  const allCategories = new Set();
+  document.querySelectorAll(".filter-checkbox").forEach(label => {
+    const category = label.dataset.category;
+    if (category) {
+      allCategories.add(category);
+    }
+  });
+  
+  // Initialize any missing categories
+  allCategories.forEach(category => {
+    if (!filters[category] || !Array.isArray(filters[category])) {
+      filters[category] = [];
+      console.log(`🔧 Initialized missing filter category: ${category}`);
+    }
+  });
+  
+  console.log('✅ Filter categories initialized:', Object.keys(filters));
+  
   document.querySelectorAll(".filter-checkbox input[type='checkbox']").forEach(checkbox => {
     const label = checkbox.closest(".filter-checkbox");
     if (!label) return;
@@ -1102,12 +1121,20 @@ function setupFilters() {
       return;
     }
     checkbox.addEventListener("change", function () {
+      // Ensure the category exists as an array
+      if (!filters[category] || !Array.isArray(filters[category])) {
+        filters[category] = [];
+        console.log(`🔧 Initialized filters[${category}] as empty array`);
+      }
+      
       if (this.checked) {
         if (!filters[category].includes(value)) {
           filters[category].push(value);
+          console.log(`✅ Added ${value} to ${category} filter`);
         }
       } else {
         filters[category] = filters[category].filter(v => v !== value);
+        console.log(`❌ Removed ${value} from ${category} filter`);
       }
       updateSelectedFilters();
       
@@ -1136,6 +1163,12 @@ function setupFilters() {
       element.addEventListener('click', (e) => {
         e.preventDefault();
         const bandValue = band.value;
+        
+        // Ensure priceBand is initialized as an array
+        if (!filters.priceBand || !Array.isArray(filters.priceBand)) {
+          filters.priceBand = [];
+          console.log('🔧 Initialized priceBand filter as empty array');
+        }
         
         // Toggle the band in the filter array
         console.log(`🎯 Price band clicked: ${bandValue}`);
