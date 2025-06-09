@@ -399,6 +399,32 @@ function injectStyles() {
       display: grid !important;
       grid-auto-rows: auto !important;
     }
+    
+    /* Force any parent containers to expand */
+    #selected-filters,
+    .selected-filters {
+      position: relative !important;
+      z-index: 999 !important;
+    }
+    
+    /* Override Webflow's default grid constraints more aggressively */
+    .w-layout-grid,
+    [class*="w-layout"],
+    [class*="grid"] {
+      grid-template-rows: auto !important;
+      grid-auto-rows: auto !important;
+      height: auto !important;
+      min-height: auto !important;
+      max-height: none !important;
+    }
+    
+    /* Ensure filter containers don't clip content */
+    #selected-filters,
+    .selected-filters,
+    #selected-filters *,
+    .selected-filters * {
+      overflow: visible !important;
+    }
   `;
 
   const styleSheet = document.createElement('style');
@@ -1148,13 +1174,6 @@ function updateSelectedFilters() {
   const addFilterTag = (label, value, category, filterValue = null) => {
     console.log(`🏷️ Adding filter tag: ${label} = ${value} (category: ${category})`);
     
-    if (tagCount > 0) {
-      const separator = document.createElement("span");
-      separator.classList.add("filter-separator");
-      separator.innerHTML = " | ";
-      selectedFiltersDiv.appendChild(separator);
-    }
-    
     const filterTag = document.createElement("div");
     filterTag.classList.add("filter-tag");
     filterTag.innerHTML = `
@@ -1296,7 +1315,31 @@ function updateSelectedFilters() {
       selectedFiltersDiv.style.maxHeight = 'none';
       selectedFiltersDiv.style.overflow = 'visible';
       
-      console.log('✅ Container is now using natural positioning within the layout');
+      // Aggressively force parent containers to expand
+      let parent = selectedFiltersDiv.parentElement;
+      let level = 0;
+      while (parent && level < 5) {
+        const computedStyle = window.getComputedStyle(parent);
+        console.log(`🔧 Forcing parent ${level} expansion:`, parent.tagName, parent.className);
+        
+        // Force height expansion
+        parent.style.height = 'auto';
+        parent.style.maxHeight = 'none';
+        parent.style.minHeight = 'auto';
+        parent.style.overflow = 'visible';
+        
+        // For grid containers, ensure auto rows
+        if (computedStyle.display.includes('grid') || parent.classList.toString().includes('grid')) {
+          parent.style.gridTemplateRows = 'auto';
+          parent.style.gridAutoRows = 'auto';
+          console.log(`📐 Applied grid expansion to parent ${level}`);
+        }
+        
+        parent = parent.parentElement;
+        level++;
+      }
+      
+      console.log('✅ Container and parents are now configured for expansion');
     }, 100);
   }
 }
@@ -1418,35 +1461,77 @@ function removeFilter(category, filterValue) {
         const valuesToRemove = JSON.parse(filterValue);
         filters[category] = [];
         
-        // Update corresponding checkboxes
-        document.querySelectorAll(`.filter-checkbox input[type="checkbox"][data-category="${category}"]`)
-          .forEach(checkbox => {
-            if (valuesToRemove.includes(checkbox.dataset.value)) {
-              checkbox.checked = false;
-            }
-          });
-        
-        // Handle price band visual states
-        if (category === 'priceBand') {
-          const priceBandElements = [
-            { id: 'band-lower', value: 'lower' },
-            { id: 'band-middle', value: 'middle' },
-            { id: 'band-upper', value: 'upper' }
-          ];
+        // Update corresponding checkboxes using multiple selection methods
+        valuesToRemove.forEach(value => {
+          // Method 1: Try data-category and data-value attributes
+          let checkboxes = document.querySelectorAll(`input[type="checkbox"][data-category="${category}"][data-value="${value}"]`);
           
-          priceBandElements.forEach(band => {
-            const element = document.getElementById(band.id);
-            if (element && valuesToRemove.includes(band.value)) {
-              element.classList.remove('active');
+          // Method 2: Try the filter-checkbox class approach
+          if (checkboxes.length === 0) {
+            checkboxes = document.querySelectorAll(`.filter-checkbox input[type="checkbox"][data-category="${category}"][data-value="${value}"]`);
+          }
+          
+          // Method 3: Try value attribute
+          if (checkboxes.length === 0) {
+            checkboxes = document.querySelectorAll(`input[type="checkbox"][value="${value}"]`);
+          }
+          
+          // Method 4: For price bands, try data-category="priceBand" and data-value
+          if (category === 'priceBand' && checkboxes.length === 0) {
+            checkboxes = document.querySelectorAll(`[data-category="priceBand"][data-value="${value}"]`);
+          }
+          
+          console.log(`🔍 Found ${checkboxes.length} checkboxes for ${category}:${value}`);
+          
+          checkboxes.forEach(checkbox => {
+            console.log(`✅ Unchecking checkbox for ${category}:${value}`, checkbox);
+            checkbox.checked = false;
+            
+            // Trigger change event to ensure any listeners are notified
+            const changeEvent = new Event('change', { bubbles: true });
+            checkbox.dispatchEvent(changeEvent);
+          });
+        });
+        
+        // Handle price band visual states - updated for data attributes
+        if (category === 'priceBand') {
+          valuesToRemove.forEach(value => {
+            // Try both ID-based and data-attribute-based selection
+            let elements = [document.getElementById(`band-${value}`)].filter(el => el !== null);
+            
+            if (elements.length === 0) {
+              elements = Array.from(document.querySelectorAll(`[data-category="priceBand"][data-value="${value}"]`));
             }
+            
+            elements.forEach(element => {
+              if (element) {
+                element.classList.remove('active');
+                console.log(`🎨 Removed active class from price band:`, element);
+              }
+            });
           });
         }
         
       } catch (e) {
         // Fallback: clear all values for this category
         filters[category] = [];
-        document.querySelectorAll(`.filter-checkbox input[type="checkbox"][data-category="${category}"]`)
-          .forEach(checkbox => checkbox.checked = false);
+        
+        // Try multiple methods to find and uncheck all checkboxes for this category
+        let allCheckboxes = document.querySelectorAll(`input[type="checkbox"][data-category="${category}"]`);
+        if (allCheckboxes.length === 0) {
+          allCheckboxes = document.querySelectorAll(`.filter-checkbox input[type="checkbox"][data-category="${category}"]`);
+        }
+        if (allCheckboxes.length === 0 && category === 'priceBand') {
+          allCheckboxes = document.querySelectorAll(`[data-category="priceBand"]`);
+        }
+        
+        allCheckboxes.forEach(checkbox => {
+          checkbox.checked = false;
+          const changeEvent = new Event('change', { bubbles: true });
+          checkbox.dispatchEvent(changeEvent);
+        });
+        
+        console.log(`🔄 Fallback: Unchecked ${allCheckboxes.length} checkboxes for category ${category}`);
       }
     }
   }
