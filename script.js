@@ -41,114 +41,7 @@ const PRICE_BAND_CONFIG = {
 // Add this at the top level
 let isInitializing = true;
 
-// Debug function for manual testing
-// Function to find and configure the correct selected filters container
-window.findAndFixSelectedFilters = function() {
-  console.log('🔧 FINDING AND FIXING SELECTED FILTERS CONTAINER');
-  
-  // Find all possible containers
-  const allContainers = document.querySelectorAll('[id*="selected"], [class*="selected"]');
-  console.log(`Found ${allContainers.length} potential containers:`);
-  
-  allContainers.forEach((container, index) => {
-    console.log(`Container ${index}:`, {
-      tag: container.tagName,
-      id: container.id,
-      classes: container.className,
-      element: container
-    });
-  });
-  
-  // Ask user to specify which one to use (they can see the list above)
-  console.log('📋 To set a specific container as the selected filters container, run:');
-  console.log('window.setSelectedFiltersContainer(index) where index is from the list above');
-  
-  return allContainers;
-};
 
-// Function to set a specific container as the selected filters container
-window.setSelectedFiltersContainer = function(index) {
-  const allContainers = document.querySelectorAll('[id*="selected"], [class*="selected"]');
-  if (index >= 0 && index < allContainers.length) {
-    const container = allContainers[index];
-    
-    // Set the ID
-    container.id = 'selected-filters';
-    
-    // Add the class if it doesn't have it
-    if (!container.classList.contains('selected-filters')) {
-      container.classList.add('selected-filters');
-    }
-    
-    console.log('✅ Set container as selected filters:', container);
-    
-    // Test it immediately
-    filters.testCategory = ['test value'];
-    updateSelectedFilters();
-    
-    setTimeout(() => {
-      delete filters.testCategory;
-      updateSelectedFilters();
-    }, 2000);
-    
-    return container;
-  } else {
-    console.error('❌ Invalid index. Run window.findAndFixSelectedFilters() first to see available containers.');
-  }
-};
-
-window.debugSelectedFilters = function() {
-  console.log('🔧 MANUAL DEBUG - Testing Selected Filters Functionality');
-  
-  // Test 1: Find the container
-  console.log('Test 1: Finding container...');
-  const container = document.getElementById('selected-filters') || document.querySelector('.selected-filters');
-  console.log('Container found:', container);
-  
-  if (!container) {
-    console.error('❌ No container found!');
-    return;
-  }
-  
-  // Test 2: Add a test filter
-  console.log('Test 2: Adding test filter...');
-  filters.testCategory = ['test value'];
-  updateSelectedFilters();
-  
-  // Test 3: Check if filter appeared
-  setTimeout(() => {
-    console.log('Test 3: Checking if filter appeared...');
-    const filterTags = container.querySelectorAll('.filter-tag');
-    console.log('Filter tags found:', filterTags.length);
-    filterTags.forEach((tag, index) => {
-      console.log(`Tag ${index}:`, tag.innerHTML);
-    });
-    
-    // Test 4: Test container dimensions
-    const rect = container.getBoundingClientRect();
-    console.log('Container dimensions:', {
-      width: rect.width,
-      height: rect.height,
-      top: rect.top,
-      left: rect.left
-    });
-    
-    // Test 5: Check computed styles
-    const styles = window.getComputedStyle(container);
-    console.log('Container styles:', {
-      display: styles.display,
-      visibility: styles.visibility,
-      opacity: styles.opacity,
-      overflow: styles.overflow,
-      height: styles.height,
-      maxHeight: styles.maxHeight
-    });
-    
-    // Clean up
-    delete filters.testCategory;
-    updateSelectedFilters();
-  }, 500);
-};
 
 // Add at the top level
 let currentBandState = {
@@ -192,26 +85,14 @@ let activePriceFilter = {
   values: null // {min, max} actual values
 };
 
-// Debug logging utilities
-function logFilterState(action) {
-  console.group(`Filter State [${action}]`);
-  console.log('Price Band:', filters.priceBand);
-  console.log('Price Range:', { min: filters.priceMin, max: filters.priceMax });
-  console.log('Price Stats:', window.priceStats);
-  console.log('Active Price Filter:', activePriceFilter);
-  console.groupEnd();
-}
-
 // Price calculation safeguards
 function safeGetPriceStats() {
   const stats = window.priceStats?.lastNonPriceFiltered || window.priceStats?.original;
   if (!stats) {
-    console.warn('No price stats available');
     return null;
   }
   
   if (!stats.min || !stats.max || !stats.p33 || !stats.p66) {
-    console.warn('Incomplete price stats:', stats);
     return null;
   }
   
@@ -221,7 +102,6 @@ function safeGetPriceStats() {
 // Helper function for piecewise percentile to value conversion
 function piecewisePercentileToValue(fraction, min, p33, p66, max) {
   if (!min || !max || !p33 || !p66) {
-    console.warn('Missing required price points for conversion');
     return min || 0;
   }
 
@@ -268,7 +148,6 @@ async function initializePage() {
   
   const missingElements = requiredElements.filter(id => !document.getElementById(id));
   if (missingElements.length > 0) {
-    console.error("❌ Missing required elements:", missingElements);
     return;
   }
 
@@ -285,30 +164,20 @@ async function initializePage() {
       "google-reviews-desc", "facebook-reviews-desc"
     ];
     sortOptions.forEach(sortValue => {
-      console.log(`🔍 Setting up sort: ${sortValue}`);
       // Try multiple selection methods
       let elements = [document.getElementById(sortValue)].filter(el => el !== null);
-      console.log(`📍 Found ${elements.length} by ID`);
       
       if (elements.length === 0) {
         elements = Array.from(document.querySelectorAll(`[data-sort="${sortValue}"]`));
-        console.log(`📍 Found ${elements.length} by data-sort`);
       }
       
       if (elements.length === 0) {
         elements = Array.from(document.querySelectorAll(`.${sortValue}`));
-        console.log(`📍 Found ${elements.length} by class`);
-      }
-      
-      if (elements.length === 0) {
-        console.warn(`⚠️ No sort elements found for: ${sortValue}`);
       }
       
       elements.forEach(el => {
-        console.log(`🔗 Adding sort listener to:`, el);
         el.addEventListener("click", function (e) {
           e.preventDefault();
-          console.log(`🎯 Sort clicked: ${sortValue}`);
           filters.sortBy = sortValue;
           updateSelectedFilters();
           applyFilters();
@@ -316,7 +185,7 @@ async function initializePage() {
       });
     });
   } catch (error) {
-    console.error("❌ Error during page initialization:", error);
+    // Error during page initialization
   }
 }
 
@@ -599,7 +468,6 @@ function initializePerformanceOptimizations() {
     const result = fn();
     const end = performance.now();
     performanceMetrics[operation] = end - start;
-    console.log(`⚡ ${operation}: ${(end - start).toFixed(2)}ms`);
     return result;
   }
 
@@ -614,7 +482,6 @@ function initializePerformanceOptimizations() {
       // Add error handling for broken images
       img.onerror = function() {
         this.style.display = 'none';
-        console.warn('Failed to load image:', this.src);
       };
     });
   }
@@ -661,10 +528,8 @@ function initializePerformanceOptimizations() {
         self.addEventListener('install', event => {
           event.waitUntil(
             caches.open(CACHE_NAME).then(cache => {
-              console.log('📦 Caching funeral directory resources');
               return cache.addAll([]);
             }).catch(error => {
-              console.log('Cache install failed:', error);
             })
           );
         });
@@ -679,12 +544,10 @@ function initializePerformanceOptimizations() {
                   if (cachedResponse) {
                     const cachedTimestamp = cachedResponse.headers.get('sw-cached-time');
                     if (cachedTimestamp && (Date.now() - parseInt(cachedTimestamp)) < CACHE_EXPIRY) {
-                      console.log('📁 Serving JSON from cache');
                       return cachedResponse;
                     }
                   }
                   
-                  console.log('🌐 Fetching fresh JSON data');
                   return fetch(event.request).then(response => {
                     if (response.status === 200) {
                       const responseToCache = response.clone();
@@ -725,7 +588,6 @@ function initializePerformanceOptimizations() {
               return Promise.all(
                 cacheNames.map(cacheName => {
                   if (cacheName !== CACHE_NAME) {
-                    console.log('🗑️ Deleting old cache:', cacheName);
                     return caches.delete(cacheName);
                   }
                 })
@@ -741,10 +603,8 @@ function initializePerformanceOptimizations() {
       
       navigator.serviceWorker.register(swUrl)
         .then(registration => {
-          console.log('✅ Service Worker registered:', registration);
         })
         .catch(error => {
-          console.log('ℹ️ Service Worker registration failed:', error);
         });
     }
   }
@@ -795,7 +655,6 @@ async function fetchFuneralData() {
   if (cachedData && cacheTimestamp && (Date.now() - parseInt(cacheTimestamp)) < cacheExpiry) {
     try {
       funeralData = JSON.parse(cachedData);
-      console.log('✅ Using cached funeral data');
     } catch (e) {
       console.warn('Cache parse error, fetching fresh data');
       localStorage.removeItem(cacheKey);
@@ -809,7 +668,6 @@ async function fetchFuneralData() {
       const loadingEl = document.getElementById('loading-indicator');
       if (loadingEl) loadingEl.style.display = 'block';
       
-      console.log('📡 Fetching funeral data...');
       const response = await fetch(jsonUrl, {
         headers: {
           'Accept-Encoding': 'gzip, deflate, br'
@@ -822,7 +680,6 @@ async function fetchFuneralData() {
       try {
         localStorage.setItem(cacheKey, JSON.stringify(funeralData));
         localStorage.setItem(cacheKey + '_timestamp', Date.now().toString());
-        console.log('✅ Cached funeral data for future use');
       } catch (e) {
         console.warn('Failed to cache data:', e);
       }
@@ -854,7 +711,6 @@ async function fetchFuneralData() {
   if (loadingEl) loadingEl.style.display = 'none';
   
   // Update price displays with initial data
-  console.log('🔄 Updating initial price displays...');
   updatePricingBands(funeralData, true);
   
   // Show all results initially (including those without prices)
@@ -937,7 +793,6 @@ document.addEventListener("DOMContentLoaded", function () {
       if (e.key === "Enter") {
         e.preventDefault();
         e.stopPropagation();
-        console.log('🚫 Prevented Enter key form submission on price-input-max');
         // Optionally blur the input to indicate the action was handled
         manualMaxInput.blur();
         return false;
@@ -970,43 +825,34 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-  console.log('🔧 Setting up sorting functionality...');
   const sortOptions = ["price-asc", "price-desc", "google-rating-desc", "facebook-rating-desc", "google-reviews-desc", "facebook-reviews-desc"];
   
   // Try to find sort elements by ID first, then by data attributes
   sortOptions.forEach(sortValue => {
-    console.log(`🔍 Looking for sort elements: ${sortValue}`);
     // Try ID first
     let elements = [document.getElementById(sortValue)].filter(el => el !== null);
-    console.log(`📍 Found ${elements.length} elements by ID`);
     
     // If no ID found, try data attributes
     if (elements.length === 0) {
       elements = Array.from(document.querySelectorAll(`[data-sort="${sortValue}"]`));
-      console.log(`📍 Found ${elements.length} elements by data-sort attribute`);
     }
     
     // If still no elements, try class-based selection
     if (elements.length === 0) {
       elements = Array.from(document.querySelectorAll(`.${sortValue}`));
-      console.log(`📍 Found ${elements.length} elements by class`);
     }
     
     if (elements.length === 0) {
       console.warn(`⚠️ No sort elements found for: ${sortValue}`);
-      console.log('Available elements with "sort" in ID or class:');
       document.querySelectorAll('[id*="sort"], [class*="sort"]').forEach(el => {
-        console.log('Found sort-related element:', el.id, el.className, el);
       });
     }
     
-    console.log(`✅ Found ${elements.length} sort elements for: ${sortValue}`);
     
     elements.forEach(el => {
       el.addEventListener("click", (e) => {
         e.preventDefault();
         filters.sortBy = sortValue;
-        console.log(`Sort selected: ${sortValue}`);
         
         const labelMap = {
           "price-asc": "Price ↑",
@@ -1034,7 +880,6 @@ document.addEventListener("DOMContentLoaded", function () {
   if (clearAllButton) {
     clearAllButton.addEventListener("click", function (e) {
       e.preventDefault();
-      console.log('[DEBUG] Clear All clicked');
       
       // Get initial price range
       let priceRange = { min: 0, max: 100000 };
@@ -1119,11 +964,9 @@ function setupFilters() {
   allCategories.forEach(category => {
     if (!filters[category] || !Array.isArray(filters[category])) {
       filters[category] = [];
-      console.log(`🔧 Initialized missing filter category: ${category}`);
     }
   });
   
-  console.log('✅ Filter categories initialized:', Object.keys(filters));
   
   document.querySelectorAll(".filter-checkbox input[type='checkbox']").forEach(checkbox => {
     const label = checkbox.closest(".filter-checkbox");
@@ -1137,17 +980,14 @@ function setupFilters() {
       // Ensure the category exists as an array
       if (!filters[category] || !Array.isArray(filters[category])) {
         filters[category] = [];
-        console.log(`🔧 Initialized filters[${category}] as empty array`);
       }
       
       if (this.checked) {
         if (!filters[category].includes(value)) {
           filters[category].push(value);
-          console.log(`✅ Added ${value} to ${category} filter`);
         }
       } else {
         filters[category] = filters[category].filter(v => v !== value);
-        console.log(`❌ Removed ${value} from ${category} filter`);
       }
       updateSelectedFilters();
       
@@ -1161,7 +1001,6 @@ function setupFilters() {
   });
 
   // Setup price band filters
-  console.log('🎯 Setting up price band filters...');
   const priceBandElements = [
     { id: 'band-lower', value: 'lower' },
     { id: 'band-middle', value: 'middle' },
@@ -1169,10 +1008,8 @@ function setupFilters() {
   ];
 
   priceBandElements.forEach(band => {
-    console.log(`🔍 Looking for price band element with ID: ${band.id}`);
     const element = document.getElementById(band.id);
     if (element) {
-      console.log(`✅ Found price band element: ${band.id}`, element);
       element.addEventListener('click', (e) => {
         e.preventDefault();
         const bandValue = band.value;
@@ -1180,39 +1017,29 @@ function setupFilters() {
         // Ensure priceBand is initialized as an array
         if (!filters.priceBand || !Array.isArray(filters.priceBand)) {
           filters.priceBand = [];
-          console.log('🔧 Initialized priceBand filter as empty array');
         }
         
         // Toggle the band in the filter array
-        console.log(`🎯 Price band clicked: ${bandValue}`);
-        console.log(`📊 Current priceBand filter before toggle:`, filters.priceBand);
         
         if (!filters.priceBand.includes(bandValue)) {
           filters.priceBand.push(bandValue);
           element.classList.add('active');
-          console.log(`➕ Added ${bandValue} to priceBand filter`);
         } else {
           filters.priceBand = filters.priceBand.filter(b => b !== bandValue);
           element.classList.remove('active');
-          console.log(`➖ Removed ${bandValue} from priceBand filter`);
         }
         
-        console.log(`📊 priceBand filter after toggle:`, filters.priceBand);
         
-        console.log('🔄 Calling updateSelectedFilters...');
         updateSelectedFilters();
         
         // Note: Price bands should NOT update price displays
         // Price displays should always show original stats
         
-        console.log('🔄 Calling applyFilters...');
         applyFilters();
       });
     } else {
       console.error(`❌ Price band element NOT found: ${band.id}`);
-      console.log('Available elements with "band" in ID or class:');
       document.querySelectorAll('[id*="band"], [class*="band"]').forEach(el => {
-        console.log('Found band-related element:', el.id, el.className, el);
       });
     }
   });
@@ -1287,27 +1114,20 @@ function updateURLParams() {
 
 // Update Selected Filters Panel
 function updateSelectedFilters() {
-  console.log('🔍 updateSelectedFilters called');
   
   // Debug: Find all possible selected filters containers
-  console.log('🔍 Debugging all possible selected filters containers:');
   
   // Check by ID
   const byId = document.getElementById("selected-filters");
-  console.log('📍 By ID "selected-filters":', byId);
   
   // Check by class
   const byClass = document.querySelectorAll('.selected-filters');
-  console.log('📍 By class "selected-filters":', byClass.length, 'found');
   byClass.forEach((el, index) => {
-    console.log(`  Container ${index}:`, el.id, el.className, el);
   });
   
   // Check for any element with "selected" in the ID or class
   const anySelected = document.querySelectorAll('[id*="selected"], [class*="selected"]');
-  console.log('📍 Any elements with "selected":', anySelected.length, 'found');
   anySelected.forEach((el, index) => {
-    console.log(`  Element ${index}:`, el.tagName, el.id, el.className);
   });
   
   let selectedFiltersDiv = document.getElementById("selected-filters");
@@ -1315,19 +1135,15 @@ function updateSelectedFilters() {
   // If element exists but is positioned too far down, try to find a better container
   if (selectedFiltersDiv) {
     const rect = selectedFiltersDiv.getBoundingClientRect();
-    console.log(`📊 Found #selected-filters at position y=${rect.top}`);
     
     // If the element is way down the page, look for a better positioned alternative
     if (rect.top > window.innerHeight) {
-      console.log('🔍 Element is too far down, looking for alternative container...');
       
       // Try to find an element with class "selected-filters" that's better positioned
       const alternativeContainers = document.querySelectorAll('.selected-filters');
       for (let container of alternativeContainers) {
         const containerRect = container.getBoundingClientRect();
-        console.log(`📍 Checking .selected-filters at y=${containerRect.top}`);
         if (containerRect.top < window.innerHeight && containerRect.top > 0) {
-          console.log('✅ Found better positioned container with class selected-filters');
           selectedFiltersDiv = container;
           // Give it an ID for future reference
           if (!container.id) container.id = 'selected-filters-active';
@@ -1338,33 +1154,25 @@ function updateSelectedFilters() {
   }
   
   if (!selectedFiltersDiv) {
-    console.log('⚠️ No element found with ID "selected-filters", trying alternatives...');
     
     // Try to find by class
     const classElements = document.querySelectorAll('.selected-filters');
     if (classElements.length > 0) {
       selectedFiltersDiv = classElements[0];
-      console.log('✅ Found alternative by class "selected-filters":', selectedFiltersDiv);
       // Give it an ID for future reference
       if (!selectedFiltersDiv.id) {
         selectedFiltersDiv.id = 'selected-filters';
-        console.log('🔧 Added ID "selected-filters" to the element');
       }
     }
   }
   
   if (!selectedFiltersDiv) {
     console.error('❌ No selected filters container found at all');
-    console.log('Available elements with "selected" in ID or class:');
     document.querySelectorAll('[id*="selected"], [class*="selected"]').forEach(el => {
-      console.log('Found element:', el.id, el.className, el);
     });
     return;
   }
   
-  console.log('✅ Selected filters div found:', selectedFiltersDiv);
-  console.log('🎨 Selected filters div styles:', window.getComputedStyle(selectedFiltersDiv));
-  console.log('📊 Current filters state:', filters);
   
   selectedFiltersDiv.innerHTML = "";
   let hasFilters = false;
@@ -1372,7 +1180,6 @@ function updateSelectedFilters() {
 
   // Helper to add a filter tag with remove button
   const addFilterTag = (label, value, category, filterValue = null) => {
-    console.log(`🏷️ Adding filter tag: ${label} = ${value} (category: ${category})`);
     
     const filterTag = document.createElement("div");
     filterTag.classList.add("filter-tag");
@@ -1394,13 +1201,10 @@ function updateSelectedFilters() {
       e.preventDefault();
       const rawFilterValue = e.target.getAttribute('data-value');
       const decodedFilterValue = rawFilterValue ? rawFilterValue.replace(/&quot;/g, '"') : '';
-      console.log(`🎯 Remove button clicked for category="${category}", rawFilterValue="${rawFilterValue}", decodedFilterValue="${decodedFilterValue}"`);
       removeFilter(category, decodedFilterValue);
     });
     
     selectedFiltersDiv.appendChild(filterTag);
-    console.log(`✅ Filter tag appended to DOM:`, filterTag);
-    console.log(`📊 Selected filters div now contains:`, selectedFiltersDiv.innerHTML);
     
     // Force visibility with JavaScript
     forceElementAndParentsVisibility(selectedFiltersDiv);
@@ -1456,7 +1260,6 @@ function updateSelectedFilters() {
       }
       
       const jsonValue = JSON.stringify(val);
-      console.log(`🏷️ Creating filter tag for ${category}:`, { val, jsonValue });
       addFilterTag(formattedCategory, formattedValues.join(", "), category, jsonValue);
     }
   });
@@ -1481,14 +1284,10 @@ function updateSelectedFilters() {
     hasFilters = true; // Mark that we have at least one item to display
   }
 
-  console.log(`🏁 Finished processing filters. hasFilters: ${hasFilters}, tagCount: ${tagCount}`);
-  console.log(`📊 Final selectedFiltersDiv content:`, selectedFiltersDiv.innerHTML);
 
   if (!hasFilters) {
-    console.log('❌ No filters detected, showing default message');
     selectedFiltersDiv.innerHTML = `<p style="color: gray;">No filters selected.</p>`;
   } else {
-    console.log('✅ Filters detected, content should be visible');
     // Final force visibility
     forceElementAndParentsVisibility(selectedFiltersDiv);
     selectedFiltersDiv.querySelectorAll('.filter-tag').forEach(tag => {
@@ -1498,7 +1297,6 @@ function updateSelectedFilters() {
     // Ensure the container is visible and properly styled (but keep it in its natural position)
     setTimeout(() => {
       const rect = selectedFiltersDiv.getBoundingClientRect();
-      console.log(`📊 Final element position: y=${rect.top}, width=${rect.width}, height=${rect.height}`);
       
       // Reset any previous fixed positioning
       if (selectedFiltersDiv.style.position === 'fixed') {
@@ -1508,7 +1306,6 @@ function updateSelectedFilters() {
         selectedFiltersDiv.style.right = '';
         selectedFiltersDiv.style.width = '';
         selectedFiltersDiv.style.height = '';
-        console.log('🔄 Reset fixed positioning to use natural layout position');
       }
       
       // Ensure it has proper styling but stays in its natural position
@@ -1534,7 +1331,6 @@ function updateSelectedFilters() {
       let level = 0;
       while (parent && level < 5) {
         const computedStyle = window.getComputedStyle(parent);
-        console.log(`🔧 Forcing parent ${level} expansion:`, parent.tagName, parent.className);
         
         // Force height expansion
         parent.style.height = 'auto';
@@ -1546,14 +1342,12 @@ function updateSelectedFilters() {
         if (computedStyle.display.includes('grid') || parent.classList.toString().includes('grid')) {
           parent.style.gridTemplateRows = 'auto';
           parent.style.gridAutoRows = 'auto';
-          console.log(`📐 Applied grid expansion to parent ${level}`);
         }
         
         parent = parent.parentElement;
         level++;
       }
       
-      console.log('✅ Container and parents are now configured for expansion');
     }, 100);
   }
 }
@@ -1579,14 +1373,12 @@ function forceElementVisibility(element) {
   element.style.overflow = 'visible';
   element.style.flexWrap = 'wrap';
   
-  console.log(`🔧 Forced visibility on element:`, element);
 }
 
 // Enhanced force visibility that also fixes parent issues
 function forceElementAndParentsVisibility(element) {
   if (!element) return;
   
-  console.log('🔧 Forcing visibility on element and parents:', element);
   
   // First force the element itself
   forceElementVisibility(element);
@@ -1596,8 +1388,6 @@ function forceElementAndParentsVisibility(element) {
   let level = 1;
   while (currentElement && level <= 3) {
     const computedStyle = window.getComputedStyle(currentElement);
-    console.log(`🔍 Checking parent ${level}:`, currentElement.tagName, currentElement.className);
-    console.log(`  Current display: ${computedStyle.display}, width: ${computedStyle.width}, height: ${computedStyle.height}`);
     
     // If parent has problematic display values, fix them
     if (computedStyle.display === 'none' || 
@@ -1606,7 +1396,6 @@ function forceElementAndParentsVisibility(element) {
         parseFloat(computedStyle.width) === 0 ||
         parseFloat(computedStyle.height) === 0) {
       
-      console.log(`🔧 Fixing parent ${level} visibility issues`);
       
       // Check if it's a grid container and preserve grid layout while allowing expansion
       if (computedStyle.display.includes('grid') || currentElement.classList.toString().includes('grid')) {
@@ -1666,70 +1455,55 @@ function removeFilter(category, filterValue) {
     const sortLabel = document.getElementById("sort-button-label");
     if (sortLabel) sortLabel.textContent = "Sort By";
     
-    console.log('Sort filter cleared');
     
   } else if (Array.isArray(filters[category])) {
     // Handle array filters (location, casket, etc.)
     if (filterValue) {
       try {
-        console.log(`🔍 Attempting to parse filterValue as JSON: "${filterValue}"`);
         const valuesToRemove = JSON.parse(filterValue);
-        console.log(`✅ Successfully parsed JSON:`, valuesToRemove);
         filters[category] = [];
         
         // Update corresponding checkboxes using multiple selection methods
         valuesToRemove.forEach(value => {
-          console.log(`🔍 Looking for checkboxes with category="${category}" and value="${value}"`);
           
           // Method 1: Look for input inside container with data attributes (correct approach)
           let checkboxes = document.querySelectorAll(`[data-category="${category}"][data-value="${value}"] input[type="checkbox"]`);
-          console.log(`📍 Method 1 (container->input) found ${checkboxes.length} checkboxes`);
           
           // Method 2: Try direct attribute matching on input (in case data is on input)
           if (checkboxes.length === 0) {
             checkboxes = document.querySelectorAll(`input[type="checkbox"][data-category="${category}"][data-value="${value}"]`);
-            console.log(`📍 Method 2 (direct on input) found ${checkboxes.length} checkboxes`);
           }
           
           // Method 3: Try the .filter-checkbox class approach
           if (checkboxes.length === 0) {
             checkboxes = document.querySelectorAll(`.filter-checkbox[data-category="${category}"][data-value="${value}"] input[type="checkbox"]`);
-            console.log(`📍 Method 3 (.filter-checkbox) found ${checkboxes.length} checkboxes`);
           }
           
           // Method 4: Manual search through all checkboxes
           if (checkboxes.length === 0) {
-            console.log(`📍 Method 4: Manual search through all checkboxes`);
             const allInputs = document.querySelectorAll(`input[type="checkbox"]`);
-            console.log(`  Found ${allInputs.length} total checkboxes`);
             
             checkboxes = Array.from(allInputs).filter(input => {
               const container = input.closest('[data-category]');
               if (container) {
                 const containerCategory = container.getAttribute('data-category');
                 const containerValue = container.getAttribute('data-value');
-                console.log(`  Checking input in container: category="${containerCategory}", value="${containerValue}"`);
                 return containerCategory === category && containerValue === value;
               }
               return false;
             });
-            console.log(`📍 Method 4 found ${checkboxes.length} matching checkboxes`);
           }
           
           if (checkboxes.length === 0) {
             console.warn(`⚠️ No checkboxes found for ${category}:${value}`);
             // Debug: Show all checkboxes in this category
             const allInCategory = document.querySelectorAll(`input[type="checkbox"][data-category="${category}"]`);
-            console.log(`Available checkboxes in category ${category}:`);
             allInCategory.forEach((cb, index) => {
-              console.log(`  ${index}: data-value="${cb.getAttribute('data-value')}", checked=${cb.checked}`);
             });
           } else {
-            console.log(`✅ Found ${checkboxes.length} checkboxes to uncheck for ${category}:${value}`);
           }
           
           checkboxes.forEach(checkbox => {
-            console.log(`🔧 Unchecking checkbox:`, checkbox);
             checkbox.checked = false;
             
             // Trigger change event to ensure any listeners are notified
@@ -1751,7 +1525,6 @@ function removeFilter(category, filterValue) {
             elements.forEach(element => {
               if (element) {
                 element.classList.remove('active');
-                console.log(`🎨 Removed active class from price band:`, element);
               }
             });
           });
@@ -1762,29 +1535,24 @@ function removeFilter(category, filterValue) {
         
         // If it looks like a simple value (not JSON), try to use it directly
         if (filterValue && !filterValue.startsWith('[') && !filterValue.startsWith('{')) {
-          console.log(`🔧 Treating as simple value, not JSON array: "${filterValue}"`);
           const valuesToRemove = [filterValue];
           
           // Remove the specific value instead of clearing all
           if (filters[category] && Array.isArray(filters[category])) {
             filters[category] = filters[category].filter(v => !valuesToRemove.includes(v));
-            console.log(`✅ Removed specific value "${filterValue}" from ${category}`);
           }
           
           // Find and uncheck the specific checkbox
           valuesToRemove.forEach(value => {
             const checkboxes = document.querySelectorAll(`input[type="checkbox"][data-category="${category}"][data-value="${value}"]`);
-            console.log(`🔍 Found ${checkboxes.length} checkboxes for ${category}:${value}`);
             checkboxes.forEach(checkbox => {
               checkbox.checked = false;
               const changeEvent = new Event('change', { bubbles: true });
               checkbox.dispatchEvent(changeEvent);
-              console.log(`🔧 Unchecked specific checkbox for ${category}:${value}`);
             });
           });
         } else {
           // Fallback: clear all values for this category
-          console.log(`🔄 Complete fallback: Clearing all filters for category ${category}`);
           filters[category] = [];
           
                    // Try multiple methods to find and uncheck all checkboxes for this category
@@ -1802,7 +1570,6 @@ function removeFilter(category, filterValue) {
             checkbox.dispatchEvent(changeEvent);
           });
           
-          console.log(`🔄 Fallback: Unchecked ${allCheckboxes.length} checkboxes for category ${category}`);
         }
       }
     }
@@ -2240,23 +2007,18 @@ const filterKeyMap = {
 
 // UPDATE TEXT FOR ALL (Price Band Logic)
 function updateTextForAll(selector, value) {
-  console.log(`🔄 updateTextForAll called with selector: "${selector}" and value: ${value}`);
   const elements = document.querySelectorAll(selector);
-  console.log(`📍 Found ${elements.length} elements with selector "${selector}"`);
   
   if (elements.length === 0) {
     console.warn(`⚠️ No elements found with selector "${selector}"`);
-    console.log('Available elements with similar class names:');
     const partialMatch = selector.replace('.', '');
     document.querySelectorAll(`[class*="${partialMatch}"]`).forEach(el => {
-      console.log(`Found similar: .${el.className}`, el);
     });
   }
   
   elements.forEach((element, index) => {
     if (element) {
       element.textContent = value.toLocaleString();
-      console.log(`✅ Updated element ${index + 1}: ${selector} = ${value.toLocaleString()}`);
     }
   });
 }
@@ -2361,7 +2123,6 @@ function updatePricingBands(filteredData, skipFilterReset = false) {
   updateTextForAll(".middle-band-range", currentStats.p66);
   updateTextForAll(".highest-price-display", currentStats.max);
   
-  console.log('Updated price displays with stats:', currentStats);
 
   // Update visual bands using these stats
   updatePriceBandsVisual(currentStats.min, currentStats.p33, currentStats.p66, currentStats.max);
@@ -2372,10 +2133,7 @@ function updatePricingBands(filteredData, skipFilterReset = false) {
   // Don't automatically reset price filters - this was causing unwanted price-max to appear
 }
 
-// 1. Add a logUpdate helper
-function logUpdate(context, details) {
-  console.log(`[LOG] ${context}:`, details);
-}
+
 
 // 2. Refactor applyFilters to only call updatePricingBands on non-price filter changes
 function applyFilters(skipBandReset = false) {
@@ -2527,7 +2285,6 @@ function applyFilters(skipBandReset = false) {
   // Display results
   paginateResults(filteredData);
   
-  console.log(`✅ Filters applied: ${filteredData.length} of ${window.funeralData.length} results`);
 }
 
 // Helper function to get lowest price for sorting
@@ -2762,135 +2519,14 @@ function updatePriceFilterUI() {
   updateSelectedFilters();
 }
 
-// Debug function - call this in console to test
-window.debugFilterSystem = function() {
-  console.log('🚀 Debug Filter System Called');
-  console.log('📊 Current filters:', window.filters);
-  console.log('🔍 Selected filters div:', document.getElementById('selected-filters'));
-  console.log('🎯 Price band elements found:');
-  ['band-lower', 'band-middle', 'band-upper'].forEach(id => {
-    const el = document.getElementById(id);
-    console.log(`  ${id}:`, el ? '✅ Found' : '❌ Not found', el);
-  });
-  console.log('💰 Price display elements found:');
-  ['.lowest-price-display', '.middle-price-display', '.highest-price-display', '.lower-band-range', '.middle-band-range', '.upper-band-range'].forEach(selector => {
-    const elements = document.querySelectorAll(selector);
-    console.log(`  ${selector}:`, elements.length > 0 ? `✅ Found ${elements.length}` : '❌ Not found', elements);
-  });
-  
-  console.log('📋 Sort elements found:');
-  ["price-asc", "price-desc", "google-rating-desc", "facebook-rating-desc", "google-reviews-desc", "facebook-reviews-desc"].forEach(sortValue => {
-    const byId = document.getElementById(sortValue);
-    const byData = document.querySelectorAll(`[data-sort="${sortValue}"]`);
-    const byClass = document.querySelectorAll(`.${sortValue}`);
-    console.log(`  ${sortValue}: ID=${byId ? '✅' : '❌'}, Data=${byData.length}, Class=${byClass.length}`);
-  });
-  
-  // Test adding a filter manually
-  console.log('🧪 Testing manual filter addition...');
-  window.filters.priceBand = ['lower'];
-  updateSelectedFilters();
-  
-  // Check what's hiding the selected filters
-  console.log('🔍 Diagnosing selected filters visibility...');
-  const selectedDiv = document.getElementById('selected-filters');
-  if (selectedDiv) {
-    const computedStyle = window.getComputedStyle(selectedDiv);
-    console.log('📊 Selected filters computed styles:', {
-      display: computedStyle.display,
-      visibility: computedStyle.visibility,
-      opacity: computedStyle.opacity,
-      position: computedStyle.position,
-      zIndex: computedStyle.zIndex,
-      width: computedStyle.width,
-      height: computedStyle.height,
-      overflow: computedStyle.overflow,
-      gridTemplateColumns: computedStyle.gridTemplateColumns,
-      gridTemplate: computedStyle.gridTemplate
-    });
-    
-    console.log('🎯 Selected filters bounding rect:', selectedDiv.getBoundingClientRect());
-    console.log('🔍 Selected filters children:', selectedDiv.children);
-    
-    Array.from(selectedDiv.children).forEach((child, index) => {
-      console.log(`Child ${index}:`, child, 'Rect:', child.getBoundingClientRect());
-    });
-    
-    // NEW: Check parent elements and their styles
-    console.log('🔍 Checking parent elements...');
-    let currentElement = selectedDiv.parentElement;
-    let level = 1;
-    while (currentElement && level <= 5) {
-      const parentStyle = window.getComputedStyle(currentElement);
-      console.log(`Parent ${level} (${currentElement.tagName}${currentElement.id ? '#' + currentElement.id : ''}${currentElement.className ? '.' + currentElement.className.replace(/\s+/g, '.') : ''}):`, {
-        display: parentStyle.display,
-        width: parentStyle.width,
-        height: parentStyle.height,
-        overflow: parentStyle.overflow,
-        position: parentStyle.position,
-        gridTemplateColumns: parentStyle.gridTemplateColumns,
-        gridTemplate: parentStyle.gridTemplate
-      });
-      console.log(`  Bounding rect:`, currentElement.getBoundingClientRect());
-      currentElement = currentElement.parentElement;
-      level++;
-    }
-  }
-};
 
-// Manual test function to debug selected filters
-window.testSelectedFilters = function() {
-  console.log('🧪 Testing selected filters...');
-  
-  // Add a test filter
-  window.filters.priceBand = ['lower'];
-  console.log('1. Added test filter:', window.filters);
-  
-  // Call updateSelectedFilters
-  updateSelectedFilters();
-  console.log('2. Called updateSelectedFilters');
-  
-  // Check the element
-  const selectedDiv = document.getElementById('selected-filters');
-  if (selectedDiv) {
-    console.log('3. Element found:', selectedDiv);
-    console.log('4. Element HTML:', selectedDiv.innerHTML);
-    console.log('5. Element styles:', {
-      display: selectedDiv.style.display,
-      position: selectedDiv.style.position,
-      width: selectedDiv.style.width,
-      height: selectedDiv.style.height
-    });
-    console.log('6. Bounding rect:', selectedDiv.getBoundingClientRect());
-    
-    // Try manual absolute positioning
-    console.log('7. Applying manual positioning...');
-    selectedDiv.style.position = 'fixed';
-    selectedDiv.style.top = '50px';
-    selectedDiv.style.left = '50px';
-    selectedDiv.style.right = '50px';
-    selectedDiv.style.width = 'auto';
-    selectedDiv.style.height = 'auto';
-    selectedDiv.style.backgroundColor = 'transparent';
-    selectedDiv.style.border = 'none';
-    selectedDiv.style.zIndex = '999999';
-    selectedDiv.style.padding = '10px';
-    selectedDiv.style.display = 'flex';
-    selectedDiv.style.flexWrap = 'wrap';
-    selectedDiv.style.gap = '8px';
-    selectedDiv.style.alignItems = 'center';
-    
-    console.log('8. New bounding rect:', selectedDiv.getBoundingClientRect());
-  } else {
-    console.error('❌ Selected filters div not found!');
-  }
-};
+
+
 
 // Enhanced force visibility that also fixes parent issues
 function forceElementAndParentsVisibility(element) {
   if (!element) return;
   
-  console.log('🔧 Forcing visibility on element and parents:', element);
   
   // First force the element itself
   forceElementVisibility(element);
@@ -2900,8 +2536,6 @@ function forceElementAndParentsVisibility(element) {
   let level = 1;
   while (currentElement && level <= 3) {
     const computedStyle = window.getComputedStyle(currentElement);
-    console.log(`🔍 Checking parent ${level}:`, currentElement.tagName, currentElement.className);
-    console.log(`  Current display: ${computedStyle.display}, width: ${computedStyle.width}, height: ${computedStyle.height}`);
     
     // If parent has problematic display values, fix them
     if (computedStyle.display === 'none' || 
@@ -2910,7 +2544,6 @@ function forceElementAndParentsVisibility(element) {
         parseFloat(computedStyle.width) === 0 ||
         parseFloat(computedStyle.height) === 0) {
       
-      console.log(`🔧 Fixing parent ${level} visibility issues`);
       currentElement.style.display = 'block';
       currentElement.style.visibility = 'visible';
       currentElement.style.opacity = '1';
