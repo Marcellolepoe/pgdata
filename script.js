@@ -932,6 +932,19 @@ document.addEventListener("DOMContentLoaded", function () {
 document.addEventListener("DOMContentLoaded", function () {
   const manualMaxInput = document.getElementById("price-input-max");
   if (manualMaxInput) {
+    // Prevent form submission on Enter key
+    manualMaxInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('🚫 Prevented Enter key form submission on price-input-max');
+        // Optionally blur the input to indicate the action was handled
+        manualMaxInput.blur();
+        return false;
+      }
+    });
+    
+    // Handle input changes for filtering
     manualMaxInput.addEventListener("input", () => {
       try {
         const val = parseInt(manualMaxInput.value.replace(/[^\d]/g, ""), 10);
@@ -2008,6 +2021,9 @@ function populateFuneralCard(cardWrapper, funeral) {
   const selectedDays = Array.isArray(filters?.days) && filters.days.length > 0
     ? filters.days.map(Number)
     : [1,2,3,4,5,6,7];
+    
+  let hasAnyPriceInfo = false;
+  
   for (let i = 1; i <= 7; i++) {
     const priceKey = `Available Duration (${i} Day${i > 1 ? (i === 2 ? '' : 's') : ''})`;
     const priceEl = cardWrapper.querySelector(`#day${i}-price`);
@@ -2020,12 +2036,26 @@ function populateFuneralCard(cardWrapper, funeral) {
         if (!isNaN(priceNum)) {
           priceEl.textContent = `$${priceNum.toLocaleString()}`;
           priceDiv.style.display = '';
+          hasAnyPriceInfo = true;
         } else {
           priceDiv.style.display = 'none';
         }
       } else {
         priceDiv.style.display = 'none';
       }
+    }
+  }
+  
+  // If no price information is available for any selected days, show a default message
+  if (!hasAnyPriceInfo && selectedDays.length > 0) {
+    // Find the first available price element and use it to display the message
+    const firstPriceEl = cardWrapper.querySelector(`#day${selectedDays[0]}-price`);
+    const firstPriceDiv = cardWrapper.querySelector(`#day${selectedDays[0]}-price-div`);
+    if (firstPriceEl && firstPriceDiv) {
+      firstPriceEl.textContent = "No price information available";
+      firstPriceEl.style.fontStyle = "italic";
+      firstPriceEl.style.color = "#999";
+      firstPriceDiv.style.display = '';
     }
   }
 
@@ -2038,18 +2068,39 @@ function populateFuneralCard(cardWrapper, funeral) {
     { key: 'Personnel (Display Description)', class: 'personnel-description', div: '#personnel-div' },
     { key: 'Monks (Display Description)', class: 'monk-description', div: '#monks-div' }
   ];
+  
+  let hasAnyInclusionInfo = false;
+  
   inclusions.forEach(({ key, class: descClass, div }) => {
     const descEl = cardWrapper.querySelector(`#${descClass}`);
     const parentDiv = cardWrapper.querySelector(div);
     if (descEl && parentDiv) {
       if (funeral[key] && funeral[key].toString().trim() !== "") {
         descEl.textContent = funeral[key];
+        descEl.style.fontStyle = "normal";
+        descEl.style.color = "";
         parentDiv.style.display = '';
+        hasAnyInclusionInfo = true;
       } else {
-        parentDiv.style.display = 'none';
+        descEl.textContent = "No information available";
+        descEl.style.fontStyle = "italic";
+        descEl.style.color = "#999";
+        parentDiv.style.display = '';
       }
     }
   });
+  
+  // If no inclusion information is available at all, show a general message
+  if (!hasAnyInclusionInfo) {
+    const firstInclusionEl = cardWrapper.querySelector(`#casket-description`);
+    const firstInclusionDiv = cardWrapper.querySelector(`#casket-div`);
+    if (firstInclusionEl && firstInclusionDiv) {
+      firstInclusionEl.textContent = "No key inclusions information available";
+      firstInclusionEl.style.fontStyle = "italic";
+      firstInclusionEl.style.color = "#999";
+      firstInclusionDiv.style.display = '';
+    }
+  }
 
   // Link button to website (Parlour Website Link)
   const linkButton = cardWrapper.querySelector('#link-button, .link-button');
