@@ -2096,95 +2096,21 @@ function populateFuneralCard(cardWrapper, funeral) {
     { key: 'Monks (Display Description)', class: 'monk-description', div: '#monks-div' }
   ];
   
-  let hasAnyInclusionInfo = false;
-  
-  // First pass: check if any inclusion information exists
-  inclusions.forEach(({ key }) => {
-    if (funeral[key] && funeral[key].toString().trim() !== "") {
-      hasAnyInclusionInfo = true;
-    }
-  });
-  
-  if (hasAnyInclusionInfo) {
-    // Show only categories that have information, hide empty ones completely
-    inclusions.forEach(({ key, class: descClass, div }) => {
-      const descEl = cardWrapper.querySelector(`#${descClass}`);
-      const parentDiv = cardWrapper.querySelector(div);
-      if (descEl && parentDiv) {
-        if (funeral[key] && funeral[key].toString().trim() !== "") {
-          descEl.textContent = funeral[key];
-          descEl.style.fontStyle = "normal";
-          descEl.style.color = "";
-          parentDiv.style.display = '';
-        } else {
-          // Hide categories without information completely
-          parentDiv.style.display = 'none';
-        }
-      }
-    });
-  } else {
-    // No inclusion information at all - aggressively hide everything
-    // Hide all individual inclusion divs
-    inclusions.forEach(({ div }) => {
-      const parentDiv = cardWrapper.querySelector(div);
-      if (parentDiv) {
+  inclusions.forEach(({ key, class: descClass, div }) => {
+    const descEl = cardWrapper.querySelector(`#${descClass}`);
+    const parentDiv = cardWrapper.querySelector(div);
+    if (descEl && parentDiv) {
+      if (funeral[key] && funeral[key].toString().trim() !== "") {
+        descEl.textContent = funeral[key];
+        descEl.style.fontStyle = "normal";
+        descEl.style.color = "";
+        parentDiv.style.display = '';
+      } else {
+        // Hide categories without information
         parentDiv.style.display = 'none';
       }
-    });
-    
-    // Hide any elements containing inclusion-related content including placeholders
-    const elementsToHide = [
-      ...cardWrapper.querySelectorAll('[id*="casket"]'),
-      ...cardWrapper.querySelectorAll('[id*="catering"]'),
-      ...cardWrapper.querySelectorAll('[id*="tentage"]'),
-      ...cardWrapper.querySelectorAll('[id*="hearse"]'),
-      ...cardWrapper.querySelectorAll('[id*="personnel"]'),
-      ...cardWrapper.querySelectorAll('[id*="monk"]'),
-      ...cardWrapper.querySelectorAll('[class*="inclusion"]'),
-      ...cardWrapper.querySelectorAll('[class*="key"]'),
-      ...cardWrapper.querySelectorAll('[class*="casket"]'),
-      ...cardWrapper.querySelectorAll('[class*="catering"]'),
-      ...cardWrapper.querySelectorAll('[class*="tentage"]'),
-      ...cardWrapper.querySelectorAll('[class*="hearse"]'),
-      ...cardWrapper.querySelectorAll('[class*="personnel"]'),
-      ...cardWrapper.querySelectorAll('[class*="monk"]')
-    ];
-    
-    elementsToHide.forEach(element => {
-      if (element) {
-        element.style.display = 'none';
-        // Also hide parent containers
-        let parent = element.parentElement;
-        while (parent && parent !== cardWrapper) {
-          parent.style.display = 'none';
-          parent = parent.parentElement;
-        }
-      }
-    });
-    
-    // Also hide any elements that contain placeholder text or category names
-    const allElements = cardWrapper.querySelectorAll('*');
-    allElements.forEach(element => {
-      const text = element.textContent?.trim();
-      const hasOnlyPlaceholder = text === 'XX' || text === 'xx' || text === 'X' || text === 'x';
-      const isCategoryName = text === 'Casket:' || text === 'Casket' ||
-                           text === 'Hearse' || text === 'Personnel' ||
-                           text === 'Monks' || text === 'Catering' ||
-                           text === 'Tentage';
-      const isKeyInclusionsHeader = text === 'Key Inclusions:' || 
-                                   (text && text.includes('Key Inclusions'));
-      
-      if (hasOnlyPlaceholder || isCategoryName || isKeyInclusionsHeader) {
-        element.style.display = 'none';
-        // Hide parent containers as well
-        let parent = element.parentElement;
-        while (parent && parent !== cardWrapper) {
-          parent.style.display = 'none';
-          parent = parent.parentElement;
-        }
-      }
-    });
-  }
+    }
+  });
 
   // Link button to website (Parlour Website Link)
   const linkButton = cardWrapper.querySelector('#link-button, .link-button');
@@ -2197,22 +2123,7 @@ function populateFuneralCard(cardWrapper, funeral) {
     linkButton.style.display = 'none';
   }
 
-  // Create a simple replacement message
-  const cardContent = cardWrapper.querySelector('.card-content, .funeral-card-content, .main-content') || cardWrapper;
-  
-  // Remove any existing "no information" messages to avoid duplicates
-  const existingMessages = cardContent.querySelectorAll('[data-no-inclusion-message]');
-  existingMessages.forEach(msg => msg.remove());
-  
-  const noInclusionDiv = document.createElement('div');
-  noInclusionDiv.setAttribute('data-no-inclusion-message', 'true');
-  noInclusionDiv.style.fontStyle = 'italic';
-  noInclusionDiv.style.fontWeight = 'normal';
-  noInclusionDiv.style.padding = '10px 0';
-  noInclusionDiv.style.marginTop = '10px';
-  noInclusionDiv.textContent = 'No information available';
-  
-  cardContent.appendChild(noInclusionDiv);
+
 }
 
 // Helper to render stars (full stars only, round to nearest, max 5)
@@ -2275,6 +2186,12 @@ function renderResults(filteredData) {
   // Add pagination controls if needed
   if (filteredData.length > ITEMS_PER_PAGE) {
     renderPaginationControls(Math.ceil(filteredData.length / ITEMS_PER_PAGE), filteredData);
+  } else {
+    // Hide pagination when not needed
+    const paginationContainer = document.getElementById('pagination-container');
+    if (paginationContainer) {
+      paginationContainer.style.display = 'none';
+    }
   }
 }
 
