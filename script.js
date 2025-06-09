@@ -427,14 +427,21 @@ function injectStyles() {
     #selected-filters {
       display: flex !important;
       flex-wrap: wrap !important;
-      align-items: flex-start;
-      gap: 4px;
-      min-height: 40px;
+      align-items: flex-start !important;
+      gap: 4px !important;
+      min-height: 40px !important;
       width: 100% !important;
       max-width: none !important;
       height: auto !important;
       max-height: none !important;
       overflow: visible !important;
+    }
+    
+    /* Force height expansion even more aggressively */
+    #selected-filters[style*="height"] {
+      height: auto !important;
+      max-height: none !important;
+      min-height: auto !important;
     }
     
     /* Override any grid display that might be hiding the filters */
@@ -1327,7 +1334,7 @@ function updateSelectedFilters() {
       <span class="filter-content">
         <strong>${label}:</strong> ${value}
       </span>
-      <button class="filter-remove-btn" data-category="${category}" data-value="${filterValue || ''}" aria-label="Remove ${label} filter">
+      <button class="filter-remove-btn" data-category="${category}" data-value="${encodeURIComponent(filterValue || '')}" aria-label="Remove ${label} filter">
         ×
       </button>
     `;
@@ -1336,7 +1343,9 @@ function updateSelectedFilters() {
     const removeBtn = filterTag.querySelector('.filter-remove-btn');
     removeBtn.addEventListener('click', (e) => {
       e.preventDefault();
-      removeFilter(category, filterValue);
+      const encodedValue = e.target.getAttribute('data-value');
+      const decodedValue = decodeURIComponent(encodedValue);
+      removeFilter(category, decodedValue);
     });
     
     selectedFiltersDiv.appendChild(filterTag);
@@ -1460,7 +1469,13 @@ function updateSelectedFilters() {
       selectedFiltersDiv.style.minHeight = '40px';
       selectedFiltersDiv.style.height = 'auto';
       selectedFiltersDiv.style.maxHeight = 'none';
+      selectedFiltersDiv.style.minHeight = 'auto';
       selectedFiltersDiv.style.overflow = 'visible';
+      
+      // Force height with important styles
+      selectedFiltersDiv.style.setProperty('height', 'auto', 'important');
+      selectedFiltersDiv.style.setProperty('max-height', 'none', 'important');
+      selectedFiltersDiv.style.setProperty('min-height', 'auto', 'important');
       
       // Aggressively force parent containers to expand
       let parent = selectedFiltersDiv.parentElement;
