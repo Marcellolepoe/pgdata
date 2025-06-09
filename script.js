@@ -2054,7 +2054,7 @@ function populateFuneralCard(cardWrapper, funeral) {
     if (firstPriceEl && firstPriceDiv) {
       firstPriceEl.textContent = "No price information available";
       firstPriceEl.style.fontStyle = "italic";
-      firstPriceEl.style.color = "#999";
+      firstPriceEl.style.color = ""; // Use default text color
       firstPriceDiv.style.display = '';
     }
   }
@@ -2071,35 +2071,52 @@ function populateFuneralCard(cardWrapper, funeral) {
   
   let hasAnyInclusionInfo = false;
   
-  inclusions.forEach(({ key, class: descClass, div }) => {
-    const descEl = cardWrapper.querySelector(`#${descClass}`);
-    const parentDiv = cardWrapper.querySelector(div);
-    if (descEl && parentDiv) {
-      if (funeral[key] && funeral[key].toString().trim() !== "") {
-        descEl.textContent = funeral[key];
-        descEl.style.fontStyle = "normal";
-        descEl.style.color = "";
-        parentDiv.style.display = '';
-        hasAnyInclusionInfo = true;
-      } else {
-        descEl.textContent = "No information available";
-        descEl.style.fontStyle = "italic";
-        descEl.style.color = "#999";
-        parentDiv.style.display = '';
-      }
+  // First pass: check if any inclusion information exists
+  inclusions.forEach(({ key }) => {
+    if (funeral[key] && funeral[key].toString().trim() !== "") {
+      hasAnyInclusionInfo = true;
     }
   });
   
-  // If no inclusion information is available at all, show a general message
-  if (!hasAnyInclusionInfo) {
-    const firstInclusionEl = cardWrapper.querySelector(`#casket-description`);
-    const firstInclusionDiv = cardWrapper.querySelector(`#casket-div`);
-    if (firstInclusionEl && firstInclusionDiv) {
-      firstInclusionEl.textContent = "No key inclusions information available";
-      firstInclusionEl.style.fontStyle = "italic";
-      firstInclusionEl.style.color = "#999";
-      firstInclusionDiv.style.display = '';
-    }
+  if (hasAnyInclusionInfo) {
+    // Show individual categories with their info or "No information available"
+    inclusions.forEach(({ key, class: descClass, div }) => {
+      const descEl = cardWrapper.querySelector(`#${descClass}`);
+      const parentDiv = cardWrapper.querySelector(div);
+      if (descEl && parentDiv) {
+        if (funeral[key] && funeral[key].toString().trim() !== "") {
+          descEl.textContent = funeral[key];
+          descEl.style.fontStyle = "normal";
+          descEl.style.color = "";
+          parentDiv.style.display = '';
+        } else {
+          descEl.textContent = "No information available";
+          descEl.style.fontStyle = "italic";
+          descEl.style.color = ""; // Use default text color
+          parentDiv.style.display = '';
+        }
+      }
+    });
+  } else {
+    // Hide all individual categories and show only one general message
+    inclusions.forEach(({ class: descClass, div }, index) => {
+      const parentDiv = cardWrapper.querySelector(div);
+      if (parentDiv) {
+        if (index === 0) {
+          // Show general message in first category only
+          const descEl = cardWrapper.querySelector(`#${descClass}`);
+          if (descEl) {
+            descEl.textContent = "No information available";
+            descEl.style.fontStyle = "italic";
+            descEl.style.color = ""; // Use default text color
+            parentDiv.style.display = '';
+          }
+        } else {
+          // Hide all other categories
+          parentDiv.style.display = 'none';
+        }
+      }
+    });
   }
 
   // Link button to website (Parlour Website Link)
