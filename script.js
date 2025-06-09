@@ -41,6 +41,115 @@ const PRICE_BAND_CONFIG = {
 // Add this at the top level
 let isInitializing = true;
 
+// Debug function for manual testing
+// Function to find and configure the correct selected filters container
+window.findAndFixSelectedFilters = function() {
+  console.log('🔧 FINDING AND FIXING SELECTED FILTERS CONTAINER');
+  
+  // Find all possible containers
+  const allContainers = document.querySelectorAll('[id*="selected"], [class*="selected"]');
+  console.log(`Found ${allContainers.length} potential containers:`);
+  
+  allContainers.forEach((container, index) => {
+    console.log(`Container ${index}:`, {
+      tag: container.tagName,
+      id: container.id,
+      classes: container.className,
+      element: container
+    });
+  });
+  
+  // Ask user to specify which one to use (they can see the list above)
+  console.log('📋 To set a specific container as the selected filters container, run:');
+  console.log('window.setSelectedFiltersContainer(index) where index is from the list above');
+  
+  return allContainers;
+};
+
+// Function to set a specific container as the selected filters container
+window.setSelectedFiltersContainer = function(index) {
+  const allContainers = document.querySelectorAll('[id*="selected"], [class*="selected"]');
+  if (index >= 0 && index < allContainers.length) {
+    const container = allContainers[index];
+    
+    // Set the ID
+    container.id = 'selected-filters';
+    
+    // Add the class if it doesn't have it
+    if (!container.classList.contains('selected-filters')) {
+      container.classList.add('selected-filters');
+    }
+    
+    console.log('✅ Set container as selected filters:', container);
+    
+    // Test it immediately
+    filters.testCategory = ['test value'];
+    updateSelectedFilters();
+    
+    setTimeout(() => {
+      delete filters.testCategory;
+      updateSelectedFilters();
+    }, 2000);
+    
+    return container;
+  } else {
+    console.error('❌ Invalid index. Run window.findAndFixSelectedFilters() first to see available containers.');
+  }
+};
+
+window.debugSelectedFilters = function() {
+  console.log('🔧 MANUAL DEBUG - Testing Selected Filters Functionality');
+  
+  // Test 1: Find the container
+  console.log('Test 1: Finding container...');
+  const container = document.getElementById('selected-filters') || document.querySelector('.selected-filters');
+  console.log('Container found:', container);
+  
+  if (!container) {
+    console.error('❌ No container found!');
+    return;
+  }
+  
+  // Test 2: Add a test filter
+  console.log('Test 2: Adding test filter...');
+  filters.testCategory = ['test value'];
+  updateSelectedFilters();
+  
+  // Test 3: Check if filter appeared
+  setTimeout(() => {
+    console.log('Test 3: Checking if filter appeared...');
+    const filterTags = container.querySelectorAll('.filter-tag');
+    console.log('Filter tags found:', filterTags.length);
+    filterTags.forEach((tag, index) => {
+      console.log(`Tag ${index}:`, tag.innerHTML);
+    });
+    
+    // Test 4: Test container dimensions
+    const rect = container.getBoundingClientRect();
+    console.log('Container dimensions:', {
+      width: rect.width,
+      height: rect.height,
+      top: rect.top,
+      left: rect.left
+    });
+    
+    // Test 5: Check computed styles
+    const styles = window.getComputedStyle(container);
+    console.log('Container styles:', {
+      display: styles.display,
+      visibility: styles.visibility,
+      opacity: styles.opacity,
+      overflow: styles.overflow,
+      height: styles.height,
+      maxHeight: styles.maxHeight
+    });
+    
+    // Clean up
+    delete filters.testCategory;
+    updateSelectedFilters();
+  }, 500);
+};
+
 // Add at the top level
 let currentBandState = {
   active: false,
@@ -1126,6 +1235,28 @@ function updateURLParams() {
 // Update Selected Filters Panel
 function updateSelectedFilters() {
   console.log('🔍 updateSelectedFilters called');
+  
+  // Debug: Find all possible selected filters containers
+  console.log('🔍 Debugging all possible selected filters containers:');
+  
+  // Check by ID
+  const byId = document.getElementById("selected-filters");
+  console.log('📍 By ID "selected-filters":', byId);
+  
+  // Check by class
+  const byClass = document.querySelectorAll('.selected-filters');
+  console.log('📍 By class "selected-filters":', byClass.length, 'found');
+  byClass.forEach((el, index) => {
+    console.log(`  Container ${index}:`, el.id, el.className, el);
+  });
+  
+  // Check for any element with "selected" in the ID or class
+  const anySelected = document.querySelectorAll('[id*="selected"], [class*="selected"]');
+  console.log('📍 Any elements with "selected":', anySelected.length, 'found');
+  anySelected.forEach((el, index) => {
+    console.log(`  Element ${index}:`, el.tagName, el.id, el.className);
+  });
+  
   let selectedFiltersDiv = document.getElementById("selected-filters");
   
   // If element exists but is positioned too far down, try to find a better container
@@ -1154,7 +1285,23 @@ function updateSelectedFilters() {
   }
   
   if (!selectedFiltersDiv) {
-    console.error('❌ Selected filters div not found with ID "selected-filters"');
+    console.log('⚠️ No element found with ID "selected-filters", trying alternatives...');
+    
+    // Try to find by class
+    const classElements = document.querySelectorAll('.selected-filters');
+    if (classElements.length > 0) {
+      selectedFiltersDiv = classElements[0];
+      console.log('✅ Found alternative by class "selected-filters":', selectedFiltersDiv);
+      // Give it an ID for future reference
+      if (!selectedFiltersDiv.id) {
+        selectedFiltersDiv.id = 'selected-filters';
+        console.log('🔧 Added ID "selected-filters" to the element');
+      }
+    }
+  }
+  
+  if (!selectedFiltersDiv) {
+    console.error('❌ No selected filters container found at all');
     console.log('Available elements with "selected" in ID or class:');
     document.querySelectorAll('[id*="selected"], [class*="selected"]').forEach(el => {
       console.log('Found element:', el.id, el.className, el);
