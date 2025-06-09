@@ -1668,28 +1668,39 @@ function removeFilter(category, filterValue) {
         valuesToRemove.forEach(value => {
           console.log(`🔍 Looking for checkboxes with category="${category}" and value="${value}"`);
           
-          // Method 1: Direct attribute matching (most reliable)
-          let checkboxes = document.querySelectorAll(`input[type="checkbox"][data-category="${category}"][data-value="${value}"]`);
-          console.log(`📍 Method 1 found ${checkboxes.length} checkboxes`);
+          // Method 1: Look for input inside container with data attributes (correct approach)
+          let checkboxes = document.querySelectorAll(`[data-category="${category}"][data-value="${value}"] input[type="checkbox"]`);
+          console.log(`📍 Method 1 (container->input) found ${checkboxes.length} checkboxes`);
           
-          // Method 2: Try escaping quotes in case value contains them
+          // Method 2: Try direct attribute matching on input (in case data is on input)
           if (checkboxes.length === 0) {
-            const escapedValue = value.replace(/"/g, '\\"');
-            checkboxes = document.querySelectorAll(`input[type="checkbox"][data-category="${category}"][data-value="${escapedValue}"]`);
-            console.log(`📍 Method 2 (escaped) found ${checkboxes.length} checkboxes`);
+            checkboxes = document.querySelectorAll(`input[type="checkbox"][data-category="${category}"][data-value="${value}"]`);
+            console.log(`📍 Method 2 (direct on input) found ${checkboxes.length} checkboxes`);
           }
           
-          // Method 3: Manual iteration through all checkboxes (fallback)
+          // Method 3: Try the .filter-checkbox class approach
           if (checkboxes.length === 0) {
-            const allCheckboxes = document.querySelectorAll(`input[type="checkbox"][data-category="${category}"]`);
-            console.log(`📍 Method 3: Found ${allCheckboxes.length} checkboxes in category ${category}`);
+            checkboxes = document.querySelectorAll(`.filter-checkbox[data-category="${category}"][data-value="${value}"] input[type="checkbox"]`);
+            console.log(`📍 Method 3 (.filter-checkbox) found ${checkboxes.length} checkboxes`);
+          }
+          
+          // Method 4: Manual search through all checkboxes
+          if (checkboxes.length === 0) {
+            console.log(`📍 Method 4: Manual search through all checkboxes`);
+            const allInputs = document.querySelectorAll(`input[type="checkbox"]`);
+            console.log(`  Found ${allInputs.length} total checkboxes`);
             
-            checkboxes = Array.from(allCheckboxes).filter(cb => {
-              const cbValue = cb.getAttribute('data-value');
-              console.log(`  Checking checkbox with data-value="${cbValue}" against target "${value}"`);
-              return cbValue === value;
+            checkboxes = Array.from(allInputs).filter(input => {
+              const container = input.closest('[data-category]');
+              if (container) {
+                const containerCategory = container.getAttribute('data-category');
+                const containerValue = container.getAttribute('data-value');
+                console.log(`  Checking input in container: category="${containerCategory}", value="${containerValue}"`);
+                return containerCategory === category && containerValue === value;
+              }
+              return false;
             });
-            console.log(`📍 Method 3 filtered to ${checkboxes.length} matching checkboxes`);
+            console.log(`📍 Method 4 found ${checkboxes.length} matching checkboxes`);
           }
           
           if (checkboxes.length === 0) {
@@ -1763,14 +1774,14 @@ function removeFilter(category, filterValue) {
           console.log(`🔄 Complete fallback: Clearing all filters for category ${category}`);
           filters[category] = [];
           
-          // Try multiple methods to find and uncheck all checkboxes for this category
-          let allCheckboxes = document.querySelectorAll(`input[type="checkbox"][data-category="${category}"]`);
-          if (allCheckboxes.length === 0) {
-            allCheckboxes = document.querySelectorAll(`.filter-checkbox input[type="checkbox"][data-category="${category}"]`);
-          }
-          if (allCheckboxes.length === 0 && category === 'priceBand') {
-            allCheckboxes = document.querySelectorAll(`[data-category="priceBand"]`);
-          }
+                   // Try multiple methods to find and uncheck all checkboxes for this category
+         let allCheckboxes = document.querySelectorAll(`[data-category="${category}"] input[type="checkbox"]`);
+         if (allCheckboxes.length === 0) {
+           allCheckboxes = document.querySelectorAll(`input[type="checkbox"][data-category="${category}"]`);
+         }
+         if (allCheckboxes.length === 0) {
+           allCheckboxes = document.querySelectorAll(`.filter-checkbox[data-category="${category}"] input[type="checkbox"]`);
+         }
           
           allCheckboxes.forEach(checkbox => {
             checkbox.checked = false;
