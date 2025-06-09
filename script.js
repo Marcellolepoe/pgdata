@@ -2048,13 +2048,22 @@ function populateFuneralCard(cardWrapper, funeral) {
   
   // If no price information is available for any selected days, show a default message
   if (!hasAnyPriceInfo && selectedDays.length > 0) {
-    // Find the first available price element and use it to display the message
+    // Hide all individual day divs
+    for (let i = 1; i <= 7; i++) {
+      const dayDiv = cardWrapper.querySelector(`#day${i}-price-div`);
+      if (dayDiv) {
+        dayDiv.style.display = 'none';
+      }
+    }
+    
+    // Show message in the first day element without day label structure
     const firstPriceEl = cardWrapper.querySelector(`#day${selectedDays[0]}-price`);
     const firstPriceDiv = cardWrapper.querySelector(`#day${selectedDays[0]}-price-div`);
     if (firstPriceEl && firstPriceDiv) {
       firstPriceEl.textContent = "No price information available";
       firstPriceEl.style.fontStyle = "italic";
       firstPriceEl.style.color = ""; // Use default text color
+      firstPriceEl.style.fontWeight = "normal"; // Ensure not bold
       firstPriceDiv.style.display = '';
     }
   }
@@ -2079,7 +2088,7 @@ function populateFuneralCard(cardWrapper, funeral) {
   });
   
   if (hasAnyInclusionInfo) {
-    // Show individual categories with their info or "No information available"
+    // Show only categories that have information, hide empty ones completely
     inclusions.forEach(({ key, class: descClass, div }) => {
       const descEl = cardWrapper.querySelector(`#${descClass}`);
       const parentDiv = cardWrapper.querySelector(div);
@@ -2090,10 +2099,8 @@ function populateFuneralCard(cardWrapper, funeral) {
           descEl.style.color = "";
           parentDiv.style.display = '';
         } else {
-          descEl.textContent = "No information available";
-          descEl.style.fontStyle = "italic";
-          descEl.style.color = ""; // Use default text color
-          parentDiv.style.display = '';
+          // Hide categories without information completely
+          parentDiv.style.display = 'none';
         }
       }
     });
