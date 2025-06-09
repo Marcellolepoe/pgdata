@@ -376,6 +376,29 @@ function injectStyles() {
       flex-direction: row !important;
       flex-wrap: wrap !important;
     }
+    
+    /* Force expansion on any parent grid containers */
+    #selected-filters:parent,
+    .selected-filters:parent,
+    .w-layout-grid:has(#selected-filters),
+    .w-layout-grid:has(.selected-filters) {
+      height: auto !important;
+      max-height: none !important;
+      grid-auto-rows: auto !important;
+      grid-template-rows: auto !important;
+    }
+    
+    /* Aggressive overrides for stubborn Webflow containers */
+    [class*="grid"]:has(#selected-filters),
+    [class*="grid"]:has(.selected-filters),
+    [id*="grid"]:has(#selected-filters),
+    [id*="grid"]:has(.selected-filters) {
+      height: auto !important;
+      max-height: none !important;
+      overflow: visible !important;
+      display: grid !important;
+      grid-auto-rows: auto !important;
+    }
   `;
 
   const styleSheet = document.createElement('style');
@@ -1266,9 +1289,12 @@ function updateSelectedFilters() {
       selectedFiltersDiv.style.visibility = 'visible';
       selectedFiltersDiv.style.opacity = '1';
       selectedFiltersDiv.style.flexWrap = 'wrap';
-      selectedFiltersDiv.style.alignItems = 'center';
-      selectedFiltersDiv.style.gap = '8px';
+      selectedFiltersDiv.style.alignItems = 'flex-start';
+      selectedFiltersDiv.style.gap = '4px';
       selectedFiltersDiv.style.minHeight = '40px';
+      selectedFiltersDiv.style.height = 'auto';
+      selectedFiltersDiv.style.maxHeight = 'none';
+      selectedFiltersDiv.style.overflow = 'visible';
       
       console.log('✅ Container is now using natural positioning within the layout');
     }, 100);
@@ -1324,13 +1350,23 @@ function forceElementAndParentsVisibility(element) {
         parseFloat(computedStyle.height) === 0) {
       
       console.log(`🔧 Fixing parent ${level} visibility issues`);
-      currentElement.style.display = 'block';
+      
+      // Check if it's a grid container and preserve grid layout while allowing expansion
+      if (computedStyle.display.includes('grid') || currentElement.classList.toString().includes('grid')) {
+        currentElement.style.display = 'grid';
+        currentElement.style.gridAutoRows = 'auto';
+        currentElement.style.gridTemplateRows = 'auto';
+      } else {
+        currentElement.style.display = 'block';
+      }
+      
       currentElement.style.visibility = 'visible';
       currentElement.style.opacity = '1';
       currentElement.style.minWidth = 'auto';
       currentElement.style.minHeight = 'auto';
       currentElement.style.width = 'auto';
       currentElement.style.height = 'auto';
+      currentElement.style.maxHeight = 'none';
       currentElement.style.overflow = 'visible';
       
       // If it's a grid container, make sure it doesn't collapse
